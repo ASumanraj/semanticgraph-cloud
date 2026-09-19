@@ -35,3 +35,9 @@ Thumbs.db
 
 # --- Scratch ---
 screenshot.png
+
+# --- Vendored agent-skills library ---
+# Lives outside the project at S:/ECC (clone of github.com/affaan-m/ECC).
+# Kept out of the repo: nothing here references it, and its own .agents/ and
+# .claude/ trees would otherwise pollute skill discovery for this project.
+ECC/

@@ -27,7 +27,7 @@ and cannot be deleted on request.
 ## Getting started
 
 ```bash
-git clone --recurse-submodules https://github.com/ASumanraj/semanticgraph-cloud.git
+git clone https://github.com/ASumanraj/semanticgraph-cloud.git
 cd semanticgraph-cloud
 
 python -m venv .venv && .venv/Scripts/activate   # PowerShell: .venv\Scripts\Activate.ps1
@@ -55,7 +55,6 @@ frontend/              Next.js dashboard — ontology, explorer, evaluations
 infra/                 AWS CDK
 tests/                 unit / integration / e2e, mirroring the architecture
 docs/                  architecture, ADRs, planning
-ECC/                   vendored agent-skills library (git submodule)
 ```
 
 ## Architecture
