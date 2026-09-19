@@ -34,13 +34,14 @@ Tick as each item lands. Detail for every item is in Part 3.
 
 ### Stage 0 — Repository foundation
 - [x] Approved plan committed to `docs/architecture/ENTERPRISE_PLAN.md`
-- [ ] Root `.gitignore`
-- [ ] `git init` at root + first commit
-- [ ] Root `pyproject.toml` + `uv.lock` (replaces unpinned `requirements.txt`)
-- [ ] Nested git histories resolved (`backend/`, `infra/`, `ECC/`, `src/frontend/`) — **needs decision**
-- [ ] Legacy scaffolds deleted (Part 1.4) — **needs decision**
-- [ ] `AGENTS.md` updated — it currently mandates Celery, Neo4j and Instructor, which this plan replaces
+- [x] Root `.gitignore` (+ `.gitattributes`, `.dockerignore`)
+- [x] `git init` at root + first commit
+- [x] Root `pyproject.toml` (replaces unpinned `requirements.txt`) — `uv.lock` still to generate
+- [x] Nested git histories resolved — scaffold `.git` dirs removed; `ECC/` pinned as a submodule at `dd6ee53`
+- [x] Legacy scaffolds deleted (Part 1.4); frontend consolidated on the Next.js app at `frontend/`
+- [x] `AGENTS.md` rewritten against this plan
 - [ ] CI repointed at the root project
+- [ ] Remote configured and pushed
 
 ### Stage 1 — Correctness of existing code
 - [ ] Production→test import removed (`api/app.py` imports fakes from `tests/`)
