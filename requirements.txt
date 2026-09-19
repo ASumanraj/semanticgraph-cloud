@@ -1,8 +1,0 @@
-fastapi
-uvicorn
-celery
-redis
-instructor
-google-genai
-pydantic
-sqlalchemy
