@@ -40,8 +40,10 @@ Tick as each item lands. Detail for every item is in Part 3.
 - [x] Nested git histories resolved — scaffold `.git` dirs removed; `ECC/` pinned as a submodule at `dd6ee53`
 - [x] Legacy scaffolds deleted (Part 1.4); frontend consolidated on the Next.js app at `frontend/`
 - [x] `AGENTS.md` rewritten against this plan
-- [ ] CI repointed at the root project
-- [ ] Remote configured and pushed
+- [x] CI repointed at the root project (`ci.yml`: ruff + pytest on 3.12, frontend lint + build)
+- [x] Remote configured and pushed — github.com/ASumanraj/semanticgraph-cloud
+
+**Stage 0 complete.**
 
 ### Stage 1 — Correctness of existing code
 - [ ] Production→test import removed (`api/app.py` imports fakes from `tests/`)
