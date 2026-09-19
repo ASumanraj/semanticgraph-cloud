@@ -15,7 +15,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: backend.Dockerfile
+      dockerfile: api.Dockerfile
     command: python -c 'import time; print("API Mock Booting"); time.sleep(3600)'
     ports:
       - "8000:8000"
@@ -25,7 +25,7 @@ services:
   worker:
     build:
       context: .
-      dockerfile: backend.Dockerfile
+      dockerfile: api.Dockerfile
     command: python -c 'import time; print("Worker Mock Booting"); time.sleep(3600)'
   frontend:
     build:

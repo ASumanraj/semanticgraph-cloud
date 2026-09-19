@@ -7,8 +7,8 @@ resolution into Golden Records, subgraph retrieval with citations.
 queue — read it before designing anything, and tick its progress tracker as items land.
 `DOMAIN_SPEC.md` is the glossary. `docs/adr/` holds the individual decisions.
 
-`ARCHITECTURE.md` is the pre-research design and is **stale**: it specifies Neo4j and
-Celery, both replaced. Trust `ENTERPRISE_PLAN.md` wherever the two disagree.
+Pre-research documents live in `docs/architecture/superseded/` — they specify Neo4j and Celery,
+both replaced. `ENTERPRISE_PLAN.md` wins wherever they disagree.
 
 ## The five irreversible rules
 
