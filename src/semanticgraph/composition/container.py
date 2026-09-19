@@ -1,92 +1,130 @@
 """
-Composition Root: Wires adapters into use cases via FastAPI Depends().
+Composition Root.
 
-This is the SINGLE wiring location (hexagonal-architecture skill, Step 5).
-No hidden globals, no service-locator. Explicit and auditable.
+Every outbound dependency is chosen in exactly one place, from configuration,
+and handed to use cases as an explicit argument. Nothing reaches for a global.
+
+The container is built once per process and attached to `app.state` for HTTP and
+resolved through `default_container()` for workers. There is no setter: a
+process cannot be half-wired, and there is no order-dependent startup step that
+a second entry point might forget.
 """
 
 from __future__ import annotations
 
+import os
+from dataclasses import dataclass
+from functools import lru_cache
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, Request
 
 from semanticgraph.application.ports.outbound.document_repository import DocumentRepositoryPort
 from semanticgraph.application.ports.outbound.graph_repository import GraphRepositoryPort
 from semanticgraph.application.ports.outbound.llm_gateway import LLMGatewayPort
+from semanticgraph.application.ports.outbound.object_storage import ObjectStoragePort
 from semanticgraph.application.ports.outbound.task_publisher import TaskPublisherPort
 from semanticgraph.application.use_cases.ingest_document import IngestDocumentUseCase
+from semanticgraph.application.use_cases.upload_document import UploadDocumentUseCase
 
-# --- Adapter Providers ---
-# These will be swapped for real adapters (Neo4j, Instructor, Celery)
-# in later phases. For now, we use in-memory fakes to keep the seam real.
-
-_doc_repo_instance: DocumentRepositoryPort | None = None
-_graph_repo_instance: GraphRepositoryPort | None = None
-_llm_gateway_instance: LLMGatewayPort | None = None
-_task_publisher_instance: TaskPublisherPort | None = None
+ADAPTER_PROFILE_ENV = "SEMANTICGRAPH_ADAPTERS"
+DEFAULT_ADAPTER_PROFILE = "inmemory"
 
 
-def set_doc_repo(repo: DocumentRepositoryPort) -> None:
-    global _doc_repo_instance
-    _doc_repo_instance = repo
+class UnknownAdapterProfileError(RuntimeError):
+    def __init__(self, profile: str, known: tuple[str, ...]) -> None:
+        super().__init__(
+            f"Unknown adapter profile {profile!r}. "
+            f"Set {ADAPTER_PROFILE_ENV} to one of: {', '.join(known)}."
+        )
 
 
-def get_doc_repo() -> DocumentRepositoryPort:
-    assert _doc_repo_instance is not None, "DocumentRepository not wired in composition root"
-    return _doc_repo_instance
+@dataclass(frozen=True)
+class Container:
+    """The wired set of outbound adapters, and the use cases built from them."""
+
+    document_repo: DocumentRepositoryPort
+    graph_repo: GraphRepositoryPort
+    llm_gateway: LLMGatewayPort
+    task_publisher: TaskPublisherPort
+    object_storage: ObjectStoragePort
+
+    @classmethod
+    def in_memory(cls) -> Container:
+        from semanticgraph.adapters.outbound.inmemory import (
+            DeterministicLLMGateway,
+            InMemoryDocumentRepository,
+            InMemoryGraphRepository,
+            InMemoryObjectStorage,
+            InMemoryTaskPublisher,
+        )
+
+        return cls(
+            document_repo=InMemoryDocumentRepository(),
+            graph_repo=InMemoryGraphRepository(),
+            llm_gateway=DeterministicLLMGateway(),
+            task_publisher=InMemoryTaskPublisher(),
+            object_storage=InMemoryObjectStorage(),
+        )
+
+    @classmethod
+    def for_profile(cls, profile: str) -> Container:
+        builders = {"inmemory": cls.in_memory}
+        try:
+            return builders[profile]()
+        except KeyError:
+            raise UnknownAdapterProfileError(profile, tuple(builders)) from None
+
+    # --- Use case factories ---
+
+    def ingest_document(self) -> IngestDocumentUseCase:
+        return IngestDocumentUseCase(
+            graph_repo=self.graph_repo,
+            llm_gateway=self.llm_gateway,
+            task_publisher=self.task_publisher,
+        )
+
+    def upload_document(self) -> UploadDocumentUseCase:
+        return UploadDocumentUseCase(
+            storage=self.object_storage,
+            document_repo=self.document_repo,
+            task_publisher=self.task_publisher,
+        )
 
 
-def set_graph_repo(repo: GraphRepositoryPort) -> None:
-    global _graph_repo_instance
-    _graph_repo_instance = repo
+def adapter_profile() -> str:
+    return os.getenv(ADAPTER_PROFILE_ENV, DEFAULT_ADAPTER_PROFILE)
 
 
-def set_llm_gateway(gateway: LLMGatewayPort) -> None:
-    global _llm_gateway_instance
-    _llm_gateway_instance = gateway
+@lru_cache(maxsize=1)
+def default_container() -> Container:
+    """Process-wide container. Used by workers and by the API's lifespan."""
+    return Container.for_profile(adapter_profile())
 
 
-def set_task_publisher(publisher: TaskPublisherPort) -> None:
-    global _task_publisher_instance
-    _task_publisher_instance = publisher
+# --- FastAPI wiring ---
 
 
-def get_graph_repo() -> GraphRepositoryPort:
-    assert _graph_repo_instance is not None, "GraphRepository not wired in composition root"
-    return _graph_repo_instance
+def get_container(request: Request) -> Container:
+    container = getattr(request.app.state, "container", None)
+    if container is None:
+        raise RuntimeError(
+            "No container on app.state. Build the app with create_app(), which "
+            "wires it in the lifespan, rather than constructing FastAPI directly."
+        )
+    return container
 
 
-def get_llm_gateway() -> LLMGatewayPort:
-    assert _llm_gateway_instance is not None, "LLMGateway not wired in composition root"
-    return _llm_gateway_instance
+ContainerDep = Annotated[Container, Depends(get_container)]
 
 
-def get_task_publisher() -> TaskPublisherPort:
-    assert _task_publisher_instance is not None, "TaskPublisher not wired in composition root"
-    return _task_publisher_instance
+def get_ingest_document_use_case(container: ContainerDep) -> IngestDocumentUseCase:
+    return container.ingest_document()
 
 
-# --- Typed Dependencies (fastapi skill: Annotated + Depends) ---
-
-GraphRepoDep = Annotated[GraphRepositoryPort, Depends(get_graph_repo)]
-LLMGatewayDep = Annotated[LLMGatewayPort, Depends(get_llm_gateway)]
-TaskPublisherDep = Annotated[TaskPublisherPort, Depends(get_task_publisher)]
-
-
-# --- Use Case Providers ---
-
-
-def get_ingest_document_use_case(
-    graph_repo: GraphRepoDep,
-    llm_gateway: LLMGatewayDep,
-    task_publisher: TaskPublisherDep,
-) -> IngestDocumentUseCase:
-    return IngestDocumentUseCase(
-        graph_repo=graph_repo,
-        llm_gateway=llm_gateway,
-        task_publisher=task_publisher,
-    )
+def get_upload_document_use_case(container: ContainerDep) -> UploadDocumentUseCase:
+    return container.upload_document()
 
 
 IngestDocumentDep = Annotated[IngestDocumentUseCase, Depends(get_ingest_document_use_case)]
+UploadDocumentDep = Annotated[UploadDocumentUseCase, Depends(get_upload_document_use_case)]

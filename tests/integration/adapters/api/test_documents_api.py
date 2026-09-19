@@ -13,32 +13,16 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from tests.unit.use_cases.test_ingest_document import (
-    FakeGraphRepository,
-    FakeLLMGateway,
-    FakeTaskPublisher,
-)
 
 from semanticgraph.adapters.inbound.api.app import app
-from semanticgraph.composition.container import (
-    set_graph_repo,
-    set_llm_gateway,
-    set_task_publisher,
-)
-
-
-@pytest.fixture(autouse=True)
-def wire_fakes():
-    """Wire in-memory fakes before each test — composition root is explicit."""
-    set_graph_repo(FakeGraphRepository())
-    set_llm_gateway(FakeLLMGateway())
-    set_task_publisher(FakeTaskPublisher())
-    yield
 
 
 @pytest.fixture
 def client():
-    return TestClient(app)
+    # As a context manager so the lifespan runs and builds app.state.container.
+    # Without it the app starts unwired, which get_container reports explicitly.
+    with TestClient(app) as test_client:
+        yield test_client
 
 
 @pytest.fixture

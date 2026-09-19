@@ -22,25 +22,11 @@ logger = logging.getLogger("semanticgraph")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Wire adapters at startup. Swap fakes for real adapters per phase."""
-    # Phase 1: In-memory fakes (will be replaced with real Neo4j/LLM/Celery adapters)
-    from tests.unit.use_cases.test_ingest_document import (
-        FakeGraphRepository,
-        FakeLLMGateway,
-        FakeTaskPublisher,
-    )
+    """Build the container once, from configuration, and hang it on app.state."""
+    from semanticgraph.composition.container import adapter_profile, default_container
 
-    from semanticgraph.composition.container import (
-        set_graph_repo,
-        set_llm_gateway,
-        set_task_publisher,
-    )
-
-    set_graph_repo(FakeGraphRepository())
-    set_llm_gateway(FakeLLMGateway())
-    set_task_publisher(FakeTaskPublisher())
-
-    logger.info("SemanticGraph Cloud started (in-memory adapters)")
+    app.state.container = default_container()
+    logger.info("SemanticGraph Cloud started (adapter profile: %s)", adapter_profile())
     yield
     logger.info("SemanticGraph Cloud shutting down")
 

@@ -9,106 +9,36 @@ from uuid import uuid4
 
 import pytest
 
+from semanticgraph.adapters.outbound.inmemory import (
+    DeterministicLLMGateway,
+    InMemoryGraphRepository,
+    InMemoryTaskPublisher,
+)
 from semanticgraph.application.use_cases.ingest_document import (
     IngestDocumentCommand,
     IngestDocumentUseCase,
 )
 from semanticgraph.domain.models.entities import (
-    Edge,
-    GoldenRecord,
     Ontology,
-    RawEntity,
     TenantId,
 )
-
-# --- In-Memory Fake Adapters (satisfy the Port Protocols) ---
-
-
-class FakeGraphRepository:
-    """In-memory fake satisfying GraphRepositoryPort."""
-
-    def __init__(self):
-        self.saved_entities: list[RawEntity] = []
-        self.saved_edges: list[Edge] = []
-
-    async def save_raw_entities(self, tenant_id: TenantId, entities: list[RawEntity]) -> None:
-        for e in entities:
-            assert e.tenant_id == tenant_id
-            self.saved_entities.append(e)
-
-    async def save_edges(self, tenant_id: TenantId, edges: list[Edge]) -> None:
-        self.saved_edges.extend(edges)
-
-    async def find_similar_entities(
-        self, tenant_id: TenantId, name: str, threshold: float = 0.85
-    ) -> list[RawEntity]:
-        return [e for e in self.saved_entities if name.lower() in e.name.lower()]
-
-    async def merge_into_golden_record(
-        self, tenant_id: TenantId, source_ids: list[RawEntity], canonical: GoldenRecord
-    ) -> GoldenRecord:
-        return canonical
-
-    async def search_subgraph(self, tenant_id: TenantId, query: str, depth: int = 2) -> list:
-        return []
-
-
-class FakeLLMGateway:
-    """In-memory fake satisfying LLMGatewayPort. Returns deterministic extraction."""
-
-    async def extract_entities_and_edges(self, tenant_id, chunk, ontology):
-        # Deterministic: always extract one entity and one edge per chunk
-        entity = RawEntity(
-            tenant_id=tenant_id,
-            name=f"Entity from chunk {chunk.chunk_index}",
-            entity_type=ontology.allowed_entity_types[0]
-            if ontology.allowed_entity_types
-            else "Unknown",
-        )
-        edge = Edge(
-            tenant_id=tenant_id,
-            source_entity_id=entity.id,
-            target_entity_id=entity.id,
-            edge_type=ontology.allowed_edge_types[0]
-            if ontology.allowed_edge_types
-            else "RELATED_TO",
-        )
-        return [entity], [edge]
-
-
-class FakeTaskPublisher:
-    """In-memory fake satisfying TaskPublisherPort."""
-
-    def __init__(self):
-        self.published_tasks: list[str] = []
-
-    async def publish_document_ingestion(self, tenant_id, document_id):
-        task_id = f"task-{document_id}"
-        self.published_tasks.append(task_id)
-        return task_id
-
-    async def publish_resolution_scan(self, tenant_id):
-        task_id = f"resolution-{tenant_id.value}"
-        self.published_tasks.append(task_id)
-        return task_id
-
 
 # --- Tests ---
 
 
 @pytest.fixture
 def graph_repo():
-    return FakeGraphRepository()
+    return InMemoryGraphRepository()
 
 
 @pytest.fixture
 def llm_gateway():
-    return FakeLLMGateway()
+    return DeterministicLLMGateway()
 
 
 @pytest.fixture
 def task_publisher():
-    return FakeTaskPublisher()
+    return InMemoryTaskPublisher()
 
 
 @pytest.fixture

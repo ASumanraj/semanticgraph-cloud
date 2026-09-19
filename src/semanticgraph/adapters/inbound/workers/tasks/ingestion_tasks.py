@@ -16,12 +16,7 @@ from semanticgraph.application.use_cases.process_document import (
     ProcessDocumentCommand,
     ProcessDocumentUseCase,
 )
-from semanticgraph.composition.container import (
-    get_doc_repo,
-    get_graph_repo,
-    get_llm_gateway,
-    get_task_publisher,
-)
+from semanticgraph.composition.container import default_container
 from semanticgraph.domain.models.entities import Ontology, TenantId
 
 
@@ -52,16 +47,12 @@ def process_document_task(
         ontology=ontology,
     )
 
-    doc_repo = get_doc_repo()
-    graph_repo = get_graph_repo()
-    llm_gateway = get_llm_gateway()
-    task_publisher = get_task_publisher()
-
+    container = default_container()
     use_case = ProcessDocumentUseCase(
-        document_repo=doc_repo,
-        graph_repo=graph_repo,
-        llm_gateway=llm_gateway,
-        task_publisher=task_publisher,
+        document_repo=container.document_repo,
+        graph_repo=container.graph_repo,
+        llm_gateway=container.llm_gateway,
+        task_publisher=container.task_publisher,
     )
 
     try:
