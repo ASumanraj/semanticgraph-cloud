@@ -47,11 +47,11 @@ Tick as each item lands. Detail for every item is in Part 3.
 
 ### Stage 1 — Correctness of existing code
 - [x] Package collapsed onto one structure (`models/`, `services/` and the loose root modules removed; upload and search moved into use cases)
-- [ ] Production→test import removed (`api/app.py` imports fakes from `tests/`)
-- [ ] Global-variable composition root replaced with a startup-built `Container`
+- [x] Production→test import removed — fakes promoted to `adapters/outbound/inmemory/`
+- [x] Global-variable composition root replaced with a config-built `Container` (no setters)
 - [ ] Async/sync boundary fixed (`AsyncSession` throughout)
 - [ ] `docker-compose.yml` runs the real API and worker
-- [ ] Architecture-fitness test (no framework imports in `domain/`/`application/`)
+- [x] Architecture-fitness tests (no framework imports in `domain/`/`application/`; no `tests` import in `src/`)
 
 ### Stage 2 — The irreversible schema ← the foundation
 - [ ] Alembic baseline
