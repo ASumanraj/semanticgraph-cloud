@@ -10,6 +10,23 @@ queue — read it before designing anything, and tick its progress tracker as it
 Pre-research documents live in `docs/architecture/superseded/` — they specify Neo4j and Celery,
 both replaced. `ENTERPRISE_PLAN.md` wins wherever they disagree.
 
+## Skills
+
+Check the available skills before starting and run the one that fits. They carry
+conventions this file has no room for, and they are cheaper than rediscovering the
+same pattern.
+
+| Working on | Reach for |
+|---|---|
+| A feature, a bug, a refactor | `tdd-workflow` |
+| Routes, dependencies, response models | `fastapi`, `api-design` |
+| Repositories, queries, migrations | `backend-patterns` |
+| Anything under `frontend/` | `frontend-patterns`, `nextjs-turbopack` |
+| Driving the UI in a browser | `e2e-testing` |
+| CDK stacks under `infra/` | `aws-cdk` |
+
+`.agents/skills/README.md` lists the rest and where each came from.
+
 ## The five irreversible rules
 
 These are schema properties with no backfill path. Violating one is not a bug to fix
@@ -64,6 +81,26 @@ a reason to check in. When the *same* error survives three consecutive attempts,
 report the trace and what you think is blocking it.
 
 Report at the end of the slice, in a few lines: what changed and what the tests say.
+
+## Proving it works
+
+Passing against the in-memory adapters shows the shape is right. It does not show
+the system runs. Every stage also earns one path exercised end to end, on real
+infrastructure.
+
+**Backend** — a real Postgres, from `docker compose` or testcontainers, rather than
+SQLite or the in-memory profile. Post a document to the HTTP API, let the worker
+process it, then query the database directly and assert the rows arrived with the
+right `tenant_id`, provenance spans and status. Reading the rows back through the
+same repository that wrote them proves less than reading them with SQL.
+
+**Frontend** — a real browser. Drive the actual upload control, watch the request
+reach the API, and assert what the user sees afterwards. `e2e-testing` covers page
+objects, fixtures and flake control. After a UI change, a screenshot of the page is
+the cheapest evidence it still renders.
+
+The fast suite keeps the loop tight; the end-to-end path is what shows ingestion
+works.
 
 ## Cost discipline
 
