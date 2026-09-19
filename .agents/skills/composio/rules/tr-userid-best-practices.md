@@ -28,10 +28,7 @@ async function handleUserRequest(req: Request) {
 ```python
 # DON'T: Use 'default' in production multi-user apps
 async def handle_user_request(req):
-    session = composio.create(
-        user_id="default",
-        toolkits=["gmail", "slack"]
-    )
+    session = composio.create(user_id="default", toolkits=["gmail", "slack"])
 
     # ❌ All users share the same session
     # ❌ No data isolation
@@ -89,15 +86,13 @@ from composio_openai import OpenAIProvider
 
 composio = Composio(provider=OpenAIProvider())
 
+
 async def handle_user_request(req):
     # Get user ID from your auth system
     user_id = req.user.id  # e.g., "550e8400-e29b-41d4-a716-446655440000"
 
     # Create isolated session for this user
-    session = composio.create(
-        user_id=user_id,
-        toolkits=["gmail", "slack"]
-    )
+    session = composio.create(user_id=user_id, toolkits=["gmail", "slack"])
 
     tools = session.tools()
 
@@ -157,31 +152,25 @@ from composio_openai import OpenAIProvider
 
 composio = Composio(provider=OpenAIProvider())
 
+
 async def handle_clerk_user(user_id: str):
     # Using Clerk user ID
     # e.g., "user_2abc123def456"
-    session = composio.create(
-        user_id=user_id,
-        toolkits=["github"]
-    )
+    session = composio.create(user_id=user_id, toolkits=["github"])
     return session
+
 
 async def handle_auth0_user(user_id: str):
     # Using Auth0 user ID
     # e.g., "auth0|507f1f77bcf86cd799439011"
-    session = composio.create(
-        user_id=user_id,
-        toolkits=["gmail"]
-    )
+    session = composio.create(user_id=user_id, toolkits=["gmail"])
     return session
+
 
 async def handle_supabase_user(user_id: str):
     # Using Supabase user UUID
     # e.g., "d7f8b0c1-1234-5678-9abc-def012345678"
-    session = composio.create(
-        user_id=user_id,
-        toolkits=["slack"]
-    )
+    session = composio.create(user_id=user_id, toolkits=["slack"])
     return session
 ```
 
@@ -230,6 +219,7 @@ from composio_openai import OpenAIProvider
 
 composio = Composio(provider=OpenAIProvider())
 
+
 # When apps are connected at organization level (not individual users)
 async def handle_org_level_app(req):
     # Use organization ID, NOT individual user ID
@@ -238,7 +228,7 @@ async def handle_org_level_app(req):
     session = composio.create(
         user_id=organization_id,
         toolkits=["slack", "github"],  # Org-wide tools
-        manage_connections=True
+        manage_connections=True,
     )
 
     # All users in the organization share these connections
@@ -246,12 +236,12 @@ async def handle_org_level_app(req):
     tools = session.tools()
     return await agent.run(req.message, tools)
 
+
 # Example: Slack workspace integration
 async def create_workspace_session(workspace_id: str):
     # Workspace ID as user ID
     session = composio.create(
-        user_id=f"workspace_{workspace_id}",
-        toolkits=["slack", "notion", "linear"]
+        user_id=f"workspace_{workspace_id}", toolkits=["slack", "notion", "linear"]
     )
     return session
 ```

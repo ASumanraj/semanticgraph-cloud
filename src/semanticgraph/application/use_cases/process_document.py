@@ -9,6 +9,7 @@ Orchestrates the background execution pipeline:
 5. Updates Document status to RESOLVED.
 6. Publishes a Resolution scan task.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -56,9 +57,13 @@ class ProcessDocumentUseCase:
     async def execute(self, command: ProcessDocumentCommand) -> Document:
         doc = await self._document_repo.get_document(command.tenant_id, command.document_id)
         if not doc:
-            raise DomainException(f"Document '{command.document_id}' not found", code="DOCUMENT_NOT_FOUND")
+            raise DomainException(
+                f"Document '{command.document_id}' not found", code="DOCUMENT_NOT_FOUND"
+            )
 
-        raw_bytes = await self._document_repo.get_document_raw_content(command.tenant_id, command.document_id)
+        raw_bytes = await self._document_repo.get_document_raw_content(
+            command.tenant_id, command.document_id
+        )
         if raw_bytes is None:
             raw_bytes = b""
 

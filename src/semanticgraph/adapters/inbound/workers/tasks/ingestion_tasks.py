@@ -4,24 +4,25 @@ Celery Tasks for Document Ingestion & Chunking.
 Inbound worker adapter: maps Celery task parameters to ProcessDocumentUseCase.
 Runs async use case cleanly via asyncio.
 """
+
 from __future__ import annotations
 
 import asyncio
-from uuid import UUID
 from typing import Any
+from uuid import UUID
 
 from semanticgraph.adapters.inbound.workers.celery_app import celery_app
 from semanticgraph.application.use_cases.process_document import (
     ProcessDocumentCommand,
     ProcessDocumentUseCase,
 )
-from semanticgraph.domain.models.entities import Ontology, TenantId
 from semanticgraph.composition.container import (
     get_doc_repo,
     get_graph_repo,
     get_llm_gateway,
     get_task_publisher,
 )
+from semanticgraph.domain.models.entities import Ontology, TenantId
 
 
 @celery_app.task(name="semanticgraph.process_document", bind=True)
@@ -70,6 +71,7 @@ def process_document_task(
 
     if loop and loop.is_running():
         import concurrent.futures
+
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
             result = pool.submit(lambda: asyncio.run(use_case.execute(command))).result()
     else:

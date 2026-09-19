@@ -1,12 +1,16 @@
-from sqlalchemy import Column, Integer, String, Enum
 import enum
+
+from sqlalchemy import Column, Enum, Integer, String
+
 from .base import Base
+
 
 class JobStatus(enum.Enum):
     PENDING = "PENDING"
     PROCESSING = "PROCESSING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
+
 
 class DocumentJob(Base):
     __tablename__ = "document_jobs"

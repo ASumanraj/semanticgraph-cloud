@@ -43,7 +43,7 @@ console.log('Available GitHub tools:', githubTools.map(t => t.name));
 github_tools = composio.tools.get(
     user_id="default",
     toolkits=["github"],
-    limit=100  # Set appropriate limit
+    limit=100,  # Set appropriate limit
 )
 
 print("Available GitHub tools:", [t.name for t in github_tools])
@@ -83,7 +83,7 @@ result = composio.tools.execute(
     tool="GITHUB_GET_ISSUES",
     user_id="user_123",
     arguments={"owner": "composio", "repo": "sdk"},
-    version="12082025_00"  # Pinned version string
+    version="12082025_00",  # Pinned version string
 )
 ```
 

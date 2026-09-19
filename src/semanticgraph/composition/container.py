@@ -4,6 +4,7 @@ Composition Root: Wires adapters into use cases via FastAPI Depends().
 This is the SINGLE wiring location (hexagonal-architecture skill, Step 5).
 No hidden globals, no service-locator. Explicit and auditable.
 """
+
 from __future__ import annotations
 
 from typing import Annotated
@@ -15,7 +16,6 @@ from semanticgraph.application.ports.outbound.graph_repository import GraphRepos
 from semanticgraph.application.ports.outbound.llm_gateway import LLMGatewayPort
 from semanticgraph.application.ports.outbound.task_publisher import TaskPublisherPort
 from semanticgraph.application.use_cases.ingest_document import IngestDocumentUseCase
-
 
 # --- Adapter Providers ---
 # These will be swapped for real adapters (Neo4j, Instructor, Celery)
@@ -75,6 +75,7 @@ TaskPublisherDep = Annotated[TaskPublisherPort, Depends(get_task_publisher)]
 
 
 # --- Use Case Providers ---
+
 
 def get_ingest_document_use_case(
     graph_repo: GraphRepoDep,

@@ -6,6 +6,7 @@ This is a Deep Module: callers pass bytes + ontology, everything else is hidden.
 
 Dependencies are injected via constructor (Ports pattern).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -26,6 +27,7 @@ from semanticgraph.domain.models.entities import (
 @dataclass
 class IngestDocumentCommand:
     """Inbound command — the tiny interface for this use case."""
+
     tenant_id: TenantId
     document_id: UUID
     document_bytes: bytes
@@ -56,7 +58,9 @@ class IngestDocumentUseCase:
         """The single entry point. Callers learn one method."""
 
         # 1. Parse and chunk
-        chunks = self._chunk_document(command.document_bytes, command.tenant_id, command.document_id)
+        chunks = self._chunk_document(
+            command.document_bytes, command.tenant_id, command.document_id
+        )
 
         # 2. Extract entities and edges per chunk via LLM
         all_entities = []

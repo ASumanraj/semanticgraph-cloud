@@ -150,6 +150,7 @@ Load in your code:
 
 ```python
 from dotenv import load_dotenv
+
 load_dotenv()
 ```
 

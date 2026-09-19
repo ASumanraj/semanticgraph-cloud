@@ -4,23 +4,21 @@ Unit tests for ProcessDocumentUseCase.
 Tests the asynchronous processing pipeline:
 Document -> Semantic Chunks -> LLM Extraction -> Graph Storage -> Status Update.
 """
-import pytest
+
 from uuid import uuid4
+
+import pytest
 
 from semanticgraph.domain.models.entities import (
     Document,
     DocumentStatus,
     Edge,
+    GoldenRecord,
     Ontology,
     RawEntity,
     SemanticChunk,
     TenantId,
-    GoldenRecord,
 )
-from semanticgraph.application.ports.outbound.document_repository import DocumentRepositoryPort
-from semanticgraph.application.ports.outbound.graph_repository import GraphRepositoryPort
-from semanticgraph.application.ports.outbound.llm_gateway import LLMGatewayPort
-from semanticgraph.application.ports.outbound.task_publisher import TaskPublisherPort
 
 
 class FakeDocumentRepository:
@@ -31,7 +29,9 @@ class FakeDocumentRepository:
         self.raw_contents: dict[tuple[TenantId, str], bytes] = {}
         self.chunks: dict[tuple[TenantId, str], list[SemanticChunk]] = {}
 
-    async def save_document(self, tenant_id: TenantId, document: Document, raw_content: bytes | None = None) -> None:
+    async def save_document(
+        self, tenant_id: TenantId, document: Document, raw_content: bytes | None = None
+    ) -> None:
         self.documents[(tenant_id, str(document.id))] = document
         if raw_content is not None:
             self.raw_contents[(tenant_id, str(document.id))] = raw_content
@@ -53,7 +53,9 @@ class FakeDocumentRepository:
     async def get_chunks(self, tenant_id: TenantId, document_id) -> list[SemanticChunk]:
         return self.chunks.get((tenant_id, str(document_id)), [])
 
-    async def update_document_status(self, tenant_id: TenantId, document_id, status: DocumentStatus) -> None:
+    async def update_document_status(
+        self, tenant_id: TenantId, document_id, status: DocumentStatus
+    ) -> None:
         doc = self.documents.get((tenant_id, str(document_id)))
         if doc:
             doc.status = status
@@ -70,10 +72,14 @@ class FakeGraphRepository:
     async def save_edges(self, tenant_id: TenantId, edges: list[Edge]) -> None:
         self.saved_edges.extend(edges)
 
-    async def find_similar_entities(self, tenant_id: TenantId, name: str, threshold: float = 0.85) -> list[RawEntity]:
+    async def find_similar_entities(
+        self, tenant_id: TenantId, name: str, threshold: float = 0.85
+    ) -> list[RawEntity]:
         return []
 
-    async def merge_into_golden_record(self, tenant_id: TenantId, source_ids: list[RawEntity], canonical: GoldenRecord) -> GoldenRecord:
+    async def merge_into_golden_record(
+        self, tenant_id: TenantId, source_ids: list[RawEntity], canonical: GoldenRecord
+    ) -> GoldenRecord:
         return canonical
 
     async def search_subgraph(self, tenant_id: TenantId, query: str, depth: int = 2) -> list:
@@ -85,13 +91,17 @@ class FakeLLMGateway:
         entity = RawEntity(
             tenant_id=tenant_id,
             name=f"Entity from chunk {chunk.chunk_index}",
-            entity_type=ontology.allowed_entity_types[0] if ontology.allowed_entity_types else "Unknown",
+            entity_type=ontology.allowed_entity_types[0]
+            if ontology.allowed_entity_types
+            else "Unknown",
         )
         edge = Edge(
             tenant_id=tenant_id,
             source_entity_id=entity.id,
             target_entity_id=entity.id,
-            edge_type=ontology.allowed_edge_types[0] if ontology.allowed_edge_types else "RELATED_TO",
+            edge_type=ontology.allowed_edge_types[0]
+            if ontology.allowed_edge_types
+            else "RELATED_TO",
         )
         return [entity], [edge]
 
@@ -139,7 +149,9 @@ async def test_process_document_success(tenant_id, ontology):
     task_publisher = FakeTaskPublisher()
 
     doc_id = uuid4()
-    doc = Document(id=doc_id, tenant_id=tenant_id, filename="report.txt", status=DocumentStatus.PENDING)
+    doc = Document(
+        id=doc_id, tenant_id=tenant_id, filename="report.txt", status=DocumentStatus.PENDING
+    )
     raw_content = b"Paragraph 1 text.\n\nParagraph 2 text."
     await doc_repo.save_document(tenant_id, doc, raw_content=raw_content)
 

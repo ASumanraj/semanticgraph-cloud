@@ -4,9 +4,16 @@ Unit tests for Domain Entities.
 Tests the pure business objects from DOMAIN_SPEC.md.
 Zero infrastructure — these run in <50ms.
 """
-import pytest
+
 from uuid import uuid4
 
+import pytest
+
+from semanticgraph.domain.exceptions import (
+    DomainException,
+    OntologyViolationError,
+    TenantNotFoundError,
+)
 from semanticgraph.domain.models.entities import (
     Document,
     DocumentStatus,
@@ -17,11 +24,6 @@ from semanticgraph.domain.models.entities import (
     RawEntity,
     SemanticChunk,
     TenantId,
-)
-from semanticgraph.domain.exceptions import (
-    DomainException,
-    OntologyViolationError,
-    TenantNotFoundError,
 )
 
 

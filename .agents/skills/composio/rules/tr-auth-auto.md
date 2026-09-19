@@ -27,7 +27,7 @@ const session = await composio.create('user_123', {
 session = composio.create(
     user_id="user_123",
     toolkits=["gmail"],
-    manage_connections=False  # User can't authenticate!
+    manage_connections=False,  # User can't authenticate!
 )
 
 # Agent tries to use Gmail but user isn't connected
@@ -61,7 +61,7 @@ composio = Composio()
 session = composio.create(
     user_id="user_123",
     toolkits=["gmail", "slack"],
-    manage_connections=True  # Users can authenticate in chat
+    manage_connections=True,  # Users can authenticate in chat
 )
 
 # When agent needs Gmail and user isn't connected:
@@ -89,10 +89,7 @@ const session = await composio.create('user_123', {
 session = composio.create(
     user_id="user_123",
     toolkits=["gmail"],
-    manage_connections={
-        "enable": True,
-        "callback_url": "https://your-app.com/auth/callback"
-    }
+    manage_connections={"enable": True, "callback_url": "https://your-app.com/auth/callback"},
 )
 ```
 

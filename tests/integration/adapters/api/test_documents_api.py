@@ -7,22 +7,23 @@ protocol mapping (HTTP request -> use-case input -> HTTP response).
 Per tdd-workflow skill: RED first, then GREEN.
 Per error-handling skill: test error paths, not just happy paths.
 """
-import pytest
-from uuid import uuid4
-import base64
 
+import base64
+from uuid import uuid4
+
+import pytest
 from fastapi.testclient import TestClient
+from tests.unit.use_cases.test_ingest_document import (
+    FakeGraphRepository,
+    FakeLLMGateway,
+    FakeTaskPublisher,
+)
 
 from semanticgraph.adapters.inbound.api.app import app
 from semanticgraph.composition.container import (
     set_graph_repo,
     set_llm_gateway,
     set_task_publisher,
-)
-from tests.unit.use_cases.test_ingest_document import (
-    FakeGraphRepository,
-    FakeLLMGateway,
-    FakeTaskPublisher,
 )
 
 

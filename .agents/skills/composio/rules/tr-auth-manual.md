@@ -28,7 +28,7 @@ await session.authorize('gmail');
 session = composio.create(
     user_id="user_123",
     toolkits=["gmail"],
-    manage_connections=True  # Agent handles auth
+    manage_connections=True,  # Agent handles auth
 )
 
 # Then immediately force manual auth (redundant)
@@ -76,10 +76,8 @@ from composio import Composio
 composio = Composio()
 
 # Step 1: Create session for onboarding
-session = composio.create(
-    user_id="user_123",
-    toolkits=["gmail", "slack"]
-)
+session = composio.create(user_id="user_123", toolkits=["gmail", "slack"])
+
 
 # Step 2: Explicitly connect required toolkits during onboarding
 async def onboard_user():
@@ -87,8 +85,7 @@ async def onboard_user():
 
     for toolkit in required_toolkits:
         connection_request = session.authorize(
-            toolkit,
-            callback_url="https://your-app.com/onboarding/callback"
+            toolkit, callback_url="https://your-app.com/onboarding/callback"
         )
 
         print(f"Connect {toolkit}: {connection_request.redirect_url}")
@@ -122,15 +119,11 @@ async function settingsPageHandler(userId: string, toolkit: string) {
 ```python
 # DO: Manual auth for connection management in settings
 async def settings_page_handler(user_id: str, toolkit: str):
-    session = composio.create(
-        user_id=user_id,
-        toolkits=[toolkit]
-    )
+    session = composio.create(user_id=user_id, toolkits=[toolkit])
 
     # User clicked "Connect" button in settings
     connection_request = session.authorize(
-        toolkit,
-        callback_url="https://your-app.com/settings/callback"
+        toolkit, callback_url="https://your-app.com/settings/callback"
     )
 
     # Redirect user to OAuth flow

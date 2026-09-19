@@ -70,16 +70,10 @@ from composio import Composio
 composio = Composio()
 
 # Simple toolkit list
-session = composio.create(
-    user_id="user_123",
-    toolkits=["gmail", "slack", "github"]
-)
+session = composio.create(user_id="user_123", toolkits=["gmail", "slack", "github"])
 
 # Explicit enable
-session2 = composio.create(
-    user_id="user_123",
-    toolkits={"enable": ["gmail", "slack"]}
-)
+session2 = composio.create(user_id="user_123", toolkits={"enable": ["gmail", "slack"]})
 ```
 
 ## ✅ Correct - Fine-Grained Tool Control
@@ -108,12 +102,11 @@ session = composio.create(
     tools={
         # Only allow reading emails, not sending
         "gmail": ["GMAIL_FETCH_EMAILS", "GMAIL_SEARCH_EMAILS"],
-
         # Or use enable/disable
         "slack": {
             "disable": ["SLACK_DELETE_MESSAGE"]  # Safety: prevent deletions
-        }
-    }
+        },
+    },
 )
 ```
 
@@ -142,13 +135,8 @@ session = composio.create(
     toolkits=["gmail", "github"],
     # Global tags: only read-only tools
     tags=["readOnlyHint"],
-
     # Override tags per toolkit
-    tools={
-        "github": {
-            "tags": ["readOnlyHint", "idempotentHint"]
-        }
-    }
+    tools={"github": {"tags": ["readOnlyHint", "idempotentHint"]}},
 )
 ```
 

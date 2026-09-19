@@ -81,10 +81,7 @@ composio = Composio(provider=OpenAIAgentsProvider())
 # ❌ No user isolation
 # ❌ Tools not scoped per user
 # ❌ All users share same tools
-tools = composio.tools.get(
-    user_id="default",
-    toolkits=["gmail"]
-)
+tools = composio.tools.get(user_id="default", toolkits=["gmail"])
 ```
 
 ## ✅ Correct - Vercel AI SDK (Native Tools)
@@ -140,24 +137,16 @@ from ai import streamText, openai
 # Initialize Composio with Vercel provider
 composio = Composio(provider=VercelProvider())
 
+
 async def run_agent(user_id: str, prompt: str):
     # Create isolated session for user
-    session = composio.create(
-        user_id=user_id,
-        toolkits=["gmail"],
-        manage_connections=True
-    )
+    session = composio.create(user_id=user_id, toolkits=["gmail"], manage_connections=True)
 
     # Get native Vercel-formatted tools
     tools = session.tools()
 
     # Stream response with tools
-    stream = streamText(
-        model=openai("gpt-5.2"),
-        prompt=prompt,
-        tools=tools,
-        max_steps=10
-    )
+    stream = streamText(model=openai("gpt-5.2"), prompt=prompt, tools=tools, max_steps=10)
 
     # ✅ Fast execution (no MCP overhead)
     # ✅ User-isolated tools
@@ -165,6 +154,7 @@ async def run_agent(user_id: str, prompt: str):
 
     async for text_part in stream.text_stream:
         print(text_part, end="")
+
 
 await run_agent("user_123", "Fetch my last email from Gmail")
 ```
@@ -268,12 +258,10 @@ from agents import Agent, Runner
 
 composio = Composio(provider=OpenAIAgentsProvider())
 
+
 async def create_assistant(user_id: str):
     # Create session with native tools
-    session = composio.create(
-        user_id=user_id,
-        toolkits=["gmail", "slack"]
-    )
+    session = composio.create(user_id=user_id, toolkits=["gmail", "slack"])
 
     # Get native OpenAI Agents formatted tools
     tools = session.tools()
@@ -283,7 +271,7 @@ async def create_assistant(user_id: str):
         name="Personal Assistant",
         model="gpt-5.2",
         instructions="You are a helpful assistant. Use tools to help users.",
-        tools=tools
+        tools=tools,
     )
 
     # ✅ Fast execution
@@ -292,11 +280,9 @@ async def create_assistant(user_id: str):
 
     return agent
 
+
 agent = await create_assistant("user_123")
-result = await Runner.run(
-    starting_agent=agent,
-    input="Check my emails and send a summary to Slack"
-)
+result = await Runner.run(starting_agent=agent, input="Check my emails and send a summary to Slack")
 print(result.final_output)
 ```
 
@@ -346,6 +332,7 @@ from agents import Agent, Runner, HostedMCPTool
 
 composio = Composio()
 
+
 def create_assistant_mcp(user_id: str):
     # Create session
     session = composio.create(user_id=user_id, toolkits=["gmail"])
@@ -357,20 +344,19 @@ def create_assistant_mcp(user_id: str):
             "server_label": "composio",
             "server_url": session.mcp.url,
             "require_approval": "never",
-            "headers": session.mcp.headers
+            "headers": session.mcp.headers,
         }
     )
 
     agent = Agent(
-        name="Gmail Assistant",
-        instructions="Help users manage their Gmail.",
-        tools=[composio_mcp]
+        name="Gmail Assistant", instructions="Help users manage their Gmail.", tools=[composio_mcp]
     )
 
     # ✅ Framework independent
     # ⚠️ Slower execution
 
     return agent
+
 
 agent = create_assistant_mcp("user_123")
 result = Runner.run_sync(starting_agent=agent, input="Fetch my last email")
@@ -435,36 +421,33 @@ from langchain_openai.chat_models import ChatOpenAI
 
 composio = Composio()
 
+
 async def create_langchain_agent(user_id: str):
     # Create session
     session = composio.create(user_id=user_id, toolkits=["gmail"])
 
     # Create MCP client
-    mcp_client = MultiServerMCPClient({
-        "composio": {
-            "transport": "streamable_http",
-            "url": session.mcp.url,
-            "headers": session.mcp.headers
+    mcp_client = MultiServerMCPClient(
+        {
+            "composio": {
+                "transport": "streamable_http",
+                "url": session.mcp.url,
+                "headers": session.mcp.headers,
+            }
         }
-    })
+    )
 
     # Get tools
     tools = await mcp_client.get_tools()
 
     # Create agent
-    agent = create_agent(
-        tools=tools,
-        model=ChatOpenAI(model="gpt-5.2")
-    )
+    agent = create_agent(tools=tools, model=ChatOpenAI(model="gpt-5.2"))
 
     return agent
 
+
 agent = await create_langchain_agent("user_123")
-result = await agent.ainvoke({
-    "messages": [
-        {"role": "user", "content": "Fetch my last email"}
-    ]
-})
+result = await agent.ainvoke({"messages": [{"role": "user", "content": "Fetch my last email"}]})
 print(result)
 ```
 
@@ -517,6 +500,7 @@ from claude_agent_sdk import query, ClaudeAgentOptions
 
 composio = Composio(provider=ClaudeAgentSDKProvider())
 
+
 async def run_claude_agent(user_id: str, prompt: str):
     # Create session with native tools
     session = composio.create(user_id=user_id, toolkits=["gmail"])
@@ -526,13 +510,12 @@ async def run_claude_agent(user_id: str, prompt: str):
 
     # Query with tools
     options = ClaudeAgentOptions(
-        model="claude-sonnet-4-5-20250929",
-        permission_mode="bypassPermissions",
-        tools=tools
+        model="claude-sonnet-4-5-20250929", permission_mode="bypassPermissions", tools=tools
     )
 
     async for message in query(prompt=prompt, options=options):
         print(message, end="")
+
 
 await run_claude_agent("user_123", "Fetch my last email")
 ```
@@ -585,6 +568,7 @@ from claude_agent_sdk import query, ClaudeAgentOptions
 
 composio = Composio()
 
+
 async def run_claude_agent_mcp(user_id: str, prompt: str):
     # Create session
     session = composio.create(user_id=user_id, toolkits=["gmail"])
@@ -597,13 +581,14 @@ async def run_claude_agent_mcp(user_id: str, prompt: str):
             "composio": {
                 "type": session.mcp.type,
                 "url": session.mcp.url,
-                "headers": session.mcp.headers
+                "headers": session.mcp.headers,
             }
-        }
+        },
     )
 
     async for message in query(prompt=prompt, options=options):
         print(message, end="")
+
 
 await run_claude_agent_mcp("user_123", "Fetch my last email")
 ```
@@ -618,6 +603,7 @@ from composio import Composio
 
 composio = Composio()
 
+
 def create_crewai_agent(user_id: str):
     # Create session
     session = composio.create(user_id=user_id, toolkits=["gmail"])
@@ -627,15 +613,11 @@ def create_crewai_agent(user_id: str):
         role="Gmail Assistant",
         goal="Help with Gmail related queries",
         backstory="You are a helpful assistant.",
-        mcps=[
-            MCPServerHTTP(
-                url=session.mcp.url,
-                headers=session.mcp.headers
-            )
-        ]
+        mcps=[MCPServerHTTP(url=session.mcp.url, headers=session.mcp.headers)],
     )
 
     return agent
+
 
 # Create agent
 agent = create_crewai_agent("user_123")
@@ -644,7 +626,7 @@ agent = create_crewai_agent("user_123")
 task = Task(
     description="Find the last email and summarize it.",
     expected_output="A summary including sender, subject, and key points.",
-    agent=agent
+    agent=agent,
 )
 
 # Execute
@@ -699,25 +681,20 @@ from composio.types import ToolExecuteParams, ToolExecutionResponse
 
 composio = Composio(provider=OpenAIAgentsProvider())
 
+
 async def get_tools_with_logging(user_id: str):
     session = composio.create(user_id=user_id, toolkits=["gmail"])
 
     # Define logging modifiers
     @before_execute(tools=[])
-    def log_before(
-        tool: str,
-        toolkit: str,
-        params: ToolExecuteParams
-    ) -> ToolExecuteParams:
+    def log_before(tool: str, toolkit: str, params: ToolExecuteParams) -> ToolExecuteParams:
         print(f"🔧 Executing {toolkit}.{tool}")
         print(f"   Arguments: {params.get('arguments', {})}")
         return params
 
     @after_execute(tools=[])
     def log_after(
-        tool: str,
-        toolkit: str,
-        response: ToolExecutionResponse
+        tool: str, toolkit: str, response: ToolExecutionResponse
     ) -> ToolExecutionResponse:
         print(f"✅ Completed {toolkit}.{tool}")
         if "data" in response:

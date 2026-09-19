@@ -28,7 +28,7 @@ const session = await composio.create('user_123', {
 session = composio.create(
     user_id="user_123",
     toolkits=["gmail"],
-    manage_connections=False  # Tools will FAIL if user not connected!
+    manage_connections=False,  # Tools will FAIL if user not connected!
 )
 
 # When agent tries to use Gmail:
@@ -74,7 +74,7 @@ composio = Composio()
 # Option 1: Use default (manage_connections: True)
 session1 = composio.create(
     user_id="user_123",
-    toolkits=["gmail", "slack"]
+    toolkits=["gmail", "slack"],
     # manage_connections defaults to True
 )
 
@@ -82,7 +82,7 @@ session1 = composio.create(
 session2 = composio.create(
     user_id="user_123",
     toolkits=["gmail"],
-    manage_connections=True  # Agent can prompt for auth
+    manage_connections=True,  # Agent can prompt for auth
 )
 
 # How it works:
@@ -120,8 +120,8 @@ session = composio.create(
     manage_connections={
         "enable": True,  # Allow in-chat authentication
         "callback_url": "https://your-app.com/auth/callback",  # Custom OAuth callback
-        "wait_for_connections": True  # Wait for user to complete auth before proceeding
-    }
+        "wait_for_connections": True,  # Wait for user to complete auth before proceeding
+    },
 )
 
 # With wait_for_connections: True

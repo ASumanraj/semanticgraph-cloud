@@ -10,6 +10,7 @@ Rust-based serialization, Annotated for all params.
 Per error-handling skill: errors translated across boundaries
 (domain exceptions -> HTTP status codes via global handler).
 """
+
 from __future__ import annotations
 
 from typing import Annotated
@@ -19,20 +20,25 @@ from fastapi import APIRouter, Body
 from pydantic import BaseModel, Field
 
 from semanticgraph.adapters.inbound.api.dependencies import CurrentTenantDep
-from semanticgraph.composition.container import IngestDocumentDep
 from semanticgraph.application.use_cases.ingest_document import IngestDocumentCommand
-from semanticgraph.domain.models.entities import DocumentStatus, Ontology
-
+from semanticgraph.composition.container import IngestDocumentDep
+from semanticgraph.domain.models.entities import Ontology
 
 # --- Request/Response DTOs (Pydantic V2, no ellipsis, no RootModel) ---
 
+
 class IngestDocumentRequest(BaseModel):
     """Inbound DTO — protocol-specific. Use case never sees this."""
+
     filename: str = Field(description="Original name of the document")
     content: str = Field(description="Base64-encoded document content")
     ontology_name: str = Field(default="default", description="Name of the Ontology to enforce")
-    allowed_entity_types: list[str] = Field(default_factory=lambda: ["Organization", "Person", "Product"])
-    allowed_edge_types: list[str] = Field(default_factory=lambda: ["RELATED_TO", "WORKS_AT", "ACQUIRED"])
+    allowed_entity_types: list[str] = Field(
+        default_factory=lambda: ["Organization", "Person", "Product"]
+    )
+    allowed_edge_types: list[str] = Field(
+        default_factory=lambda: ["RELATED_TO", "WORKS_AT", "ACQUIRED"]
+    )
 
 
 class IngestDocumentResponse(BaseModel):

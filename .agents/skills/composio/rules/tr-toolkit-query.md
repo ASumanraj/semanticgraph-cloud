@@ -72,7 +72,7 @@ composio = Composio()
 session = composio.create(
     user_id="user_123",
     toolkits=["gmail", "slack", "github"],
-    manage_connections=True  # Agent handles auth automatically
+    manage_connections=True,  # Agent handles auth automatically
 )
 
 # Get connection states for building UI
@@ -81,15 +81,20 @@ result = session.toolkits()
 # Build connection management UI
 connection_ui = []
 for toolkit in result.items:
-    connection_ui.append({
-        "slug": toolkit.slug,
-        "name": toolkit.name,
-        "logo": toolkit.logo,
-        "is_connected": toolkit.connection.is_active if toolkit.connection else False,
-        "status": toolkit.connection.connected_account.status if toolkit.connection.connected_account else None,
-        # Show "Connect" button if not connected
-        "needs_auth": not (toolkit.connection.is_active if toolkit.connection else False) and not toolkit.is_no_auth
-    })
+    connection_ui.append(
+        {
+            "slug": toolkit.slug,
+            "name": toolkit.name,
+            "logo": toolkit.logo,
+            "is_connected": toolkit.connection.is_active if toolkit.connection else False,
+            "status": toolkit.connection.connected_account.status
+            if toolkit.connection.connected_account
+            else None,
+            # Show "Connect" button if not connected
+            "needs_auth": not (toolkit.connection.is_active if toolkit.connection else False)
+            and not toolkit.is_no_auth,
+        }
+    )
 
 print(f"Connection Status: {connection_ui}")
 # Use this to render connection cards in your UI

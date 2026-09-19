@@ -71,10 +71,7 @@ from composio_openai import OpenAIProvider
 # Add provider for native tools
 composio = Composio(provider=OpenAIProvider())
 
-session = composio.create(
-    user_id="user_123",
-    toolkits=["gmail", "slack"]
-)
+session = composio.create(user_id="user_123", toolkits=["gmail", "slack"])
 
 # ✅ Direct tool execution (no MCP overhead)
 # ✅ Full modifier support
@@ -174,30 +171,25 @@ from composio_openai import OpenAIProvider
 
 composio = Composio(provider=OpenAIProvider())
 
-session = composio.create(
-    user_id="user_123",
-    toolkits=["gmail"]
-)
+session = composio.create(user_id="user_123", toolkits=["gmail"])
+
 
 # Add modifiers for full control over tool execution
 def before_execute(context):
     print(f"[{context['session_id']}] Executing {context['tool_slug']}")
     print(f"Parameters: {context['params']}")
     # Add custom validation, logging, telemetry
-    return context['params']
+    return context["params"]
+
 
 def after_execute(context):
     print(f"[{context['session_id']}] Completed {context['tool_slug']}")
     print(f"Result: {context['result']}")
     # Transform results, handle errors, track metrics
-    return context['result']
+    return context["result"]
 
-tools = session.tools(
-    modifiers={
-        "before_execute": before_execute,
-        "after_execute": after_execute
-    }
-)
+
+tools = session.tools(modifiers={"before_execute": before_execute, "after_execute": after_execute})
 ```
 
 ## Performance Comparison

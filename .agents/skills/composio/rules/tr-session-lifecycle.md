@@ -44,10 +44,7 @@ class AgentService:
     async def handle_message(self, user_id: str, message: str):
         # BAD: Reusing cached session
         if user_id not in self.session_cache:
-            session = composio.create(
-                user_id=user_id,
-                toolkits=["gmail", "slack"]
-            )
+            session = composio.create(user_id=user_id, toolkits=["gmail", "slack"])
             self.session_cache[user_id] = session
 
         session = self.session_cache[user_id]
@@ -103,17 +100,10 @@ from composio_openai import OpenAIProvider
 
 composio = Composio(provider=OpenAIProvider())
 
-async def handle_user_message(
-    user_id: str,
-    message: str,
-    config: dict
-):
+
+async def handle_user_message(user_id: str, message: str, config: dict):
     # Create new session for this message
-    session = composio.create(
-        user_id=user_id,
-        toolkits=config["toolkits"],
-        manage_connections=True
-    )
+    session = composio.create(user_id=user_id, toolkits=config["toolkits"], manage_connections=True)
 
     tools = session.tools()
 
@@ -124,6 +114,7 @@ async def handle_user_message(
     # ✅ Clean logs grouped by session
     # ✅ Latest connection states
     return response
+
 
 # Each message gets a new session
 await handle_user_message("user_123", "Check my emails", {"toolkits": ["gmail"]})
@@ -162,17 +153,9 @@ async function handleConversation(
 
 ```python
 # DO: Use one session for entire conversation if config doesn't change
-async def handle_conversation(
-    user_id: str,
-    conversation_id: str,
-    config: dict
-):
+async def handle_conversation(user_id: str, conversation_id: str, config: dict):
     # Create ONE session for this conversation/thread
-    session = composio.create(
-        user_id=user_id,
-        toolkits=config["toolkits"],
-        manage_connections=True
-    )
+    session = composio.create(user_id=user_id, toolkits=config["toolkits"], manage_connections=True)
 
     tools = session.tools()
 

@@ -29,10 +29,7 @@ const sharedSession = await composio.create('default', {
 
 ```python
 # DON'T: Using shared session for multiple users
-shared_session = composio.create(
-    user_id="default",
-    toolkits=["gmail"]
-)
+shared_session = composio.create(user_id="default", toolkits=["gmail"])
 # All users share the same session - security risk!
 ```
 
@@ -60,10 +57,7 @@ from composio import Composio
 composio = Composio()
 
 # Each user gets their own isolated session
-session = composio.create(
-    user_id="user_123",
-    toolkits=["gmail", "slack"]
-)
+session = composio.create(user_id="user_123", toolkits=["gmail", "slack"])
 
 print(f"Session ID: {session.session_id}")
 print(f"MCP URL: {session.mcp.url}")

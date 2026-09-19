@@ -6,28 +6,34 @@ Verifies:
 - Multi-tenant isolation boundary (Tenant B cannot access Tenant A's data).
 - Status transitions.
 """
-import pytest
+
 from uuid import uuid4
+
+import pytest
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 
 from semanticgraph.domain.models.entities import (
+    ChunkId,
     Document,
     DocumentStatus,
     SemanticChunk,
     TenantId,
-    ChunkId,
 )
 
 
 @pytest.fixture
 def db_session():
+    # Import registers SQLDocument and SQLSemanticChunk on SQLModel.metadata.
+    # Without it create_all() sees an empty metadata and builds no tables, which
+    # only passes when some other module happened to import them first.
+    from semanticgraph.adapters.outbound.postgres import models  # noqa: F401
+
     engine = create_engine(
         "sqlite://",
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
-    from semanticgraph.adapters.outbound.postgres.models import SQLDocument, SQLSemanticChunk
     SQLModel.metadata.create_all(engine)
     with Session(engine) as session:
         yield session
@@ -36,7 +42,10 @@ def db_session():
 
 @pytest.fixture
 def repo(db_session):
-    from semanticgraph.adapters.outbound.postgres.document_repository import PostgresDocumentRepository
+    from semanticgraph.adapters.outbound.postgres.document_repository import (
+        PostgresDocumentRepository,
+    )
+
     return PostgresDocumentRepository(session_factory=lambda: db_session)
 
 

@@ -5,6 +5,7 @@ Extracts tenant context from HTTP headers and provides typed DI.
 Per fastapi skill: uses Annotated + Depends, no ellipsis, no RootModel.
 Per AGENTS.md: every route is scoped to tenant_id.
 """
+
 from __future__ import annotations
 
 from typing import Annotated
@@ -27,11 +28,16 @@ def get_tenant_id(
     """
     try:
         return TenantId(value=UUID(x_tenant_id))
-    except (ValueError, AttributeError):
+    except (ValueError, AttributeError) as err:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail={"error": {"code": "INVALID_TENANT_ID", "message": "X-Tenant-ID must be a valid UUID"}},
-        )
+            detail={
+                "error": {
+                    "code": "INVALID_TENANT_ID",
+                    "message": "X-Tenant-ID must be a valid UUID",
+                }
+            },
+        ) from err
 
 
 CurrentTenantDep = Annotated[TenantId, Depends(get_tenant_id)]

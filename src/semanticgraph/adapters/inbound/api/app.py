@@ -6,6 +6,7 @@ Per error-handling skill: global exception handlers translate domain errors
 to standard API error envelopes.
 Per fastapi skill: uses lifespan, includes routers, no ORJSONResponse.
 """
+
 from __future__ import annotations
 
 import logging
@@ -14,7 +15,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from semanticgraph.domain.exceptions import DomainException, TenantNotFoundError
+from semanticgraph.domain.exceptions import DomainException
 
 logger = logging.getLogger("semanticgraph")
 
@@ -22,17 +23,17 @@ logger = logging.getLogger("semanticgraph")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Wire adapters at startup. Swap fakes for real adapters per phase."""
-    from semanticgraph.composition.container import (
-        set_graph_repo,
-        set_llm_gateway,
-        set_task_publisher,
-    )
-
     # Phase 1: In-memory fakes (will be replaced with real Neo4j/LLM/Celery adapters)
     from tests.unit.use_cases.test_ingest_document import (
         FakeGraphRepository,
         FakeLLMGateway,
         FakeTaskPublisher,
+    )
+
+    from semanticgraph.composition.container import (
+        set_graph_repo,
+        set_llm_gateway,
+        set_task_publisher,
     )
 
     set_graph_repo(FakeGraphRepository())
@@ -74,11 +75,14 @@ def create_app() -> FastAPI:
         logger.exception("Unexpected error", exc_info=exc)
         return JSONResponse(
             status_code=500,
-            content={"error": {"code": "INTERNAL_ERROR", "message": "An unexpected error occurred"}},
+            content={
+                "error": {"code": "INTERNAL_ERROR", "message": "An unexpected error occurred"}
+            },
         )
 
     # --- Include Routers ---
     from semanticgraph.adapters.inbound.api.v1.documents import router as documents_router
+
     app.include_router(documents_router)
 
     @app.get("/health")

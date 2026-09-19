@@ -1,8 +1,10 @@
 def run_leiden_community_detection(graph_client):
     pass
 
+
 def run_semantic_pagerank(graph_client, entry_nodes: list, query: str):
     pass
+
 
 class SearchEngine:
     def __init__(self, graph_client):

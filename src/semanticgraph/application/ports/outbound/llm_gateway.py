@@ -4,6 +4,7 @@ Outbound Port: LLM Gateway.
 Abstracts all LLM provider details (OpenAI, Anthropic, Gemini, etc.)
 behind a strict Ontology-enforced extraction interface.
 """
+
 from __future__ import annotations
 
 from typing import Protocol

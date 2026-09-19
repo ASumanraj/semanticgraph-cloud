@@ -4,20 +4,21 @@ Outbound Adapter: PostgreSQL Document Repository.
 Implements DocumentRepositoryPort using SQLModel / PostgreSQL.
 Enforces strict multi-tenant filtering on every single query.
 """
+
 from __future__ import annotations
 
-from typing import Callable, Sequence
+from collections.abc import Callable
 from uuid import UUID
+
 from sqlmodel import Session, select
 
-from semanticgraph.application.ports.outbound.document_repository import DocumentRepositoryPort
 from semanticgraph.adapters.outbound.postgres.models import SQLDocument, SQLSemanticChunk
 from semanticgraph.domain.models.entities import (
+    ChunkId,
     Document,
     DocumentStatus,
     SemanticChunk,
     TenantId,
-    ChunkId,
 )
 
 
@@ -60,9 +61,7 @@ class PostgresDocumentRepository:
 
             session.commit()
 
-    async def get_document(
-        self, tenant_id: TenantId, document_id: UUID
-    ) -> Document | None:
+    async def get_document(self, tenant_id: TenantId, document_id: UUID) -> Document | None:
         with self._session_factory() as session:
             sql_doc = session.exec(
                 select(SQLDocument).where(
@@ -98,9 +97,7 @@ class PostgresDocumentRepository:
                 return None
             return sql_doc.raw_content
 
-    async def save_chunks(
-        self, tenant_id: TenantId, chunks: list[SemanticChunk]
-    ) -> None:
+    async def save_chunks(self, tenant_id: TenantId, chunks: list[SemanticChunk]) -> None:
         if not chunks:
             return
 
@@ -117,15 +114,15 @@ class PostgresDocumentRepository:
                 session.add(sql_chunk)
             session.commit()
 
-    async def get_chunks(
-        self, tenant_id: TenantId, document_id: UUID
-    ) -> list[SemanticChunk]:
+    async def get_chunks(self, tenant_id: TenantId, document_id: UUID) -> list[SemanticChunk]:
         with self._session_factory() as session:
             sql_chunks = session.exec(
-                select(SQLSemanticChunk).where(
+                select(SQLSemanticChunk)
+                .where(
                     SQLSemanticChunk.document_id == document_id,
                     SQLSemanticChunk.tenant_id == tenant_id.value,
-                ).order_by(SQLSemanticChunk.chunk_index)
+                )
+                .order_by(SQLSemanticChunk.chunk_index)
             ).all()
 
             return [

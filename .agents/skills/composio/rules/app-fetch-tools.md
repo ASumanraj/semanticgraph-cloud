@@ -189,7 +189,7 @@ print(f"Description: {github_toolkit.description}")
 all_github_tools = composio.tools.get(
     user_id="default",
     toolkits=["github"],
-    limit=100  # Adjust based on your needs
+    limit=100,  # Adjust based on your needs
 )
 
 print("\nAvailable tools:")
@@ -206,7 +206,7 @@ result = composio.tools.execute(
     tool="GITHUB_GET_REPO",
     user_id="user_123",
     arguments={"owner": "composio", "repo": "sdk"},
-    version="12082025_00"  # ✅ Pinned version string for stability
+    version="12082025_00",  # ✅ Pinned version string for stability
 )
 ```
 
@@ -234,7 +234,7 @@ result = composio.tools.execute(
     tool="GITHUB_GET_REPOSITORY",  # ❌ Wrong name
     user_id="user_123",
     arguments={"repo": "sdk"},
-    version="12082025_00"
+    version="12082025_00",
 )
 
 # DON'T: Use hardcoded versions without checking
@@ -242,7 +242,7 @@ result = composio.tools.execute(
     tool="GITHUB_GET_REPO",
     user_id="user_123",
     arguments={"owner": "composio", "repo": "sdk"},
-    version="12082025_00"  # ❌ This might be outdated
+    version="12082025_00",  # ❌ This might be outdated
 )
 ```
 
@@ -274,11 +274,7 @@ if (toolName) {
 toolkit = composio.toolkits.get("github")
 print(f"Available versions: {toolkit.versions}")
 
-tools = composio.tools.get(
-    user_id="default",
-    toolkits=["github"],
-    limit=100
-)
+tools = composio.tools.get(user_id="default", toolkits=["github"], limit=100)
 
 # DO: Use discovered tool names and pin to a specific version string
 tool_name = next((t.name for t in tools if "repository" in t.description), None)
@@ -287,6 +283,6 @@ if tool_name:
         tool=tool_name,
         user_id="user_123",
         arguments={"owner": "composio", "repo": "sdk"},
-        version="12082025_00"  # ✅ Pinned version string for stability
+        version="12082025_00",  # ✅ Pinned version string for stability
     )
 ```

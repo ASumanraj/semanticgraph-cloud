@@ -4,20 +4,21 @@ Integration test for Celery Ingestion Tasks.
 Per python-testing & hexagonal-architecture skills:
 Celery is tested with task_always_eager=True for predictable in-memory execution.
 """
-import pytest
+
 from uuid import uuid4
 
-from semanticgraph.domain.models.entities import (
-    Document,
-    DocumentStatus,
-    Ontology,
-    TenantId,
-)
+import pytest
 from tests.unit.use_cases.test_process_document import (
     FakeDocumentRepository,
     FakeGraphRepository,
     FakeLLMGateway,
     FakeTaskPublisher,
+)
+
+from semanticgraph.domain.models.entities import (
+    Document,
+    DocumentStatus,
+    TenantId,
 )
 
 
@@ -72,8 +73,15 @@ async def test_celery_task_executes_process_document(
     )
 
     doc_id = uuid4()
-    doc = Document(id=doc_id, tenant_id=tenant_id, filename="financial_report.pdf", status=DocumentStatus.PENDING)
-    await doc_repo.save_document(tenant_id, doc, raw_content=b"Company Alpha merged with Beta in 2023.")
+    doc = Document(
+        id=doc_id,
+        tenant_id=tenant_id,
+        filename="financial_report.pdf",
+        status=DocumentStatus.PENDING,
+    )
+    await doc_repo.save_document(
+        tenant_id, doc, raw_content=b"Company Alpha merged with Beta in 2023."
+    )
 
     # Execute task synchronously through Celery
     result = process_document_task.delay(

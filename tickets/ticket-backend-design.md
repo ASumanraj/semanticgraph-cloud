@@ -16,31 +16,36 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
+
 def get_current_user() -> User:
     # Logic to extract user from token
     pass
 
+
 CurrentUserDep = Annotated[User, Depends(get_current_user)]
 
+
 def get_current_tenant(current_user: CurrentUserDep) -> Tenant:
-    # Logic to verify and return the tenant context for the user. 
+    # Logic to verify and return the tenant context for the user.
     # Super Admins bypass strict silo filtering if accessing platform metrics.
     pass
 
+
 CurrentTenantDep = Annotated[Tenant, Depends(get_current_tenant)]
+
 
 def get_db_session() -> Session:
     # Yield SQLModel session
     pass
 
+
 SessionDep = Annotated[Session, Depends(get_db_session)]
 
 # Apply tenant dependency at the router level for blanket multi-tenant isolation
 router = APIRouter(
-    prefix="/entities",
-    tags=["entities"],
-    dependencies=[Depends(get_current_tenant)]
+    prefix="/entities", tags=["entities"], dependencies=[Depends(get_current_tenant)]
 )
+
 
 @router.get("/")
 def list_entities(tenant: CurrentTenantDep, session: SessionDep) -> list[Entity]:
