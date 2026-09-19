@@ -1,0 +1,41 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# --- Virtualenvs / package caches ---
+.venv/
+venv/
+.uv_cache/
+node_modules/
+
+# --- Build / synth output ---
+cdk.out/
+dist/
+build/
+.next/
+
+# --- Tooling caches that do not belong in the repo ---
+graphify-out/
+
+# --- Secrets & local config ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+*.swp
+
+# --- Scratch ---
+screenshot.png
+
+# --- Vendored agent-skills library (clone of github.com/affaan-m/ECC) ---
+# 257 MB / 11,747 files. Not part of the deployable tree; see ENTERPRISE_PLAN.md open question 4.
+ECC/

@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "skills": {
+    "agent-memory": {
+      "source": "openhands/extensions",
+      "sourceType": "github",
+      "skillPath": "skills/agent-memory/SKILL.md",
+      "computedHash": "b6b8430348df88880056b787767882f74c855f21e823bd16fe9d60f997ac6c26"
+    },
+    "aws-cdk": {
+      "source": "aws/agent-toolkit-for-aws",
+      "sourceType": "github",
+      "skillPath": "skills/core-skills/aws-cdk/SKILL.md",
+      "computedHash": "0e496aefe35dc69048dcbff48b3677fa80ef290e7f7837fec4bd647af83a1ec4"
+    },
+    "brainstorming-research-ideas": {
+      "source": "orchestra-research/ai-research-skills",
+      "sourceType": "github",
+      "skillPath": "21-research-ideation/brainstorming-research-ideas/SKILL.md",
+      "computedHash": "507bff7a63934eac726a4b26b64cb5e3a915b5c209e7037ca2a79ff014f0d321"
+    },
+    "composio": {
+      "source": "composio-community/skills",
+      "sourceType": "github",
+      "skillPath": "skills/composio/SKILL.md",
+      "computedHash": "b6c3b70c8d2f122bf372a0566c520d2f70a230f2e6072f45d005208a4d220e3a"
+    },
+    "deep-research": {
+      "source": "collaborative-deep-research/agent-papers-cli",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/deep-research/SKILL.md",
+      "computedHash": "deff8c4c797c6ca96365c5c8e1477ab8a100b0f6056bb2171a6bf4864792a2a4"
+    },
+    "fastapi": {
+      "source": "fastapi/fastapi",
+      "sourceType": "github",
+      "skillPath": "fastapi/.agents/skills/fastapi/SKILL.md",
+      "computedHash": "187b2e06c41cdb6c6beeab15e6db4aeb1bf62f57735974646ad5646af8aacc66"
+    },
+    "i-have-adhd": {
+      "source": "ayghri/i-have-adhd",
+      "sourceType": "github",
+      "skillPath": "skills/i-have-adhd/SKILL.md",
+      "computedHash": "ff5ac62815dc9c74709333f433e667ea76215126afb628e7dd8e021758a9e3a7"
+    },
+    "project-architecture-report": {
+      "source": "gil-1/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/project-architecture-report/SKILL.md",
+      "computedHash": "bf4334229da869b11102bbecc678502484f63aec8c95db7274c22c1ebd245502"
+    },
+    "wf-planning-solution-architect": {
+      "source": "adobe/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/workfront/skills/wf-planning-solution-architect/SKILL.md",
+      "computedHash": "c7384f66d4ae36011c9ffd97f0f790f6e2816b3d1e8d66280399c7600d6876da"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Project Architecture Report"
+  short_description: "Create an HTML architecture report"
+  default_prompt: "Use $project-architecture-report to create an HTML architecture report for this project."
+policy:
+  allow_implicit_invocation: false
