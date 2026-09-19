@@ -46,6 +46,7 @@ Tick as each item lands. Detail for every item is in Part 3.
 **Stage 0 complete.**
 
 ### Stage 1 — Correctness of existing code
+- [x] Package collapsed onto one structure (`models/`, `services/` and the loose root modules removed; upload and search moved into use cases)
 - [ ] Production→test import removed (`api/app.py` imports fakes from `tests/`)
 - [ ] Global-variable composition root replaced with a startup-built `Container`
 - [ ] Async/sync boundary fixed (`AsyncSession` throughout)
