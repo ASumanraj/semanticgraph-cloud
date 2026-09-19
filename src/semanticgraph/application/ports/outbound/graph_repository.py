@@ -3,7 +3,7 @@ Outbound Port: Graph Repository.
 
 Defines the abstract interface (Protocol) for graph storage operations.
 The domain and use cases depend on this port — never on Neo4j directly.
-Adapters in adapters/outbound/neo4j/ implement this interface.
+Adapters in adapters/outbound/postgres/ implement this interface (see ADR-0002).
 """
 
 from __future__ import annotations
