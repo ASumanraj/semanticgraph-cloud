@@ -1,42 +1,86 @@
-# SemanticGraph Cloud: AI Agent Execution Guidelines
+# SemanticGraph Cloud
 
-This document governs the behavioral and architectural constraints for all AI coding agents operating in this repository.
+Multi-tenant knowledge-graph substrate. Documents in, ontology-constrained extraction,
+resolution into Golden Records, subgraph retrieval with citations.
 
-## 1. Executive Function & Focus (i-have-adhd workflow)
-To prevent hallucination rabbit holes and context collapse, agents must operate in strict, bite-sized cycles:
-*   **State Tracking (Red/Amber/Green):** Agents must declare status before execution (Red = Broken/Failing Test, Amber = Implementing, Green = Passing/Clean).
-*   **Zero Cognitive Overload:** Never attempt multi-file horizontal refactors in a single prompt. Output exactly one vertical slice at a time.
-*   **Halt & Verify:** Before diving into complex debugging or proposing new architecture, stop and verify the constraints (e.g., licenses, memory limits).
+`docs/architecture/ENTERPRISE_PLAN.md` is the authoritative architecture and the work
+queue — read it before designing anything, and tick its progress tracker as items land.
+`DOMAIN_SPEC.md` is the glossary. `docs/adr/` holds the individual decisions.
 
-## 2. Engineering Command Center (ECC) & TDD
-*   **Red Before Green:** Always write a failing test first. The test surface is the external interface (Ports/Adapters); never mock internal state.
-*   **Deep Modules:** Hide massive internal complexity (like graph extraction and resolution) behind a tiny, highly-leveraged interface.
-*   **Domain Ubiquity:** Always use the exact terminology from `DOMAIN_SPEC.md` (e.g., *Golden Record*, *Semantic Chunk*, *Resolution*).
+`ARCHITECTURE.md` is the pre-research design and is **stale**: it specifies Neo4j and
+Celery, both replaced. Trust `ENTERPRISE_PLAN.md` wherever the two disagree.
 
-## 3. Agent Memory & Tool Execution
-*   **OpenHands Memory:** Persist critical architectural decisions (e.g., AWS CDK deployment structures, FastAPI routing patterns) in the agent's memory bank so context is not lost between sessions.
-*   **Composio Integration:** Utilize Composio for executing external actions securely, managing GitHub PRs, and interacting with AWS resources.
-*   **Model Context Protocol (MCP):** Expose database schemas and API specs directly to the agent via FastMCP servers, eliminating the need to manually paste Neo4j or Postgres structures into the prompt.
+## The five irreversible rules
 
-## 4. Multi-Tenant Authorization Constraints
-*   Every database query, API route, and Graph Subgraph traversal must explicitly filter by `tenant_id`.
-*   Strict isolation applies: Super Admins possess cross-tenant visibility for platform metrics, while Tenant Admins are strictly confined to their own silo.
+These are schema properties with no backfill path. Violating one is not a bug to fix
+later — it is a full re-ingestion of every customer's corpus. Hold them in mind on every
+change that touches persistence.
 
-## 5. Required Tooling & Extraction Patterns
-*   **Pydantic / Instructor:** Do not let the LLM invent its own entity types. Use `instructor` wrapping your LLM calls to force output into strict Pydantic models that perfectly match our predefined Ontology.
-*   **Celery Workers:** GraphRAG extraction is computationally heavy. Generating Semantic Chunks, identifying Raw Entities, and running Disambiguation must be offloaded from FastAPI endpoints into robust asynchronous Celery task queues.
-*   **Ragas / TruLens:** You must mathematically prove that your Subgraph retrievals are accurate. Integrate a framework (Ragas or TruLens) designed to evaluate RAG hallucination and context relevance.
+1. **Provenance is mandatory.** Every fact carries `chunk_id` and the character span it
+   came from, non-nullable, including in the extraction schema handed to the model. Spans
+   are what make deletion, citation, and hallucination-checking possible at all.
+2. **Tenant isolation fails closed.** `tenant_id` on every table, leading every composite
+   index. `FORCE ROW LEVEL SECURITY`, an app role that does not own the tables, and tenant
+   context set with `SET LOCAL` *inside the transaction* — a session-level `SET` survives on
+   a pooled connection and hands the next caller the previous tenant's data.
+3. **Resolution is non-destructive.** A Golden Record is a projection of a versioned
+   decision log. Merging inserts a decision; unmerging retracts one. A human decision
+   outranks every model decision, permanently and across model upgrades.
+4. **Facts die by assertion count.** Deleting a document removes its assertions; a fact
+   survives while any other document still asserts it. The cascade reaches embeddings,
+   caches, community summaries, and eval fixtures, in one transaction.
+5. **Ontologies are immutable.** Editing publishes a new version. Every extraction run
+   records the `ontology_version` it ran under.
 
-## 6. Autonomous Execution Loop (State Machine Controller)
-You operate as an autonomous State Machine Controller. You are strictly forbidden from pausing execution to apologize, narrate intermediate debugging, or ask the user for permission on routine compiler/test failures.
+## Architecture
 
-Execute all development tasks via this closed loop:
-*   **PLAN (Amber):** Identify the target test or single vertical slice. Do not output planning chatter or ask for confirmation; transition directly to tool execution.
-*   **EXECUTE (Amber):** Invoke required tools to modify code, execute compilers, apply migrations, or run test suites.
-*   **EVALUATE (Red/Green):** Parse the execution tool output (`stdout`/`stderr`) silently:
-    *   *If RED (Failing Test / Build Error):* Do **not** yield to the user. Log the error internally, transition back to **PLAN**, and invoke the next tool call to patch the failure.
-    *   *If GREEN (Build Clean / Tests Pass):* Complete the vertical slice. Exit the state machine and yield control back to the user with a single concise confirmation.
-*   **HALT (Escalation Threshold):** If the exact same error persists across 3 consecutive evaluation cycles, break the loop. Yield to the user with the failure trace and specify the blocker.
+Hexagonal, and the hexagon is enforced by a test: `domain/` and `application/` import no
+framework, no driver, no SDK. Dependencies enter through Protocol ports in
+`application/ports/outbound/`, are implemented in `adapters/outbound/`, and are wired in
+one place — `composition/`.
 
-**Zero-Babysitting Protocol:**
-Suppress conversational status updates ("I see the error, fixing it now...", "Apologies for the oversight"). Keep state transitions confined to your silent execution trace. Communicate with the user only upon reaching the **GREEN** or **HALT** state.
+Postgres holds everything: documents, chunks, mentions, facts, edges, vectors, decisions,
+usage, audit. Graph algorithms run in-process over a per-tenant subgraph. Temporal runs
+the document pipeline; its activities are the expensive, retryable units.
+
+Build **deep modules** — a large hidden implementation behind a small interface. Extraction,
+resolution, and retrieval each earn one entry point.
+
+## Vocabulary
+
+Use `DOMAIN_SPEC.md`'s terms exactly — *Document*, *Semantic Chunk*, *Raw Entity*,
+*Golden Record*, *Edge*, *Ontology*, *Resolution*. A term absent from that file does not
+exist in this domain; add it there first, then use it.
+
+## Working rhythm
+
+Take one vertical slice at a time: a failing test, the code that passes it, then stop.
+
+Write the failing test first, against the port or the HTTP surface — the test exercises the
+interface a caller would use, with real fakes at the boundary rather than patched internals.
+
+Drive through failures on your own. A failing test or a build error is the next input, not
+a reason to check in. When the *same* error survives three consecutive attempts, stop and
+report the trace and what you think is blocking it.
+
+Report at the end of the slice, in a few lines: what changed and what the tests say.
+
+## Cost discipline
+
+LLM extraction is 65–80% of the cost of running this product, so treat tokens as a budget
+you are spending on the user's behalf.
+
+Keep the cached prefix byte-identical across calls — a timestamp, a UUID, or an unsorted
+`json.dumps()` in the prompt prefix drops the cache hit rate to zero silently and costs
+roughly 10× more. Assert `usage.cache_read_input_tokens > 0` in integration tests.
+
+Route by difficulty: Haiku for contextual blurbs and resolution adjudication, Sonnet for
+extraction, Opus only on escalation. Use the Batch API for anything in the ingest path —
+it stacks with caching and nothing there needs sub-24h latency.
+
+## Conventions
+
+Commit messages explain what changed and why, and carry no tool attribution.
+
+Telemetry carries IDs and hashes. Document text stays out of logs, traces, and span
+attributes — observability retention is a disclosed GDPR exposure.
