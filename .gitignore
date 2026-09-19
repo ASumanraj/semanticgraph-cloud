@@ -35,7 +35,3 @@ Thumbs.db
 
 # --- Scratch ---
 screenshot.png
-
-# --- Vendored agent-skills library (clone of github.com/affaan-m/ECC) ---
-# 257 MB / 11,747 files. Not part of the deployable tree; see ENTERPRISE_PLAN.md open question 4.
-ECC/

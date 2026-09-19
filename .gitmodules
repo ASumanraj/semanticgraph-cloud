@@ -1,0 +1,4 @@
+[submodule "ECC"]
+	path = ECC
+	url = https://github.com/affaan-m/ECC.git
+	branch = main

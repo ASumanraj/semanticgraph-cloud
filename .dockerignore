@@ -1,0 +1,38 @@
+# Keep images small and free of anything that is not the application.
+
+# Version control & agent tooling
+.git
+.gitignore
+.gitmodules
+.github
+.agents
+ECC
+skills-lock.json
+
+# Python environments and caches
+.venv
+venv
+.uv_cache
+__pycache__
+*.py[cod]
+.pytest_cache
+.ruff_cache
+.mypy_cache
+
+# Node
+node_modules
+.next
+frontend/node_modules
+frontend/.next
+
+# Infrastructure synth output
+cdk.out
+infra
+
+# Docs, plans and local scratch
+docs
+tickets
+*.md
+!README.md
+.env
+.env.*
