@@ -28,8 +28,8 @@ from semanticgraph.domain.models.entities import (
 
 
 @pytest_asyncio.fixture
-async def async_session(tmp_path):
-    """In-process AsyncSession backed by temporary SQLite with Alembic migrations."""
+async def session_factory(tmp_path):
+    """In-process sessionmaker backed by temporary SQLite with Alembic migrations."""
     import os
 
     from alembic import command
@@ -50,8 +50,7 @@ async def async_session(tmp_path):
     )
 
     factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-    async with factory() as session:
-        yield session
+    yield factory
 
     await engine.dispose()
     if old_env is not None:
@@ -61,12 +60,12 @@ async def async_session(tmp_path):
 
 
 @pytest.fixture
-def repo(async_session):
+def repo(session_factory):
     from semanticgraph.adapters.outbound.postgres.document_repository import (
         PostgresDocumentRepository,
     )
 
-    return PostgresDocumentRepository(session_factory=lambda: async_session)
+    return PostgresDocumentRepository(session_factory=session_factory)
 
 
 @pytest.mark.asyncio

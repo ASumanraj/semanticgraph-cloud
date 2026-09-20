@@ -59,7 +59,7 @@ Tick as each item lands. Detail for every item is in Part 3.
 ### Stage 2 — The irreversible schema ← the foundation
 - [x] Alembic baseline
 - [x] `tenant_id` everywhere, leading every composite index
-- [ ] FORCE RLS + non-owner app role + fail-closed tests
+- [x] FORCE RLS + non-owner app role + fail-closed tests
 - [ ] Provenance chain with mandatory spans
 - [ ] Bi-temporal facts with edge invalidation
 - [ ] Versioned resolution decision log

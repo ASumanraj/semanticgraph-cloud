@@ -27,7 +27,7 @@ target_metadata = SQLModel.metadata
 
 
 def get_url() -> str:
-    db_url = os.environ.get("DATABASE_URL")
+    db_url = os.environ.get("DATABASE_URL") or config.get_main_option("sqlalchemy.url")
     if db_url:
         if db_url.startswith("postgresql://"):
             return db_url.replace("postgresql://", "postgresql+psycopg_async://", 1)
@@ -36,11 +36,6 @@ def get_url() -> str:
         elif db_url.startswith("sqlite://") and not db_url.startswith("sqlite+aiosqlite://"):
             return db_url.replace("sqlite://", "sqlite+aiosqlite://", 1)
         return db_url
-    url = config.get_main_option("sqlalchemy.url")
-    if url is not None:
-        if url.startswith("sqlite://") and not url.startswith("sqlite+aiosqlite://"):
-            return url.replace("sqlite://", "sqlite+aiosqlite://", 1)
-        return url
     return "sqlite+aiosqlite:///:memory:"
 
 

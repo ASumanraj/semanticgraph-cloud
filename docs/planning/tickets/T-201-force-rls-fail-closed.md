@@ -1,6 +1,6 @@
 # T-201 · Make tenant isolation fail closed
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-201-force-rls`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-201-force-rls`
 
 **Scope**
 - `alembic/**`
@@ -18,12 +18,12 @@ common production pitfall — so this needs `FORCE` and an application role that
 not own the tables.
 
 ## Acceptance
-- [ ] Every tenant-scoped table has `ENABLE` **and** `FORCE ROW LEVEL SECURITY` with a tenant policy
-- [ ] The application connects as a role that does not own the tables and lacks `BYPASSRLS`
-- [ ] Tenant context is set with `SET LOCAL` **inside the transaction**, never session-level
-- [ ] A test asserts every table returns **zero rows** with no tenant context set
-- [ ] A test issues a query with no `WHERE tenant_id` and gets nothing back
-- [ ] A test proves tenant A's context cannot read tenant B's rows
+- [x] Every tenant-scoped table has `ENABLE` **and** `FORCE ROW LEVEL SECURITY` with a tenant policy
+- [x] The application connects as a role that does not own the tables and lacks `BYPASSRLS`
+- [x] Tenant context is set with `SET LOCAL` **inside the transaction**, never session-level
+- [x] A test asserts every table returns **zero rows** with no tenant context set
+- [x] A test issues a query with no `WHERE tenant_id` and gets nothing back
+- [x] A test proves tenant A's context cannot read tenant B's rows
 
 ## Notes
 Session-level `SET` under transaction-mode PgBouncer persists on the pooled
