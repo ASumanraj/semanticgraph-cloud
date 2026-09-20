@@ -1,6 +1,6 @@
 # T-204 · Non-destructive resolution decision log
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-204-resolution-decision-log`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-204-resolution-decision-log`
 
 **Scope**
 - `alembic/**`
