@@ -230,3 +230,68 @@ class SQLGoldenRecord(SQLModel, table=True):
     entity_type: str = Field(nullable=False)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+
+class SQLChunkEmbedding(SQLModel, table=True):
+    __tablename__ = "chunk_embeddings"
+    __table_args__ = (
+        Index("idx_tenant_emb_doc", "tenant_id", "document_id"),
+        Index("idx_tenant_emb_chunk", "tenant_id", "chunk_id"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    tenant_id: UUID = Field(index=True, nullable=False)
+    document_id: UUID = Field(foreign_key="documents.id", index=True, nullable=False)
+    chunk_id: UUID = Field(foreign_key="semantic_chunks.id", index=True, nullable=False)
+    embedding: list[float] = Field(
+        default_factory=list, sa_column=sa.Column(sa.JSON, nullable=False)
+    )
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), nullable=False)
+
+
+class SQLQueryCache(SQLModel, table=True):
+    __tablename__ = "query_caches"
+    __table_args__ = (
+        Index("idx_tenant_cache_doc", "tenant_id", "document_id"),
+        Index("idx_tenant_cache_key", "tenant_id", "cache_key"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    tenant_id: UUID = Field(index=True, nullable=False)
+    document_id: UUID | None = Field(
+        default=None, foreign_key="documents.id", index=True, nullable=True
+    )
+    cache_key: str = Field(nullable=False)
+    cache_value: str = Field(nullable=False)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), nullable=False)
+
+
+class SQLCommunitySummary(SQLModel, table=True):
+    __tablename__ = "community_summaries"
+    __table_args__ = (
+        Index("idx_tenant_comm_doc", "tenant_id", "document_id"),
+        Index("idx_tenant_comm_id", "tenant_id", "community_id"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    tenant_id: UUID = Field(index=True, nullable=False)
+    document_id: UUID | None = Field(
+        default=None, foreign_key="documents.id", index=True, nullable=True
+    )
+    community_id: str = Field(nullable=False)
+    summary_text: str = Field(nullable=False)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), nullable=False)
+
+
+class SQLEvalFixture(SQLModel, table=True):
+    __tablename__ = "eval_fixtures"
+    __table_args__ = (Index("idx_tenant_eval_doc", "tenant_id", "document_id"),)
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    tenant_id: UUID = Field(index=True, nullable=False)
+    document_id: UUID | None = Field(
+        default=None, foreign_key="documents.id", index=True, nullable=True
+    )
+    name: str = Field(nullable=False)
+    expected_output: str = Field(nullable=False)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), nullable=False)

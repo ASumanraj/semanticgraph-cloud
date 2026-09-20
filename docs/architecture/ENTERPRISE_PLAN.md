@@ -64,7 +64,7 @@ Tick as each item lands. Detail for every item is in Part 3.
 - [x] Bi-temporal facts with edge invalidation
 - [x] Versioned resolution decision log
 - [x] Immutable versioned ontologies
-- [ ] Assertion-counted delete cascade
+- [x] Assertion-counted delete cascade
 - [ ] Usage event ledger
 - [ ] Append-only audit log
 - [ ] OpenTelemetry with `tenant_id` attribution

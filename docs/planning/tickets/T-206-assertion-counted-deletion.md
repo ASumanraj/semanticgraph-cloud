@@ -1,6 +1,6 @@
 # T-206 · Assertion-counted deletion
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-206-assertion-counted-deletion`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-206-assertion-counted-deletion`
 
 **Scope**
 - `alembic/**`
@@ -18,12 +18,12 @@ remaining assertions, re-materialize affected Golden Records and invalidate the
 summaries that quoted the removed text — in one transaction. Irreversible rule 4.
 
 ## Acceptance
-- [ ] A fact supported by documents D and E survives deleting D
-- [ ] The same fact disappears when E is also deleted
-- [ ] The cascade reaches embeddings, caches and community summaries
-- [ ] The whole cascade is one transaction
-- [ ] Eval fixtures are tagged by source document so erasure can reach them too
-- [ ] A test asserts provenance completeness stays 100% afterwards
+- [x] A fact supported by documents D and E survives deleting D
+- [x] The same fact disappears when E is also deleted
+- [x] The cascade reaches embeddings, caches and community summaries
+- [x] The whole cascade is one transaction
+- [x] Eval fixtures are tagged by source document so erasure can reach them too
+- [x] A test asserts provenance completeness stays 100% afterwards
 
 ## Notes
 The EDPB made right-to-erasure its 2025 coordinated enforcement action, and the
