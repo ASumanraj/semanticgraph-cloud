@@ -17,7 +17,6 @@ from uuid import uuid4
 import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlmodel import SQLModel
 
 from semanticgraph.domain.models.entities import (
     ChunkId,
@@ -29,29 +28,36 @@ from semanticgraph.domain.models.entities import (
 
 
 @pytest_asyncio.fixture
-async def async_session():
-    """
-    In-process AsyncSession backed by aiosqlite.
+async def async_session(tmp_path):
+    """In-process AsyncSession backed by temporary SQLite with Alembic migrations."""
+    import os
 
-    Importing postgres.models registers SQLDocument and SQLSemanticChunk on
-    SQLModel.metadata so create_all() actually builds the tables.
-    """
-    from semanticgraph.adapters.outbound.postgres import models  # noqa: F401
+    from alembic import command
+    from alembic.config import Config
+
+    db_file = tmp_path / "doc_repo.db"
+    url = f"sqlite+aiosqlite:///{db_file.as_posix()}"
+    old_env = os.environ.get("DATABASE_URL")
+    os.environ["DATABASE_URL"] = url
+
+    cfg = Config("alembic.ini")
+    cfg.set_main_option("sqlalchemy.url", url)
+    command.upgrade(cfg, "head")
 
     engine = create_async_engine(
-        "sqlite+aiosqlite://",
+        url,
         connect_args={"check_same_thread": False},
     )
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
 
     factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     async with factory() as session:
         yield session
 
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.drop_all)
     await engine.dispose()
+    if old_env is not None:
+        os.environ["DATABASE_URL"] = old_env
+    else:
+        os.environ.pop("DATABASE_URL", None)
 
 
 @pytest.fixture

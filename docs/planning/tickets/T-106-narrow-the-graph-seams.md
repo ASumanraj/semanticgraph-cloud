@@ -15,11 +15,11 @@
 `GraphRepositoryPort` declares five methods spanning three unrelated concerns:
 
 ```python
-save_raw_entities(...)        # persistence
-save_edges(...)               # persistence
-find_similar_entities(...)    # search
-merge_into_golden_record(...) # resolution policy
-search_subgraph(...)          # retrieval
+save_raw_entities(...)  # persistence
+save_edges(...)  # persistence
+find_similar_entities(...)  # search
+merge_into_golden_record(...)  # resolution policy
+search_subgraph(...)  # retrieval
 ```
 
 A caller has to learn all of it to use any of it, which is the definition of a shallow

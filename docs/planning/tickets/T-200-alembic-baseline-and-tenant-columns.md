@@ -1,6 +1,6 @@
 # T-200 · Alembic baseline with tenant_id on every table
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-200-alembic-baseline`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-200-alembic-baseline`
 
 
 **Scope**
@@ -19,11 +19,11 @@ composite index**. A missing leading `tenant_id` is the single biggest RLS
 performance killer, and adding the column later rewrites every index.
 
 ## Acceptance
-- [ ] `alembic upgrade head` builds the schema from empty
-- [ ] `alembic downgrade base` reverses it
-- [ ] Every table has `tenant_id`, and every composite index leads with it
-- [ ] `create_all` is no longer the path by which tables appear
-- [ ] An autogenerate run against head produces an empty revision
+- [x] `alembic upgrade head` builds the schema from empty
+- [x] `alembic downgrade base` reverses it
+- [x] Every table has `tenant_id`, and every composite index leads with it
+- [x] `create_all` is no longer the path by which tables appear
+- [x] An autogenerate run against head produces an empty revision
 
 ## Notes
 **Do not generate the baseline until T-105 has landed on `main` and this branch has
