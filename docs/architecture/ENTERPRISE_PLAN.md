@@ -49,7 +49,7 @@ Tick as each item lands. Detail for every item is in Part 3.
 - [x] Package collapsed onto one structure (`models/`, `services/` and the loose root modules removed; upload and search moved into use cases)
 - [x] Production→test import removed — fakes promoted to `adapters/outbound/inmemory/`
 - [x] Global-variable composition root replaced with a config-built `Container` (no setters)
-- [ ] Async/sync boundary fixed (`AsyncSession` throughout)
+- [x] Async/sync boundary fixed (`AsyncSession` throughout)
 - [x] `docker-compose.yml` runs the real API and worker
 - [ ] End-to-end proof on real infrastructure (AGENTS.md "Proving it works"):
   - [ ] Postgres-backed integration test — upload via HTTP, worker processes, assert rows with SQL

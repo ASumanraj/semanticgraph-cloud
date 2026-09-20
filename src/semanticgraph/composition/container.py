@@ -68,8 +68,42 @@ class Container:
         )
 
     @classmethod
+    def postgres(cls) -> Container:
+        import os
+
+        from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
+        from semanticgraph.adapters.outbound.inmemory import (
+            DeterministicLLMGateway,
+            InMemoryGraphRepository,
+            InMemoryObjectStorage,
+            InMemoryTaskPublisher,
+        )
+        from semanticgraph.adapters.outbound.postgres.document_repository import (
+            PostgresDocumentRepository,
+        )
+
+        database_url = os.environ["DATABASE_URL"]
+        # SQLAlchemy async requires the asyncpg or psycopg_async dialect prefix.
+        if database_url.startswith("postgresql://"):
+            database_url = database_url.replace("postgresql://", "postgresql+psycopg_async://", 1)
+        elif database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql+psycopg_async://", 1)
+
+        engine = create_async_engine(database_url, pool_pre_ping=True)
+        session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+        return cls(
+            document_repo=PostgresDocumentRepository(session_factory=session_factory),
+            graph_repo=InMemoryGraphRepository(),
+            llm_gateway=DeterministicLLMGateway(),
+            task_publisher=InMemoryTaskPublisher(),
+            object_storage=InMemoryObjectStorage(),
+        )
+
+    @classmethod
     def for_profile(cls, profile: str) -> Container:
-        builders = {"inmemory": cls.in_memory}
+        builders = {"inmemory": cls.in_memory, "postgres": cls.postgres}
         try:
             return builders[profile]()
         except KeyError:

@@ -1,6 +1,6 @@
 # T-102 · Stop blocking the event loop in the Postgres repository
 
-**Stage** 1 · **Type** work · **Status** open · **Owner** — · **Branch** `t-102-async-postgres-repository`
+**Stage** 1 · **Type** work · **Status** done · **Owner** — · **Branch** `t-102-async-postgres-repository`
 
 **Scope**
 - `src/semanticgraph/adapters/outbound/postgres/**`
@@ -19,11 +19,11 @@ outbound adapter — a port that is async in one adapter and sync in another is 
 than either.
 
 ## Acceptance
-- [ ] The repository uses `sqlalchemy.ext.asyncio.AsyncSession`; no blocking call sits inside an `async def`
-- [ ] `DocumentRepositoryPort` still expresses the same five operations
-- [ ] `InMemoryDocumentRepository` satisfies the port unchanged, or changes with it
-- [ ] The postgres integration suite passes standalone, not only in a full run
-- [ ] The architecture-fitness tests still pass
+- [x] The repository uses `sqlalchemy.ext.asyncio.AsyncSession`; no blocking call sits inside an `async def`
+- [x] `DocumentRepositoryPort` still expresses the same five operations
+- [x] `InMemoryDocumentRepository` satisfies the port unchanged, or changes with it
+- [x] The postgres integration suite passes standalone, not only in a full run
+- [x] The architecture-fitness tests still pass
 
 ## Notes
 Blocks T-200 because Stage 2's migrations land in the same package; finish this

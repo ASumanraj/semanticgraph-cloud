@@ -1,5 +1,10 @@
 """
-Integration tests for SQLModel/Postgres DocumentRepository adapter.
+Integration tests for the async Postgres DocumentRepository adapter.
+
+Uses AsyncSession + aiosqlite so every test exercises the real async code path
+(no blocking I/O inside an ``async def``).  aiosqlite is close enough to the
+production asyncpg dialect for structural correctness; T-103 will add a
+testcontainers-Postgres run that asserts rows with raw SQL.
 
 Verifies:
 - Document & Chunk persistence.
@@ -10,8 +15,9 @@ Verifies:
 from uuid import uuid4
 
 import pytest
-from sqlmodel import Session, SQLModel, create_engine
-from sqlmodel.pool import StaticPool
+import pytest_asyncio
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlmodel import SQLModel
 
 from semanticgraph.domain.models.entities import (
     ChunkId,
@@ -22,31 +28,39 @@ from semanticgraph.domain.models.entities import (
 )
 
 
-@pytest.fixture
-def db_session():
-    # Import registers SQLDocument and SQLSemanticChunk on SQLModel.metadata.
-    # Without it create_all() sees an empty metadata and builds no tables, which
-    # only passes when some other module happened to import them first.
+@pytest_asyncio.fixture
+async def async_session():
+    """
+    In-process AsyncSession backed by aiosqlite.
+
+    Importing postgres.models registers SQLDocument and SQLSemanticChunk on
+    SQLModel.metadata so create_all() actually builds the tables.
+    """
     from semanticgraph.adapters.outbound.postgres import models  # noqa: F401
 
-    engine = create_engine(
-        "sqlite://",
+    engine = create_async_engine(
+        "sqlite+aiosqlite://",
         connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
     )
-    SQLModel.metadata.create_all(engine)
-    with Session(engine) as session:
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
+
+    factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    async with factory() as session:
         yield session
-    SQLModel.metadata.drop_all(engine)
+
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.drop_all)
+    await engine.dispose()
 
 
 @pytest.fixture
-def repo(db_session):
+def repo(async_session):
     from semanticgraph.adapters.outbound.postgres.document_repository import (
         PostgresDocumentRepository,
     )
 
-    return PostgresDocumentRepository(session_factory=lambda: db_session)
+    return PostgresDocumentRepository(session_factory=lambda: async_session)
 
 
 @pytest.mark.asyncio
@@ -88,7 +102,7 @@ async def test_multi_tenant_isolation(repo):
     )
     await repo.save_document(tenant_a, doc, raw_content=b"Secret data")
 
-    # Tenant B tries to retrieve Tenant A's document
+    # Tenant B must not see Tenant A's document or raw content.
     isolated = await repo.get_document(tenant_b, doc_id)
     assert isolated is None
 

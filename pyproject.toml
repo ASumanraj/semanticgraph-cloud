@@ -30,6 +30,7 @@ dev = [
     "pyyaml>=6.0",
     "ruff>=0.8",
     "pyright>=1.1.390",
+    "aiosqlite>=0.20",
 ]
 
 [build-system]
