@@ -33,7 +33,7 @@ cd semanticgraph-cloud
 python -m venv .venv && .venv/Scripts/activate   # PowerShell: .venv\Scripts\Activate.ps1
 pip install -e ".[dev]"
 
-pytest -q          # 39 passing
+pytest -q
 ruff check .
 ```
 
