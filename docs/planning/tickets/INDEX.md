@@ -27,6 +27,16 @@ T-200 is claimed and its `alembic/versions/` is still empty — that is the wind
 | [T-105](T-105-domain-invariants.md) Domain invariants | `domain/**`, `application/**`, in-memory adapters, `tests/unit/**` |
 | [T-106](T-106-narrow-the-graph-seams.md) Narrow the graph seams | `application/ports/**`, use cases, in-memory adapters |
 
+## Groundwork that needs no pipeline
+
+None of these touch `src/`, so they run beside anything.
+
+| Ticket | Scope |
+|---|---|
+| [T-107](T-107-isolation-proofs-must-not-skip.md) Isolation proofs must fail, not skip | `ci.yml`, `tests/conftest.py`, `tests/integration/adapters/postgres/**` |
+| [T-904](T-904-evaluation-corpus.md) Four-track evaluation corpus | `evals/**`, `docs/research/**` |
+| [T-905](T-905-gleif-coverage-spike.md) Registry coverage on real counterparties | `evals/gleif/**`, `docs/research/**` |
+
 ## First wave — five agents, no collisions
 
 Nothing here blocks anything else here, and no two share a path.
