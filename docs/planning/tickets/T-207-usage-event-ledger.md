@@ -1,6 +1,6 @@
 # T-207 · Usage event ledger
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-207-usage-event-ledger`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-207-usage-event-ledger`
 
 **Scope**
 - `alembic/**`
