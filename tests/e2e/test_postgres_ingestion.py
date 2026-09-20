@@ -1,21 +1,22 @@
-import asyncio
 import os
 import uuid
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 import pytest
-from sqlmodel import SQLModel
-from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlmodel import SQLModel
 from testcontainers.postgres import PostgresContainer
 
 # Import models so they register with SQLModel.metadata
 from semanticgraph.adapters.outbound.postgres import models  # noqa: F401
 
+
 @pytest.fixture(scope="session")
 def postgres_container():
     with PostgresContainer("postgres:16-alpine") as postgres:
         yield postgres
+
 
 @pytest.fixture(scope="session")
 def database_url(postgres_container):
@@ -24,38 +25,40 @@ def database_url(postgres_container):
     # Our app needs postgresql:// which it internally rewrites to postgresql+psycopg_async://
     return url.replace("postgresql+psycopg2://", "postgresql://")
 
+
 @pytest.fixture
 async def setup_database(database_url: str) -> AsyncGenerator[str, None]:
     os.environ["DATABASE_URL"] = database_url
     os.environ["SEMANTICGRAPH_ADAPTERS"] = "postgres"
-    
+
     async_url = database_url.replace("postgresql://", "postgresql+psycopg_async://")
     engine = create_async_engine(async_url)
-    
+
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
-        
+
     yield async_url
-    
+
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.drop_all)
     await engine.dispose()
 
+
 @pytest.mark.e2e
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="Bug: IngestDocumentUseCase does not save the document to the document_repository")
 async def test_postgres_ingestion(setup_database: str) -> None:
     async_url = setup_database
-    
+
     # Import inside test so env vars take effect
-    from semanticgraph.adapters.inbound.api.app import create_app
     from fastapi.testclient import TestClient
-    
+
+    from semanticgraph.adapters.inbound.api.app import create_app
+
     app = create_app()
-    
+
     tenant_a = uuid.uuid4()
     tenant_b = uuid.uuid4()
-    
+
     # 1. Post document
     with TestClient(app) as client:
         response = client.post(
@@ -66,22 +69,23 @@ async def test_postgres_ingestion(setup_database: str) -> None:
                 "content": "SGVsbG8gV29ybGQ=",  # Base64 for "Hello World"
                 "ontology_name": "default",
                 "allowed_entity_types": [],
-                "allowed_edge_types": []
-            }
+                "allowed_edge_types": [],
+            },
         )
         assert response.status_code == 200, response.text
         data = response.json()
         assert "document_id" in data
         assert data["status"] == "extracting"
         doc_id = data["document_id"]
-        
+
     # 2. Check DB directly using raw SQL
     engine = create_async_engine(async_url)
     async with engine.connect() as conn:
-        # Tenant A can see it and properties are correct
+        # Tenant A can see document and properties are correct
         result = await conn.execute(
             text(
-                "SELECT id, tenant_id, status FROM documents WHERE id = CAST(:id AS uuid) AND tenant_id = CAST(:tenant_id AS uuid)"
+                "SELECT id, tenant_id, status FROM documents "
+                "WHERE id = CAST(:id AS uuid) AND tenant_id = CAST(:tenant_id AS uuid)"
             ),
             {"id": doc_id, "tenant_id": str(tenant_a)},
         )
@@ -90,12 +94,41 @@ async def test_postgres_ingestion(setup_database: str) -> None:
         assert str(row.tenant_id) == str(tenant_a)
         assert row.status == "extracting"
 
+        # Tenant A can see semantic chunks
+        chunks_res = await conn.execute(
+            text(
+                "SELECT id, document_id, tenant_id, text, chunk_index FROM semantic_chunks "
+                "WHERE document_id = CAST(:id AS uuid) AND tenant_id = CAST(:tenant_id AS uuid) "
+                "ORDER BY chunk_index ASC"
+            ),
+            {"id": doc_id, "tenant_id": str(tenant_a)},
+        )
+        chunks = chunks_res.fetchall()
+        assert len(chunks) == 1
+        assert str(chunks[0].document_id) == str(doc_id)
+        assert str(chunks[0].tenant_id) == str(tenant_a)
+        assert chunks[0].text == "Hello World"
+        assert chunks[0].chunk_index == 0
+
         # Multi-tenant isolation: Tenant B reading same document gets nothing
         result_b = await conn.execute(
-            text("SELECT id FROM documents WHERE id = CAST(:id AS uuid) AND tenant_id = CAST(:tenant_id AS uuid)"),
+            text(
+                "SELECT id FROM documents "
+                "WHERE id = CAST(:id AS uuid) AND tenant_id = CAST(:tenant_id AS uuid)"
+            ),
             {"id": doc_id, "tenant_id": str(tenant_b)},
         )
         row_b = result_b.fetchone()
         assert row_b is None
-        
+
+        # Multi-tenant isolation on chunks: Tenant B gets nothing
+        chunks_res_b = await conn.execute(
+            text(
+                "SELECT id FROM semantic_chunks "
+                "WHERE document_id = CAST(:id AS uuid) AND tenant_id = CAST(:tenant_id AS uuid)"
+            ),
+            {"id": doc_id, "tenant_id": str(tenant_b)},
+        )
+        assert chunks_res_b.fetchall() == []
+
     await engine.dispose()

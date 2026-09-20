@@ -1,5 +1,5 @@
-import sys
 import asyncio
+import sys
 
 if sys.platform == "win32":
     # psycopg async requires SelectorEventLoop on Windows

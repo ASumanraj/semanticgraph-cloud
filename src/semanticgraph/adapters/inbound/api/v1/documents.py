@@ -88,6 +88,7 @@ async def ingest_document(
         document_id=document_id,
         document_bytes=doc_bytes,
         ontology=ontology,
+        filename=body.filename,
     )
 
     # Execute use case

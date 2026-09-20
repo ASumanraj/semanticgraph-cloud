@@ -18,8 +18,9 @@ end: HTTP in, worker processes, rows in Postgres.
 - [x] A real Postgres backs the test — testcontainers, or the compose service
 - [x] The test posts a document to the running API rather than calling a use case
 - [x] Assertions read rows with **SQL**, not through the repository that wrote them
-- [ ] It asserts `tenant_id`, status, and the chunk rows that belong to the document
+- [x] It asserts `tenant_id`, status, and the chunk rows that belong to the document
 - [x] A second tenant reading the same document id gets nothing
+
 - [x] It is marked so the fast suite can skip it, and CI runs it
 
 ## Notes

@@ -116,6 +116,7 @@ class Container:
             graph_repo=self.graph_repo,
             llm_gateway=self.llm_gateway,
             task_publisher=self.task_publisher,
+            document_repo=self.document_repo,
         )
 
     def upload_document(self) -> UploadDocumentUseCase:

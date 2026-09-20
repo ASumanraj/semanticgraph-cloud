@@ -12,6 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from uuid import UUID
 
+from semanticgraph.application.ports.outbound.document_repository import DocumentRepositoryPort
 from semanticgraph.application.ports.outbound.graph_repository import GraphRepositoryPort
 from semanticgraph.application.ports.outbound.llm_gateway import LLMGatewayPort
 from semanticgraph.application.ports.outbound.task_publisher import TaskPublisherPort
@@ -32,6 +33,7 @@ class IngestDocumentCommand:
     document_id: UUID
     document_bytes: bytes
     ontology: Ontology
+    filename: str = ""
 
 
 class IngestDocumentUseCase:
@@ -40,6 +42,7 @@ class IngestDocumentUseCase:
 
     Internally handles:
     - Text parsing and Semantic Chunking
+    - Document and Chunk persistence
     - LLM extraction via Instructor (Ontology-enforced)
     - Graph persistence (tenant-isolated)
     """
@@ -49,10 +52,12 @@ class IngestDocumentUseCase:
         graph_repo: GraphRepositoryPort,
         llm_gateway: LLMGatewayPort,
         task_publisher: TaskPublisherPort,
+        document_repo: DocumentRepositoryPort | None = None,
     ) -> None:
         self._graph_repo = graph_repo
         self._llm_gateway = llm_gateway
         self._task_publisher = task_publisher
+        self._document_repo = document_repo
 
     async def execute(self, command: IngestDocumentCommand) -> Document:
         """The single entry point. Callers learn one method."""
@@ -61,6 +66,20 @@ class IngestDocumentUseCase:
         chunks = self._chunk_document(
             command.document_bytes, command.tenant_id, command.document_id
         )
+
+        # 2. Persist document and chunks if repository provided
+        doc = Document(
+            id=command.document_id,
+            tenant_id=command.tenant_id,
+            filename=command.filename,
+            size_bytes=len(command.document_bytes),
+            status=DocumentStatus.EXTRACTING,
+        )
+        if self._document_repo is not None:
+            await self._document_repo.save_document(
+                command.tenant_id, doc, raw_content=command.document_bytes
+            )
+            await self._document_repo.save_chunks(command.tenant_id, chunks)
 
         # 2. Extract entities and edges per chunk via LLM
         all_entities = []
