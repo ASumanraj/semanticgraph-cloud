@@ -48,6 +48,10 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
       - name: Lint
         working-directory: frontend
         run: npm run lint
@@ -55,3 +59,15 @@ jobs:
       - name: Build
         working-directory: frontend
         run: npm run build
+
+      - name: E2E tests
+        working-directory: frontend
+        run: npm run test:e2e
+
+      - name: Upload Playwright artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots
+          path: frontend/test-results/
+          retention-days: 7
