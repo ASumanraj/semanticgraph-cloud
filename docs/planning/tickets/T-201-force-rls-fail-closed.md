@@ -1,6 +1,6 @@
 # T-201 · Make tenant isolation fail closed
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-201-force-rls`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-201-force-rls`
 
 **Scope**
 - `alembic/**`
