@@ -1,6 +1,6 @@
 # T-206 · Assertion-counted deletion
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-206-assertion-counted-deletion`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-206-assertion-counted-deletion`
 
 **Scope**
 - `alembic/**`
