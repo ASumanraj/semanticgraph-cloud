@@ -1,6 +1,6 @@
 # T-203 · Bi-temporal facts with edge invalidation
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-203-bitemporal-facts`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-203-bitemporal-facts`
 
 **Scope**
 - `alembic/**`
@@ -18,10 +18,10 @@ old one's validity window** rather than deleting it, so "who was CFO at the time
 the filing" stays answerable.
 
 ## Acceptance
-- [ ] Facts carry both intervals
-- [ ] Superseding a fact closes the prior validity window and leaves the row in place
-- [ ] A query can ask for the graph as it was believed at a past instant
-- [ ] A test asserts a superseded fact is still retrievable with its closed window
+- [x] Facts carry both intervals
+- [x] Superseding a fact closes the prior validity window and leaves the row in place
+- [x] A query can ask for the graph as it was believed at a past instant
+- [x] A test asserts a superseded fact is still retrievable with its closed window
 
 ## Notes
 Graphiti's model is the reference (arXiv 2501.13956). Temporal correctness at

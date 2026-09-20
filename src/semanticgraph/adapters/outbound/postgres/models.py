@@ -45,12 +45,33 @@ class SQLSemanticChunk(SQLModel, table=True):
 
 class SQLFact(SQLModel, table=True):
     __tablename__ = "facts"
-    __table_args__ = (Index("idx_tenant_fact_created", "tenant_id", "created_at"),)
+    __table_args__ = (
+        Index("idx_tenant_fact_created", "tenant_id", "created_at"),
+        Index("idx_tenant_fact_valid", "tenant_id", "valid_from", "valid_to"),
+        Index("idx_tenant_fact_system", "tenant_id", "created_at", "expired_at"),
+        Index(
+            "idx_tenant_fact_bitemporal",
+            "tenant_id",
+            "valid_from",
+            "valid_to",
+            "created_at",
+            "expired_at",
+        ),
+        Index("idx_tenant_fact_subject_predicate", "tenant_id", "subject", "predicate"),
+        Index("idx_tenant_fact_superseded_by", "tenant_id", "superseded_by_id"),
+    )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     tenant_id: UUID = Field(index=True, nullable=False)
     claim: str = Field(nullable=False)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    valid_from: datetime = Field(default_factory=lambda: datetime.now(UTC), nullable=False)
+    valid_to: datetime | None = Field(default=None, nullable=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), nullable=False)
+    expired_at: datetime | None = Field(default=None, nullable=True)
+    subject: str | None = Field(default=None, nullable=True, index=True)
+    predicate: str | None = Field(default=None, nullable=True, index=True)
+    object: str | None = Field(default=None, nullable=True, index=True)
+    superseded_by_id: UUID | None = Field(default=None, foreign_key="facts.id", nullable=True)
 
 
 class SQLAssertion(SQLModel, table=True):
