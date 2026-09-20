@@ -65,7 +65,7 @@ Tick as each item lands. Detail for every item is in Part 3.
 - [x] Versioned resolution decision log
 - [x] Immutable versioned ontologies
 - [x] Assertion-counted delete cascade
-- [ ] Usage event ledger
+- [x] Usage event ledger
 - [ ] Append-only audit log
 - [ ] OpenTelemetry with `tenant_id` attribution
 - [ ] Per-tenant spend cap

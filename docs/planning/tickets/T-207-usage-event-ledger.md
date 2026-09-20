@@ -1,6 +1,6 @@
 # T-207 · Usage event ledger
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-207-usage-event-ledger`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-207-usage-event-ledger`
 
 **Scope**
 - `alembic/**`
@@ -14,13 +14,13 @@ One immutable row per cost-driving event. **Usage you did not record is revenue 
 cannot bill, and there is no backfill.**
 
 ## Acceptance
-- [ ] Client-generated `event_id` with a unique constraint, so retries count once
-- [ ] `occurred_at` separate from `recorded_at`, so late events land in the right period
-- [ ] Token counts read from the provider response, never estimated
-- [ ] The price version is stamped on the event, so an old invoice reproduces exactly
-- [ ] Rows are never updated or deleted; corrections are offsetting rows
-- [ ] Events are emitted server-side at the call site that incurs the cost
-- [ ] A test proves a duplicate `event_id` is counted once
+- [x] Client-generated `event_id` with a unique constraint, so retries count once
+- [x] `occurred_at` separate from `recorded_at`, so late events land in the right period
+- [x] Token counts read from the provider response, never estimated
+- [x] The price version is stamped on the event, so an old invoice reproduces exactly
+- [x] Rows are never updated or deleted; corrections are offsetting rows
+- [x] Events are emitted server-side at the call site that incurs the cost
+- [x] A test proves a duplicate `event_id` is counted once
 
 ## Notes
 Metering at the API boundary misses cost incurred three layers down in a retrying
