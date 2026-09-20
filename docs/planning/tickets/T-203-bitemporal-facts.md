@@ -1,6 +1,6 @@
 # T-203 · Bi-temporal facts with edge invalidation
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-203-bitemporal-facts`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-203-bitemporal-facts`
 
 **Scope**
 - `alembic/**`
