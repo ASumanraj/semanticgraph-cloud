@@ -1,23 +1,44 @@
+# Wayfinder map
+
 ## Destination
 
-Phase 1 Backend architecture, AWS infrastructure definitions, and Frontend prototyping strategy are rigorously defined, researched, and locked in so that development execution can safely begin without ambiguity.
+A multi-tenant knowledge-graph substrate sold as an API, with one pre-built
+contracts ontology proving a customer needs no forward-deployed engineer to get
+value. Entity resolution grounded in an external controlled vocabulary, facts that
+carry their provenance and their validity window, and isolation the database
+enforces rather than the application remembers.
 
 ## Notes
 
-Domain: Managed GraphRAG Multi-Tenant System
-Skills required: `fastapi`, `aws-cdk`, `modern-web-guidance`
-Standing preferences: TDD (Red/Amber/Green), Subgraphs evaluated by Ragas/TruLens, strict Ontology enforcement.
+Domain: managed GraphRAG, multi-tenant.
+Skills: see the table in [`AGENTS.md`](../../AGENTS.md).
+Standing preferences: TDD red-before-green; one vertical slice at a time; every
+stage earns one path proven end to end on real infrastructure.
 
 ## Decisions so far
 
-- [Backend Architecture Pattern](file:///S:/semanticgraph-cloud/tickets/ticket-backend-design.md) — FastAPI DI via `Annotated`, SQLModel schemas, strict `APIRouter` `tenant_id` isolation.
-- [AWS CDK Infrastructure Layout](file:///S:/semanticgraph-cloud/tickets/ticket-infra-design.md) — Multi-stack (Network, Database, Compute), weak cross-stack references, SSM lookups, L2 grants.
-- [Frontend Prototyping APIs](file:///S:/semanticgraph-cloud/tickets/ticket-frontend-prototype.md) — Vanilla JS/Vite, native `<dialog>`, Popover API, CSS Anchor Positioning, and View Transitions.
+- [ADR-0001](../adr/0001-hexagonal-architecture.md) — hexagonal architecture; the boundary is enforced by a test
+- [ADR-0002](../adr/0002-postgres-as-the-graph-store.md) — Postgres, pgvector and RLS as the canonical store, not Neo4j
+- [ADR-0003](../adr/0003-temporal-for-the-document-pipeline.md) — Temporal for the pipeline, not Celery or Step Functions
+- [Infrastructure layout](ticket-infra-design.md) — Network / Database / Compute stacks, one-way dependency flow
 
-- How will the `tenant_id` context propagate through Celery background tasks securely without leaking?
-- Graph migrations: How are Ontology schema updates managed in Neo4j safely across tenants?
+## Open questions
+
+- [T-900](tickets/T-900-verify-whyhow-ai.md) — what happened to WhyHow.AI, and does the answer change the wedge?
+- [T-901](tickets/T-901-temporal-cloud-cost.md) — what does Temporal Cloud actually cost at our document volume?
+- Which controlled vocabulary ships first? LEI/CIK is the recommendation — free, authoritative, and the contracts ontology is reusable across every customer.
+- How does tenant context cross the worker boundary without leaking? [T-209](tickets/T-209-otel-tenant-attribution.md) answers half of it; the security half is still open.
 
 ## Out of scope
 
-- Implementation of Ragas/TruLens evaluation (Phase 6).
-- Resolution & Disambiguation logic (Phase 4 & 5).
+- Resolution and disambiguation algorithms beyond the decision log — Stage 3
+- Ragas or DeepEval evaluation — Stage 4
+- SSO, SCIM and billing — Stage 5
+- BYOC, and any certification audit — Stage 7
+
+## Where work lives
+
+[`tickets/INDEX.md`](tickets/INDEX.md) is the board.
+[`ENTERPRISE_PLAN.md`](../architecture/ENTERPRISE_PLAN.md) is the architecture and
+the stage ordering. Superseded planning material is in
+[`superseded/`](superseded/README.md).

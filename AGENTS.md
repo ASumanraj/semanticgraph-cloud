@@ -82,6 +82,25 @@ report the trace and what you think is blocking it.
 
 Report at the end of the slice, in a few lines: what changed and what the tests say.
 
+## Working in parallel
+
+Several agents run at once. `docs/planning/tickets/INDEX.md` is the board and
+`docs/planning/tickets/README.md` is the protocol; the short version:
+
+**Scope is the lock.** Every ticket lists the paths it may write. Work only inside
+your ticket's Scope — a change that belongs elsewhere is a new ticket, because the
+agent holding that path is mid-slice and will lose it in a merge.
+
+**Claim before you branch.** Set `Status: claimed` and `Owner`, commit that one file
+to `main`, push. A rejected push means someone claimed first: pull and pick another.
+Then branch as the ticket names.
+
+**Migrations take turns.** Anything adding an Alembic revision shares one chain.
+Follow the `Blocked by` order; two revisions generated concurrently leave two heads.
+
+**Finish through a PR.** Tests green, `ruff check .` clean, Acceptance ticked, then
+review. Review is what catches a test that passes without testing anything.
+
 ## Proving it works
 
 Passing against the in-memory adapters shows the shape is right. It does not show
