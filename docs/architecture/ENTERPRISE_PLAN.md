@@ -60,7 +60,7 @@ Tick as each item lands. Detail for every item is in Part 3.
 - [x] Alembic baseline
 - [x] `tenant_id` everywhere, leading every composite index
 - [x] FORCE RLS + non-owner app role + fail-closed tests
-- [ ] Provenance chain with mandatory spans
+- [x] Provenance chain with mandatory spans
 - [ ] Bi-temporal facts with edge invalidation
 - [ ] Versioned resolution decision log
 - [ ] Immutable versioned ontologies
