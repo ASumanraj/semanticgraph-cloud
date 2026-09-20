@@ -63,7 +63,7 @@ Tick as each item lands. Detail for every item is in Part 3.
 - [x] Provenance chain with mandatory spans
 - [x] Bi-temporal facts with edge invalidation
 - [x] Versioned resolution decision log
-- [ ] Immutable versioned ontologies
+- [x] Immutable versioned ontologies
 - [ ] Assertion-counted delete cascade
 - [ ] Usage event ledger
 - [ ] Append-only audit log

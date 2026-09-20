@@ -1,6 +1,6 @@
 # T-205 · Immutable, versioned ontologies
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-205-immutable-ontology-versions`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-205-immutable-ontology-versions`
 
 **Scope**
 - `alembic/**`
@@ -18,11 +18,11 @@ every extraction run records the `ontology_version` it ran under. Irreversible r
 unattributable — "why does this entity have this type?" stops being answerable.
 
 ## Acceptance
-- [ ] Ontology versions are immutable once published
-- [ ] Editing creates a new version and leaves prior versions readable
-- [ ] Every extraction run stores its `ontology_version`
-- [ ] A fact can be traced to the ontology version that produced it
-- [ ] A test proves a published version cannot be modified
+- [x] Ontology versions are immutable once published
+- [x] Editing creates a new version and leaves prior versions readable
+- [x] Every extraction run stores its `ontology_version`
+- [x] A fact can be traced to the ontology version that produced it
+- [x] A test proves a published version cannot be modified
 
 ## Notes
 Also the precondition for selective re-extraction: without versions, an ontology

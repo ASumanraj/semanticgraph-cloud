@@ -12,6 +12,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
+import sqlalchemy as sa
 from sqlmodel import Field, Index, SQLModel
 
 
@@ -74,12 +75,61 @@ class SQLFact(SQLModel, table=True):
     superseded_by_id: UUID | None = Field(default=None, foreign_key="facts.id", nullable=True)
 
 
+class SQLOntology(SQLModel, table=True):
+    __tablename__ = "ontologies"
+    __table_args__ = (
+        Index("idx_tenant_ontology_lookup", "tenant_id", "name", "version"),
+        Index("idx_tenant_ontology_name", "tenant_id", "name"),
+        Index("idx_tenant_ontology_created", "tenant_id", "created_at"),
+        sa.UniqueConstraint("tenant_id", "name", "version", name="uq_tenant_ontology_version"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    tenant_id: UUID = Field(index=True, nullable=False)
+    name: str = Field(nullable=False)
+    version: int = Field(default=1, nullable=False)
+    allowed_entity_types: list[str] = Field(
+        default_factory=list, sa_column=sa.Column(sa.JSON, nullable=False)
+    )
+    allowed_edge_types: list[str] = Field(
+        default_factory=list, sa_column=sa.Column(sa.JSON, nullable=False)
+    )
+    is_published: bool = Field(default=True, nullable=False)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), nullable=False)
+
+
+class SQLExtractionRun(SQLModel, table=True):
+    __tablename__ = "extraction_runs"
+    __table_args__ = (
+        Index("idx_tenant_run_created", "tenant_id", "created_at"),
+        Index("idx_tenant_run_doc", "tenant_id", "document_id"),
+        Index("idx_tenant_run_ontology", "tenant_id", "ontology_id", "ontology_version"),
+        Index("idx_tenant_run_name_version", "tenant_id", "ontology_name", "ontology_version"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    tenant_id: UUID = Field(index=True, nullable=False)
+    document_id: UUID | None = Field(
+        default=None, foreign_key="documents.id", index=True, nullable=True
+    )
+    ontology_id: UUID | None = Field(
+        default=None, foreign_key="ontologies.id", index=True, nullable=True
+    )
+    ontology_name: str = Field(default="default", nullable=False)
+    ontology_version: int = Field(nullable=False)
+    status: str = Field(default="completed", nullable=False)
+    model_id: str | None = Field(default=None, nullable=True)
+    prompt_version: str | None = Field(default=None, nullable=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), nullable=False)
+
+
 class SQLAssertion(SQLModel, table=True):
     __tablename__ = "assertions"
     __table_args__ = (
         Index("idx_tenant_assertion_fact", "tenant_id", "fact_id"),
         Index("idx_tenant_assertion_chunk", "tenant_id", "chunk_id"),
         Index("idx_tenant_assertion_doc", "tenant_id", "document_id"),
+        Index("idx_tenant_assertion_run", "tenant_id", "extraction_run_id"),
     )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -88,7 +138,9 @@ class SQLAssertion(SQLModel, table=True):
     document_id: UUID = Field(foreign_key="documents.id", index=True, nullable=False)
     chunk_id: UUID = Field(foreign_key="semantic_chunks.id", index=True, nullable=False)
     claim: str = Field(default="")
-    extraction_run_id: UUID | None = Field(default=None)
+    extraction_run_id: UUID | None = Field(
+        default=None, foreign_key="extraction_runs.id", index=True, nullable=True
+    )
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 

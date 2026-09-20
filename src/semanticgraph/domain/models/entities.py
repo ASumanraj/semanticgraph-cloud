@@ -215,6 +215,10 @@ class ResolutionDecision:
     decided_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
+class OntologyImmutableError(Exception):
+    """Raised when an attempt is made to mutate or overwrite a published ontology version."""
+
+
 @dataclass(frozen=True)
 class Ontology:
     """The strict, predefined schema of allowed Entity Types and Edge Types.
@@ -228,6 +232,8 @@ class Ontology:
     id: UUID = field(default_factory=uuid4)
     allowed_entity_types: tuple[str, ...] = field(default_factory=tuple)
     allowed_edge_types: tuple[str, ...] = field(default_factory=tuple)
+    is_published: bool = True
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def __init__(
         self,
@@ -237,6 +243,8 @@ class Ontology:
         id: UUID | None = None,
         allowed_entity_types: list[str] | tuple[str, ...] = (),
         allowed_edge_types: list[str] | tuple[str, ...] = (),
+        is_published: bool = True,
+        created_at: datetime | None = None,
     ) -> None:
         object.__setattr__(self, "tenant_id", tenant_id)
         object.__setattr__(self, "name", name)
@@ -244,3 +252,46 @@ class Ontology:
         object.__setattr__(self, "id", id if id is not None else uuid4())
         object.__setattr__(self, "allowed_entity_types", tuple(allowed_entity_types))
         object.__setattr__(self, "allowed_edge_types", tuple(allowed_edge_types))
+        object.__setattr__(self, "is_published", is_published)
+        object.__setattr__(self, "created_at", created_at or datetime.now(UTC))
+
+    def create_next_version(
+        self,
+        *,
+        allowed_entity_types: list[str] | tuple[str, ...] | None = None,
+        allowed_edge_types: list[str] | tuple[str, ...] | None = None,
+        new_id: UUID | None = None,
+    ) -> Ontology:
+        """Editing an ontology publishes a new version, leaving prior versions intact."""
+        return Ontology(
+            tenant_id=self.tenant_id,
+            name=self.name,
+            version=self.version + 1,
+            id=new_id or uuid4(),
+            allowed_entity_types=self.allowed_entity_types
+            if allowed_entity_types is None
+            else allowed_entity_types,
+            allowed_edge_types=self.allowed_edge_types
+            if allowed_edge_types is None
+            else allowed_edge_types,
+            is_published=True,
+        )
+
+
+@dataclass(frozen=True)
+class ExtractionRun:
+    """A single execution of ontology-constrained extraction over a document or chunk.
+
+    Every extraction run records the ontology_version it ran under. Irreversible rule 5.
+    """
+
+    tenant_id: TenantId
+    ontology_version: int
+    id: UUID = field(default_factory=uuid4)
+    ontology_id: UUID | None = None
+    ontology_name: str = "default"
+    document_id: UUID | None = None
+    status: str = "completed"
+    model_id: str = "claude-sonnet"
+    prompt_version: str = "1.0"
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
