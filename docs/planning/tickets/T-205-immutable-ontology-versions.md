@@ -1,6 +1,6 @@
 # T-205 · Immutable, versioned ontologies
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-205-immutable-ontology-versions`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-205-immutable-ontology-versions`
 
 **Scope**
 - `alembic/**`
