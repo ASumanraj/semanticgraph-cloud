@@ -31,6 +31,7 @@ dev = [
     "ruff>=0.8",
     "pyright>=1.1.390",
     "aiosqlite>=0.20",
+    "testcontainers[postgres]>=4.9.0",
 ]
 
 [build-system]
@@ -45,6 +46,8 @@ pythonpath = ["src", "."]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 filterwarnings = ["ignore::DeprecationWarning"]
+markers = ["e2e: end-to-end tests requiring real infrastructure"]
+addopts = "-m 'not e2e'"
 
 [tool.ruff]
 line-length = 100

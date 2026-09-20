@@ -1,6 +1,6 @@
 # T-103 · Prove ingestion against a real Postgres
 
-**Stage** 1 · **Type** work · **Status** open · **Owner** — · **Branch** `t-103-postgres-backed-ingestion-test`
+**Stage** 1 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-103-postgres-backed-ingestion-test`
 
 **Scope**
 - `tests/e2e/**`
@@ -15,12 +15,12 @@ right and shows nothing about whether the system runs. Exercise one path end to
 end: HTTP in, worker processes, rows in Postgres.
 
 ## Acceptance
-- [ ] A real Postgres backs the test — testcontainers, or the compose service
-- [ ] The test posts a document to the running API rather than calling a use case
-- [ ] Assertions read rows with **SQL**, not through the repository that wrote them
+- [x] A real Postgres backs the test — testcontainers, or the compose service
+- [x] The test posts a document to the running API rather than calling a use case
+- [x] Assertions read rows with **SQL**, not through the repository that wrote them
 - [ ] It asserts `tenant_id`, status, and the chunk rows that belong to the document
-- [ ] A second tenant reading the same document id gets nothing
-- [ ] It is marked so the fast suite can skip it, and CI runs it
+- [x] A second tenant reading the same document id gets nothing
+- [x] It is marked so the fast suite can skip it, and CI runs it
 
 ## Notes
 Reading rows back through the writing repository proves less than SQL does: a

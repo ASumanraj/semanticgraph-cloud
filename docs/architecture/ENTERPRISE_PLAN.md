@@ -51,8 +51,8 @@ Tick as each item lands. Detail for every item is in Part 3.
 - [x] Global-variable composition root replaced with a config-built `Container` (no setters)
 - [x] Async/sync boundary fixed (`AsyncSession` throughout)
 - [x] `docker-compose.yml` runs the real API and worker
-- [ ] End-to-end proof on real infrastructure (AGENTS.md "Proving it works"):
-  - [ ] Postgres-backed integration test — upload via HTTP, worker processes, assert rows with SQL
+- [x] End-to-end proof on real infrastructure (AGENTS.md "Proving it works"):
+  - [x] Postgres-backed integration test — upload via HTTP, worker processes, assert rows with SQL
   - [x] Playwright in `frontend/` — drive the real upload control against a running API
 - [x] Architecture-fitness tests (no framework imports in `domain/`/`application/`; no `tests` import in `src/`)
 
