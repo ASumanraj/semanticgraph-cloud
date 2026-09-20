@@ -73,7 +73,7 @@ Tick as each item lands. Detail for every item is in Part 3.
 ### Stage 3 — Pipeline
 - [ ] Parse · [ ] Chunk · [ ] Contextualize · [ ] Extract · [ ] Resolve · [ ] Retrieve
 - [ ] Temporal migration
-- [ ] Contracts ontology pack
+- [x] Contracts ontology pack
 
 ### Stage 4 — Evaluation
 - [ ] Gold set · [ ] Graph-construction metrics · [ ] CI regression gate

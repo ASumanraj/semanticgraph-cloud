@@ -15,7 +15,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import delete, func, text
+from sqlalchemy import delete, func, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
@@ -27,6 +27,7 @@ from semanticgraph.adapters.outbound.postgres.models import (
     SQLDocument,
     SQLEvalFixture,
     SQLEvidenceSpan,
+    SQLExtractionRun,
     SQLFact,
     SQLGoldenRecord,
     SQLMention,
@@ -204,6 +205,16 @@ class PostgresDeletionRepository(DeletionRepositoryPort):
                 )
                 chunk_res = await session.execute(chunk_del)
                 deleted_chunks_count = chunk_res.rowcount or 0
+
+            # 9.5 Dissociate extraction runs from deleting document
+            await session.execute(
+                update(SQLExtractionRun)
+                .where(
+                    SQLExtractionRun.tenant_id == tenant_id.value,
+                    SQLExtractionRun.document_id == document_id,
+                )
+                .values(document_id=None)
+            )
 
             # 10. Delete document
             await session.delete(doc)

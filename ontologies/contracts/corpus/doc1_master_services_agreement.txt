@@ -1,0 +1,23 @@
+MASTER SERVICES AGREEMENT
+
+This Master Services Agreement ("Agreement") is entered into as of January 1, 2024 ("Effective Date"), by and between Acme Global Solutions LLC, a Delaware limited liability company with principal offices at 100 Enterprise Way, Suite 400, Wilmington, DE 19801 ("Vendor"), and Beta Technologies Inc., a Delaware corporation with offices at 500 Silicon Boulevard, San Jose, CA 95110 ("Customer").
+
+1. SERVICES AND STATEMENTS OF WORK
+Vendor shall provide cloud architecture and AI substrate integration services as specified in one or more Statements of Work executed by both parties.
+
+2. PAYMENT TERMS
+Customer shall pay all undisputed invoices within thirty (30) days of receipt. Late payments shall accrue interest at 1.5% per month.
+
+3. TERM AND TERMINATION
+This Agreement commences on January 1, 2024 and continues until terminated. Either party may terminate for cause upon thirty (30) days written notice of material breach.
+
+4. GOVERNING LAW
+This Agreement shall be governed by and construed in accordance with the laws of the State of Delaware, without regard to conflicts of law principles.
+
+IN WITNESS WHEREOF, the authorized representatives have executed this Agreement:
+
+For Acme Global Solutions LLC:
+Alice Smith, Chief Executive Officer
+
+For Beta Technologies Inc.:
+Bob Jones, Chief Technology Officer

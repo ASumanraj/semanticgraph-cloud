@@ -1,0 +1,107 @@
+# Commercial Contracts Vertical Ontology Pack (v1.0)
+#
+# Designed per docs/architecture/ENTERPRISE_PLAN.md Part 0.2:
+# "Shipping a working pre-built ontology is the proof that you are software, not consulting."
+#
+# Immutable version: 1
+name: commercial_contracts
+version: 1
+description: >
+  Pre-built vertical ontology pack for commercial agreements, corporate counterparties,
+  executive signatories, legal obligations, and governing jurisdictions.
+
+entity_types:
+  - name: Company
+    description: A legal corporate entity or counterparty to an agreement (identifiable by LEI/CIK).
+    properties:
+      - name: legal_name
+        type: string
+        required: true
+      - name: lei_code
+        type: string
+        required: false
+      - name: jurisdiction_of_incorporation
+        type: string
+        required: false
+
+  - name: Person
+    description: An individual person, such as an executive, authorized representative, or signatory.
+    properties:
+      - name: full_name
+        type: string
+        required: true
+      - name: title
+        type: string
+        required: false
+
+  - name: Contract
+    description: A binding legal agreement, master services agreement, statement of work, or addendum.
+    properties:
+      - name: title
+        type: string
+        required: true
+      - name: agreement_type
+        type: string
+        required: true
+      - name: effective_date
+        type: date
+        required: true
+      - name: termination_date
+        type: date
+        required: false
+
+  - name: Obligation
+    description: A specific contractual covenant, duty, payment term, or service level commitment.
+    properties:
+      - name: obligation_type
+        type: string
+        required: true
+      - name: description
+        type: string
+        required: true
+      - name: due_interval_days
+        type: integer
+        required: false
+
+  - name: Jurisdiction
+    description: The governing legal jurisdiction, applicable state law, or venue for dispute resolution.
+    properties:
+      - name: state_or_country
+        type: string
+        required: true
+
+edge_types:
+  - name: PARTY_TO
+    description: Connects a Company as a formal party to a Contract.
+    allowed_sources: [Company]
+    allowed_targets: [Contract]
+
+  - name: SIGNATORY_OF
+    description: Connects an authorized Person who executed or signed a Contract.
+    allowed_sources: [Person]
+    allowed_targets: [Contract]
+
+  - name: HAS_OBLIGATION
+    description: Connects a Contract to an Obligation stipulated within its terms.
+    allowed_sources: [Contract]
+    allowed_targets: [Obligation]
+
+  - name: OBLIGATED_TO
+    description: Connects an Obligation to the beneficiary Company or counterparty.
+    allowed_sources: [Obligation]
+    allowed_targets: [Company]
+
+  - name: GOVERNED_BY
+    description: Connects a Contract to the governing law of a Jurisdiction.
+    allowed_sources: [Contract]
+    allowed_targets: [Jurisdiction]
+
+  - name: AMENDS
+    description: Connects a Contract (such as an Addendum or SOW) amending a parent Contract.
+    allowed_sources: [Contract]
+    allowed_targets: [Contract]
+
+  - name: SUPERSEDES
+    description: Connects a new Contract replacing a prior agreement.
+    allowed_sources: [Contract]
+    allowed_targets: [Contract]

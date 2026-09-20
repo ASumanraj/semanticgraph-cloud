@@ -1,0 +1,20 @@
+STATEMENT OF WORK NO. 1
+
+This Statement of Work No. 1 ("SOW") is entered into as of February 1, 2024 ("SOW Effective Date"), pursuant to the Master Services Agreement dated January 1, 2024, by and between Acme Global Solutions and Beta Technologies Inc.
+
+1. SCOPE OF SERVICES
+Acme Global Solutions shall deliver the SemanticGraph Knowledge Substrate milestone releases M1 through M3.
+
+2. COMPENSATION
+Customer shall compensate Acme Global Solutions a fixed fee of $150,000, payable in three milestone installments. Undisputed invoices are payable within thirty (30) days.
+
+3. GOVERNING LAW
+This SOW is governed by the laws of the State of Delaware in accordance with Section 4 of the Master Services Agreement.
+
+IN WITNESS WHEREOF, the parties execute this Statement of Work:
+
+For Acme Global Solutions:
+Alice Smith, CEO
+
+For Beta Technologies Inc.:
+Bob Jones, CTO
