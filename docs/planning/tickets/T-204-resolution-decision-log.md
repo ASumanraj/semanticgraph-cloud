@@ -1,6 +1,6 @@
 # T-204 · Non-destructive resolution decision log
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-204-resolution-decision-log`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-204-resolution-decision-log`
 
 **Scope**
 - `alembic/**`
@@ -20,11 +20,11 @@ Store merges destructively and unmerge is unimplementable — you ship "contact
 support to undo".
 
 ## Acceptance
-- [ ] `mention` is immutable; `cluster_membership` carries `decision_id`, `source`, `confidence`, `decided_at`
-- [ ] `golden_record` is materialized from current memberships, not written directly
-- [ ] `source` distinguishes human, model and rule decisions
-- [ ] **A human decision survives a full model re-run**, asserted by a test
-- [ ] Unmerge is a retraction and restores the prior grouping
+- [x] `mention` is immutable; `cluster_membership` carries `decision_id`, `source`, `confidence`, `decided_at`
+- [x] `golden_record` is materialized from current memberships, not written directly
+- [x] `source` distinguishes human, model and rule decisions
+- [x] **A human decision survives a full model re-run**, asserted by a test
+- [x] Unmerge is a retraction and restores the prior grouping
 
 ## Notes
 Without human precedence, every model upgrade silently re-merges entities a customer

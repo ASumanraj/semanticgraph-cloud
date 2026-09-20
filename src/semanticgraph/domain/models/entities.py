@@ -123,6 +123,35 @@ class SemanticChunk:
     chunk_index: int = 0
 
 
+@dataclass(frozen=True)
+class Mention:
+    """An immutable entity mention extracted from a SemanticChunk."""
+
+    tenant_id: TenantId
+    id: UUID = field(default_factory=uuid4)
+    document_id: UUID | None = None
+    chunk_id: ChunkId | None = None
+    name: str = ""
+    entity_type: str = ""
+    spans: tuple[EvidenceSpan, ...] = field(default_factory=tuple)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+
+
+@dataclass(frozen=True)
+class ClusterMembership:
+    """An immutable record of a mention's membership in a cluster (GoldenRecord)."""
+
+    tenant_id: TenantId
+    mention_id: UUID
+    cluster_id: UUID
+    decision_id: UUID
+    source: DecisionSource
+    confidence: float
+    decided_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    is_active: bool = True
+    id: UUID = field(default_factory=uuid4)
+
+
 @dataclass
 class RawEntity:
     """An entity as initially extracted from a Semantic Chunk, before or during Resolution."""
@@ -150,6 +179,7 @@ class GoldenRecord:
     entity_type: str = ""
     id: EntityId = field(default_factory=EntityId)
     decision_ids: list[UUID] = field(default_factory=list)
+    member_mention_ids: list[UUID] = field(default_factory=list)
     kind: EntityKind = EntityKind.GOLDEN_RECORD
 
 
@@ -181,6 +211,7 @@ class ResolutionDecision:
     confidence: float = 1.0
     rationale: str = ""
     id: UUID = field(default_factory=uuid4)
+    supersedes_decision_id: UUID | None = None
     decided_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 

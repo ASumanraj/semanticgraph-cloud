@@ -107,3 +107,74 @@ class SQLEvidenceSpan(SQLModel, table=True):
     end_offset: int = Field(nullable=False)
     quote: str = Field(nullable=False)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+
+class SQLMention(SQLModel, table=True):
+    __tablename__ = "mentions"
+    __table_args__ = (
+        Index("idx_tenant_mention_created", "tenant_id", "created_at"),
+        Index("idx_tenant_mention_chunk", "tenant_id", "chunk_id"),
+        Index("idx_tenant_mention_type", "tenant_id", "entity_type"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    tenant_id: UUID = Field(index=True, nullable=False)
+    document_id: UUID = Field(foreign_key="documents.id", index=True, nullable=False)
+    chunk_id: UUID = Field(foreign_key="semantic_chunks.id", index=True, nullable=False)
+    name: str = Field(nullable=False)
+    entity_type: str = Field(nullable=False)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+
+class SQLResolutionDecision(SQLModel, table=True):
+    __tablename__ = "resolution_decisions"
+    __table_args__ = (
+        Index("idx_tenant_decision_time", "tenant_id", "decided_at"),
+        Index("idx_tenant_decision_source", "tenant_id", "source"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    tenant_id: UUID = Field(index=True, nullable=False)
+    action: str = Field(nullable=False)  # 'merge', 'unmerge', 'disambiguate'
+    source: str = Field(nullable=False)  # 'human', 'model', 'rule'
+    confidence: float = Field(default=1.0)
+    rationale: str = Field(default="")
+    supersedes_decision_id: UUID | None = Field(
+        default=None, foreign_key="resolution_decisions.id", nullable=True
+    )
+    decided_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+
+class SQLClusterMembership(SQLModel, table=True):
+    __tablename__ = "cluster_memberships"
+    __table_args__ = (
+        Index("idx_tenant_membership_cluster", "tenant_id", "cluster_id", "is_active"),
+        Index("idx_tenant_membership_mention", "tenant_id", "mention_id", "is_active"),
+        Index("idx_tenant_membership_decision", "tenant_id", "decision_id"),
+        Index("idx_tenant_membership_source", "tenant_id", "source"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    tenant_id: UUID = Field(index=True, nullable=False)
+    cluster_id: UUID = Field(index=True, nullable=False)
+    mention_id: UUID = Field(foreign_key="mentions.id", index=True, nullable=False)
+    decision_id: UUID = Field(foreign_key="resolution_decisions.id", index=True, nullable=False)
+    source: str = Field(nullable=False)
+    confidence: float = Field(default=1.0)
+    is_active: bool = Field(default=True, nullable=False)
+    decided_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+
+class SQLGoldenRecord(SQLModel, table=True):
+    __tablename__ = "golden_records"
+    __table_args__ = (
+        Index("idx_tenant_golden_name", "tenant_id", "canonical_name"),
+        Index("idx_tenant_golden_type", "tenant_id", "entity_type"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    tenant_id: UUID = Field(index=True, nullable=False)
+    canonical_name: str = Field(nullable=False)
+    entity_type: str = Field(nullable=False)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
