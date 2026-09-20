@@ -1,6 +1,6 @@
 # T-202 · Span-backed assertions, located deterministically
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-202-provenance-spans`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-202-provenance-spans`
 
 **Scope**
 - `alembic/**`
