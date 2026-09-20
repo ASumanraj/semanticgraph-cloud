@@ -15,6 +15,18 @@ grep -H "^\*\*Stage\*\*" docs/planning/tickets/T-*.md
 What this file carries instead is the part that rarely changes: which tickets can
 run together, and what blocks what.
 
+## Do this before the migration chain opens
+
+[T-105](T-105-domain-invariants.md) blocks T-200 and every Stage 2 ticket after it.
+`domain/models/entities.py` contradicts all five irreversible rules today, and a
+baseline migration generated from it encodes every contradiction into the schema.
+T-200 is claimed and its `alembic/versions/` is still empty — that is the window.
+
+| Ticket | Scope |
+|---|---|
+| [T-105](T-105-domain-invariants.md) Domain invariants | `domain/**`, `application/**`, in-memory adapters, `tests/unit/**` |
+| [T-106](T-106-narrow-the-graph-seams.md) Narrow the graph seams | `application/ports/**`, use cases, in-memory adapters |
+
 ## First wave — five agents, no collisions
 
 Nothing here blocks anything else here, and no two share a path.

@@ -41,3 +41,6 @@ screenshot.png
 # Kept out of the repo: nothing here references it, and its own .agents/ and
 # .claude/ trees would otherwise pollute skill discovery for this project.
 ECC/
+
+# Stray dir from a PowerShell profile write
+Microsoft/

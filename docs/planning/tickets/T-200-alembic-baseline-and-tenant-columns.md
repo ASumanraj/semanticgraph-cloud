@@ -9,7 +9,7 @@
 - `src/semanticgraph/adapters/outbound/postgres/models.py`
 - `tests/integration/adapters/postgres/**`
 
-**Blocked by** T-102 · **Blocks** T-201
+**Blocked by** T-102, **T-105** · **Blocks** T-201
 
 ## Goal
 There are no migrations. Tables come from `create_all`, which is not viable for a
@@ -26,5 +26,12 @@ performance killer, and adding the column later rewrites every index.
 - [ ] An autogenerate run against head produces an empty revision
 
 ## Notes
+**Do not generate the baseline until T-105 has landed on `main` and this branch has
+rebased onto it.** `domain/models/entities.py` currently contradicts all five
+irreversible rules — nullable provenance, a destructive `merged_from`, an unversioned
+`Ontology`, an `Edge` with neither provenance nor validity, and a `tenant_id` that
+defaults to a fresh random UUID. A baseline generated from that model encodes every one
+of them into the schema, and unpicking it afterwards is a data migration.
+
 First link in the serial chain — T-200 through T-208 each add revisions and must run
 one at a time. See ENTERPRISE_PLAN.md Part 2.5.
