@@ -6,6 +6,7 @@
 - `src/semanticgraph/observability/**`
 - `src/semanticgraph/composition/container.py`
 - `src/semanticgraph/adapters/inbound/**`
+- `tests/unit/observability/**`
 
 **Blocked by** — · **Blocks** —
 

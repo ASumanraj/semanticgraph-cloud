@@ -3,17 +3,29 @@
 `README.md` has the protocol. Scope is the lock: **two tickets run in parallel
 exactly when their Scopes are disjoint.**
 
-## Ready now — five agents, no collisions
+## Live status
 
-Nothing below blocks anything else below, and no two share a path.
+Status and owner live in each ticket's header, and nowhere else — duplicating them
+here drifted within a day of the board existing. To see the current state:
 
-| Ticket | Scope | Status | Owner |
-|---|---|---|---|
-| [T-101](T-101-compose-runs-real-services.md) Run the real API and worker in compose | `docker-compose.yml`, `*.Dockerfile` | **claimed** | agy |
-| [T-102](T-102-async-postgres-repository.md) Stop blocking the event loop | `adapters/outbound/postgres/**`, its port, its tests | open | — |
-| [T-209](T-209-otel-tenant-attribution.md) OTel with tenant attribution | `observability/**`, `composition/`, `adapters/inbound/**` | open | — |
-| [T-600](T-600-split-infra-stacks.md) Split infra into three stacks | `infra/**` | open | — |
-| [T-900](T-900-verify-whyhow-ai.md) / [T-901](T-901-temporal-cloud-cost.md) Research | `docs/**` | open | — |
+```bash
+grep -H "^\*\*Stage\*\*" docs/planning/tickets/T-*.md
+```
+
+What this file carries instead is the part that rarely changes: which tickets can
+run together, and what blocks what.
+
+## First wave — five agents, no collisions
+
+Nothing here blocks anything else here, and no two share a path.
+
+| Ticket | Scope |
+|---|---|
+| [T-101](T-101-compose-runs-real-services.md) Run the real API and worker in compose | `docker-compose.yml`, `*.Dockerfile`, its test |
+| [T-102](T-102-async-postgres-repository.md) Stop blocking the event loop | `adapters/outbound/postgres/**`, its port, its tests |
+| [T-209](T-209-otel-tenant-attribution.md) OTel with tenant attribution | `observability/**`, `composition/`, `adapters/inbound/**` |
+| [T-600](T-600-split-infra-stacks.md) Split infra into three stacks | `infra/**` |
+| [T-900](T-900-verify-whyhow-ai.md) · [T-901](T-901-temporal-cloud-cost.md) Research | `docs/**` |
 
 T-102 and T-209 both reach into `adapters/`, but different subtrees —
 `outbound/postgres/` and `inbound/`. Disjoint.
@@ -58,10 +70,6 @@ schema does.
 T-206 branches off T-202 rather than the tail, so deletion can be built while the
 temporal and resolution work proceeds — but both add revisions, so they still take
 turns.
-
-## Status vocabulary
-
-`open` → `claimed` → `in-review` → `done`. Claiming is a commit; see `README.md`.
 
 ## Where this comes from
 

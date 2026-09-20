@@ -5,6 +5,7 @@
 **Scope**
 - `alembic/**`
 - `src/semanticgraph/control/usage/**`
+- `tests/integration/control/**`
 
 **Blocked by** T-201 · **Blocks** T-210
 

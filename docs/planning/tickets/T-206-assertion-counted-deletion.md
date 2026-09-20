@@ -6,6 +6,8 @@
 - `alembic/**`
 - `src/semanticgraph/application/use_cases/delete_document.py`
 - `src/semanticgraph/adapters/outbound/postgres/**`
+- `tests/unit/use_cases/**`
+- `tests/integration/adapters/postgres/**`
 
 **Blocked by** T-202 · **Blocks** —
 

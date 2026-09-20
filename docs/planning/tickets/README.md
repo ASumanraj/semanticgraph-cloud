@@ -13,6 +13,10 @@ concurrency mechanism.
 
 > **Two tickets may run in parallel exactly when their Scopes are disjoint.**
 
+**Every Scope includes somewhere to put the ticket's tests.** A Scope that covers
+only the code forces the agent to choose between breaking the lock and shipping
+untested work, and it will pick one of them.
+
 Stay inside your Scope. A change you believe belongs elsewhere is a new ticket, not
 a quiet edit — the other agent holding that path is mid-slice and will lose it in a
 merge.
@@ -27,7 +31,8 @@ that has to be rebuilt by hand.
 Claiming is a commit, so git arbitrates the race:
 
 1. `git pull`
-2. Edit the ticket header: `Status: claimed`, `Owner: <your name>`
+2. Edit the ticket header: `Status: claimed`, `Owner: <your name>` — the header is
+   the only place status lives, so `INDEX.md` needs no edit
 3. Commit **only that file**: `git commit -m "claim: T-101"` and push
 
 If the push is rejected, someone claimed first. Pull, pick another ticket.
@@ -51,6 +56,12 @@ Keep Acceptance checkable by someone who was not in the conversation. "Works
 correctly" is not checkable; "a query with no tenant context returns zero rows from
 every table" is.
 
+**Tick a box only after performing the check it describes.** A criterion that says
+`docker compose up` was run is not satisfied by a test asserting the YAML contains
+the right command — one is evidence the service starts, the other is evidence the
+file was edited. Where a criterion needs the stack running, run it and say so in
+the ticket.
+
 ```markdown
 # T-000 · Short imperative title
 
@@ -58,6 +69,7 @@ every table" is.
 
 **Scope**
 - `path/that/this/ticket/owns/**`
+- `tests/where/its/tests/go/**`
 
 **Blocked by** — · **Blocks** —
 

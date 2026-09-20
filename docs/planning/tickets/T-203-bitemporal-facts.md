@@ -6,6 +6,8 @@
 - `alembic/**`
 - `src/semanticgraph/domain/temporal/**`
 - `src/semanticgraph/adapters/outbound/postgres/**`
+- `tests/unit/domain/**`
+- `tests/integration/adapters/postgres/**`
 
 **Blocked by** T-202 · **Blocks** —
 

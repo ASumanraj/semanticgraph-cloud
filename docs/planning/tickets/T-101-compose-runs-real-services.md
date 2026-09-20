@@ -6,6 +6,7 @@
 - `docker-compose.yml`
 - `api.Dockerfile`
 - `frontend.Dockerfile`
+- `tests/unit/test_compose_config.py`
 
 **Blocked by** — · **Blocks** T-103, T-104
 
@@ -24,6 +25,23 @@ against in-memory adapters with no database wiring in this ticket.
 - [x] `POST /api/v1/documents/ingest` with an `X-Tenant-ID` header returns 200
 - [x] `frontend` builds and serves on 3000
 - [x] No service command contains `sleep`
+
+## Verification
+
+Run against the live stack on 2026-09-20, not inferred from the compose file:
+
+```
+GET  localhost:8000/health                → {"status":"healthy"}            HTTP 200
+POST /api/v1/documents/ingest             → document_id, status extracting  HTTP 200
+     (X-Tenant-ID: 11111111-…-555555555555)
+GET  localhost:3000                       → <title>SemanticGraph Cloud</…>  HTTP 200
+```
+
+`docker compose ps`: api, postgres and redis healthy; frontend up.
+
+`tests/unit/test_compose_config.py` asserts the compose and Dockerfile
+*definitions*. It is a config lint, not evidence the services start — the three
+lines above are that evidence.
 
 ## Notes
 `api.Dockerfile` still carries the mock `CMD`. Compose has `postgres` and `redis`

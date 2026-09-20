@@ -6,6 +6,7 @@
 - `alembic/**`
 - `alembic.ini`
 - `src/semanticgraph/adapters/outbound/postgres/models.py`
+- `tests/integration/adapters/postgres/**`
 
 **Blocked by** T-102 · **Blocks** T-201
 

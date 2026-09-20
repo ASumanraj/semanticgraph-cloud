@@ -6,6 +6,8 @@
 - `alembic/**`
 - `src/semanticgraph/domain/models/entities.py`
 - `src/semanticgraph/adapters/outbound/postgres/**`
+- `tests/unit/domain/**`
+- `tests/integration/adapters/postgres/**`
 
 **Blocked by** T-204 · **Blocks** —
 

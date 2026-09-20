@@ -5,6 +5,7 @@
 **Scope**
 - `src/semanticgraph/control/quota/**`
 - `src/semanticgraph/adapters/inbound/api/**`
+- `tests/unit/control/**`
 
 **Blocked by** T-207 · **Blocks** —
 
