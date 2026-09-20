@@ -1,6 +1,7 @@
 # T-200 · Alembic baseline with tenant_id on every table
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-200-alembic-baseline`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-200-alembic-baseline`
+
 
 **Scope**
 - `alembic/**`
