@@ -1,6 +1,6 @@
 # T-107 · Make the isolation proofs impossible to skip
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-107-isolation-proofs-must-not-skip`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-107-isolation-proofs-must-not-skip`
 
 **Scope**
 - `.github/workflows/ci.yml`
