@@ -47,7 +47,7 @@ filterwarnings = ["ignore::DeprecationWarning"]
 [tool.ruff]
 line-length = 100
 src = ["src", "tests"]
-extend-exclude = ["ECC", "frontend", "infra/cdk.out", ".venv"]
+extend-exclude = ["ECC", "frontend", "infra/cdk.out", ".venv", ".agents"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]

@@ -1,6 +1,6 @@
 # T-101 · Run the real API and worker in docker compose
 
-**Stage** 1 · **Type** work · **Status** claimed · **Owner** agy · **Branch** `t-101-compose-runs-real-services`
+**Stage** 1 · **Type** work · **Status** done · **Owner** agy · **Branch** `t-101-compose-runs-real-services`
 
 **Scope**
 - `docker-compose.yml`
@@ -18,12 +18,12 @@ end-to-end proof, which currently has nothing to point at.
 against in-memory adapters with no database wiring in this ticket.
 
 ## Acceptance
-- [ ] `api` runs uvicorn against `semanticgraph.adapters.inbound.api.app:app`
-- [ ] `worker` runs the Celery app from `adapters/inbound/workers/celery_app.py`
-- [ ] `docker compose up` then `curl localhost:8000/health` returns `{"status":"healthy"}`
-- [ ] `POST /api/v1/documents/ingest` with an `X-Tenant-ID` header returns 200
-- [ ] `frontend` builds and serves on 3000
-- [ ] No service command contains `sleep`
+- [x] `api` runs uvicorn against `semanticgraph.adapters.inbound.api.app:app`
+- [x] `worker` runs the Celery app from `adapters/inbound/workers/celery_app.py`
+- [x] `docker compose up` then `curl localhost:8000/health` returns `{"status":"healthy"}`
+- [x] `POST /api/v1/documents/ingest` with an `X-Tenant-ID` header returns 200
+- [x] `frontend` builds and serves on 3000
+- [x] No service command contains `sleep`
 
 ## Notes
 `api.Dockerfile` still carries the mock `CMD`. Compose has `postgres` and `redis`

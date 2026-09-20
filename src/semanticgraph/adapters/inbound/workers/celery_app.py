@@ -28,4 +28,5 @@ celery_app.conf.update(
     # Worker resiliency
     task_acks_late=True,
     worker_prefetch_multiplier=1,
+    broker_connection_retry_on_startup=True,
 )
