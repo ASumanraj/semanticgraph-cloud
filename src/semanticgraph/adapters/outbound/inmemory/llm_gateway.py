@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from semanticgraph.domain.models.entities import (
+    Assertion,
     Edge,
+    EvidenceSpan,
     Ontology,
     RawEntity,
     SemanticChunk,
@@ -25,13 +27,26 @@ class DeterministicLLMGateway:
         chunk: SemanticChunk,
         ontology: Ontology,
     ) -> tuple[list[RawEntity], list[Edge]]:
+        span = EvidenceSpan(
+            chunk_id=chunk.id,
+            start_offset=0,
+            end_offset=len(chunk.text),
+            quote=chunk.text[:50] if chunk.text else "",
+        )
+        assertion = Assertion(
+            tenant_id=tenant_id,
+            chunk_id=chunk.id,
+            document_id=chunk.document_id,
+            spans=[span],
+        )
         entity = RawEntity(
             tenant_id=tenant_id,
             name=f"Entity from chunk {chunk.chunk_index}",
             entity_type=(
                 ontology.allowed_entity_types[0] if ontology.allowed_entity_types else "Unknown"
             ),
-            source_chunk_id=chunk.id,
+            spans=[span],
+            assertions=[assertion],
         )
         edge = Edge(
             tenant_id=tenant_id,
@@ -40,5 +55,7 @@ class DeterministicLLMGateway:
             edge_type=(
                 ontology.allowed_edge_types[0] if ontology.allowed_edge_types else "RELATED_TO"
             ),
+            spans=[span],
+            assertions=[assertion],
         )
         return [entity], [edge]

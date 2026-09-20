@@ -1,7 +1,6 @@
 # T-105 · Make the domain model obey the five irreversible rules
 
-**Stage** 1 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-105-domain-invariants`
-
+**Stage** 1 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-105-domain-invariants`
 
 **Scope**
 - `src/semanticgraph/domain/**`
@@ -43,15 +42,16 @@ canonical pipeline or behaviour diverges between them.
 
 ## Acceptance
 
-- [ ] `tenant_id` is required on every domain entity — constructing one without it raises `TypeError`, asserted by a test
-- [ ] Provenance is a **collection** of evidence spans, not a nullable chunk id: `Assertion → EvidenceSpan[]` with `chunk_id`, `start_offset`, `end_offset`, `quote`
-- [ ] `Edge` carries provenance and a validity interval
-- [ ] `GoldenRecord.merged_from` is gone; the record is a projection of decisions
-- [ ] `Ontology` carries an immutable `version`
-- [ ] **Unresolved is a first-class state** — a `RawEntity` need not belong to a `GoldenRecord`, and the model distinguishes resolved, probable, unresolved and explicitly-disambiguated
-- [ ] One canonical ingestion path; the API and the worker call the same interface
-- [ ] Domain tests reject incomplete objects rather than accepting them
-- [ ] `ruff check .` clean and the full suite green
+- [x] `tenant_id` is required on every domain entity — constructing one without it raises `TypeError`, asserted by a test
+- [x] Provenance is a **collection** of evidence spans, not a nullable chunk id: `Assertion → EvidenceSpan[]` with `chunk_id`, `start_offset`, `end_offset`, `quote`
+- [x] `Edge` carries provenance and a validity interval
+- [x] `GoldenRecord.merged_from` is gone; the record is a projection of decisions
+- [x] `Ontology` carries an immutable `version`
+- [x] **Unresolved is a first-class state** — a `RawEntity` need not belong to a `GoldenRecord`, and the model distinguishes resolved, probable, unresolved and explicitly-disambiguated
+- [x] One canonical ingestion path; the API and the worker call the same interface
+- [x] Domain tests reject incomplete objects rather than accepting them
+- [x] `ruff check .` clean and the full suite green
+
 
 ## Notes
 

@@ -12,12 +12,9 @@ from typing import Any
 from uuid import UUID
 
 from semanticgraph.adapters.inbound.workers.celery_app import celery_app
-from semanticgraph.application.use_cases.process_document import (
-    ProcessDocumentCommand,
-    ProcessDocumentUseCase,
-)
+from semanticgraph.application.use_cases.ingest_document import IngestDocumentCommand
 from semanticgraph.composition.container import default_container
-from semanticgraph.domain.models.entities import Ontology, TenantId
+from semanticgraph.domain.models.entities import DocumentStatus, Ontology, TenantId
 
 
 @celery_app.task(name="semanticgraph.process_document", bind=True)
@@ -41,19 +38,15 @@ def process_document_task(
         allowed_edge_types=ontology_dict.get("allowed_edge_types", []),
     )
 
-    command = ProcessDocumentCommand(
+    command = IngestDocumentCommand(
         tenant_id=tenant_id,
         document_id=document_id,
         ontology=ontology,
+        status=DocumentStatus.RESOLVED,
     )
 
     container = default_container()
-    use_case = ProcessDocumentUseCase(
-        document_repo=container.document_repo,
-        graph_repo=container.graph_repo,
-        llm_gateway=container.llm_gateway,
-        task_publisher=container.task_publisher,
-    )
+    use_case = container.ingest_document()
 
     try:
         loop = asyncio.get_running_loop()
