@@ -27,6 +27,32 @@ T-200 is claimed and its `alembic/versions/` is still empty — that is the wind
 | [T-105](T-105-domain-invariants.md) Domain invariants | `domain/**`, `application/**`, in-memory adapters, `tests/unit/**` |
 | [T-106](T-106-narrow-the-graph-seams.md) Narrow the graph seams | `application/ports/**`, use cases, in-memory adapters |
 
+## Run order
+
+**One backend lane, one agent, in this order** — every ticket touches `src/`, the
+migration chain, or both:
+
+```
+T-107 isolation proofs fail, not skip
+  → T-211 fix the ledger
+    → T-106 narrow the seams
+      → T-110 wire the record into the running system     ← first thing worth showing
+        → T-208 audit log
+          → T-209 OTel
+            → T-210 spend cap
+```
+
+**Beside it, each disjoint from the lane:**
+[T-111](T-111-frontend-stop-misrepresenting-the-product.md) (`frontend/**`),
+[T-905](T-905-gleif-coverage-spike.md), [T-906](T-906-batch-versus-interactive-ingestion.md),
+[T-900](T-900-verify-whyhow-ai.md), [T-901](T-901-temporal-cloud-cost.md) (all `docs/**` or
+`evals/**`), and [T-600](T-600-split-infra-stacks.md) (`infra/**`).
+
+[T-904](T-904-evaluation-corpus.md) waits on a human decision about who labels.
+
+Two agents at once need separate git worktrees; they share one checkout otherwise, and a
+branch switch by one silently moves the other's commits.
+
 ## Fix before the spend cap
 
 [T-211](T-211-usage-ledger-fail-loudly.md) blocks T-210. The ledger raises on a real SDK
