@@ -27,6 +27,12 @@ T-200 is claimed and its `alembic/versions/` is still empty — that is the wind
 | [T-105](T-105-domain-invariants.md) Domain invariants | `domain/**`, `application/**`, in-memory adapters, `tests/unit/**` |
 | [T-106](T-106-narrow-the-graph-seams.md) Narrow the graph seams | `application/ports/**`, use cases, in-memory adapters |
 
+## Fix before the spend cap
+
+[T-211](T-211-usage-ledger-fail-loudly.md) blocks T-210. The ledger raises on a real SDK
+response and silently invents a price for every model the plan routes to, so a cap built on
+it would be wrong in one direction or the other.
+
 ## Groundwork that needs no pipeline
 
 None of these touch `src/`, so they run beside anything.

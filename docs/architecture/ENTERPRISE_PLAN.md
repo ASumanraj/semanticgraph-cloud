@@ -73,7 +73,7 @@ Tick as each item lands. Detail for every item is in Part 3.
 ### Stage 3 — Pipeline
 - [ ] Parse · [ ] Chunk · [ ] Contextualize · [ ] Extract · [ ] Resolve · [ ] Retrieve
 - [ ] Temporal migration
-- [x] Contracts ontology pack
+- [ ] Contracts ontology pack — *started, not done: five entity types and two synthetic sample contracts, but no liability-cap, renewal or termination types, so the flagship question cannot run as a graph query. The clause types come from T-904.*
 
 ### Stage 4 — Evaluation
 - [ ] Gold set · [ ] Graph-construction metrics · [ ] CI regression gate
