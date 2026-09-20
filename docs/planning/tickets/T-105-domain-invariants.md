@@ -1,6 +1,7 @@
 # T-105 · Make the domain model obey the five irreversible rules
 
-**Stage** 1 · **Type** work · **Status** open · **Owner** — · **Branch** `t-105-domain-invariants`
+**Stage** 1 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-105-domain-invariants`
+
 
 **Scope**
 - `src/semanticgraph/domain/**`
