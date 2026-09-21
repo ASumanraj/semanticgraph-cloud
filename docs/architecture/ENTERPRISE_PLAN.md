@@ -90,7 +90,7 @@ Tick as each item lands. Detail for every item is in Part 3.
 - [ ] Network/Database/Compute stack split · [ ] Per-environment config · [ ] Secrets · [ ] S3 tenant prefixes
 
 ### Stage 7 — Enterprise controls
-- [ ] Encryption · [ ] Backups + rehearsed restore · [ ] DPA + subprocessor list · [ ] IR plan · [ ] Model pinning
+- [ ] Encryption · [ ] Backups + rehearsed restore · [ ] DPA + subprocessor list *(generate it from `ModelRouting.get_hosted_models()` rather than by hand; today that is Anthropic and OpenAI)* · [ ] IR plan · [ ] Model pinning
 
 ---
 

@@ -1,6 +1,6 @@
 # T-214 · One owner for model routing, and price versions that only append
 
-**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-214-model-routing-and-price-versions`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-214-model-routing-and-price-versions`
 
 **Scope**
 - `src/semanticgraph/composition/model_routing.py`
@@ -50,8 +50,12 @@ reason.) The same block still carries numbers whose source could not be recovere
 - [x] Each price schedule carries an explicit state. A correction to a row stamped with a historical version prices correctly, and stamping a **new** event with a historical version raises a typed error
 - [x] A checksum of each published version's numbers is committed, and a test fails if any of them changes — the mechanical form of "a referenced version is immutable"
 - [x] The unsourced 2026-Q1 and 2026-Q2 numbers stay only as historical, labelled "source not recovered", with no retrieval date claimed for them
-- [x] `ModelRouting` records, for every model, whether it is hosted and its local alternative. The default embedding model is a hosted OpenAI one: either name a local alternative, or record here why it is deferred and add it to the Stage 7 subprocessor checklist. Customer text must not reach a hosted model without that being visible in configuration
-- [x] Full suite green and `ruff check .` clean
+- [ ] `ModelRouting` records, for every model, whether it is hosted and its local alternative. The default embedding model is a hosted OpenAI one: either name a local alternative, or record here why it is deferred and add it to the Stage 7 subprocessor checklist. Customer text must not reach a hosted model without that being visible in configuration
+  - *Not fully met, reverted on review: see the three follow-ups below.*
+- [ ] `fallback_models` accepts only `ModelDependency`; a bare string cannot be made routable. A test proves a model cannot be routable without a `hosted` flag
+- [ ] `record_event` with `is_correction=True` requires a `correction_for_event_id` that refers to an existing row of the same tenant and the same `price_version`, and raises otherwise. A test proves setting the flag cannot bypass the historical-version rule
+- [ ] Each `local_alternative` carries a status, `candidate` or `evaluated`; every one is `candidate` today and consumers of the hosted list can see that. Nothing describes a candidate as satisfying ADR-0005 rule 6
+- [ ] Full suite green and `ruff check .` clean
 
 ## Notes
 
@@ -64,3 +68,29 @@ Hosted embedding model decision (Acceptance 6):
 The default embedding model `text-embedding-3-small` is hosted by OpenAI (`hosted=True`).
 Local alternative named: `BAAI/bge-small-en-v1.5` (or `nomic-ai/nomic-embed-text-v1.5`).
 OpenAI is recorded as a hosted model provider on the Stage 7 subprocessor checklist alongside Anthropic.
+
+## Review
+
+Reviewed 2026-09-21 against the repo. **Verified:** on `main`; 297 tests pass and lint and
+format are clean; `container.py` is untouched; `control/usage` imports nothing from
+composition; `routing.py` is gone; active and historical states, the typed errors, and the
+committed checksums all work; the unsourced schedules carry no retrieval date.
+
+**Reopened for three defects**, each reproduced:
+
+1. A bare-string fallback model is routable but missing from `get_hosted_models()`.
+   `ModelRouting(fallback_models=("x",))` reports `x` routable and *not* hosted, so a hosted
+   vendor model can be added, pass the priced check, and stay invisible as a dependency that
+   sends customer text off the machine. That is the exact thing the criterion exists to prevent.
+2. `record_event` rejects a historical price version only when `is_correction` is false, and
+   never checks that a correction points at anything. Setting the flag bypasses the rule.
+3. The local alternatives are *named*, not evaluated. A 72B model, a very large
+   mixture-of-experts model and a Llama model under a custom licence are not obviously
+   deployable on an air-gapped customer's hardware, and none has been measured on this task.
+   ADR-0005 rule 6 needs an alternative that exists, so these are candidates until measured.
+
+One note, no action: the checksums sit in the same file as the schedules, so they are an
+accident guard rather than an immutability guarantee. A reviewer sees both change together.
+Fine for now.
+
+Continue on a new branch off `main`. Do not touch `container.py`.

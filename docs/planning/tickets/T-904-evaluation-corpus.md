@@ -75,4 +75,8 @@ whoever owns the contracts pack as a recommendation, not an edit.
   token budget, run at 50, 200, 500 and 2,000 documents. The output is the **crossover
   point** where it stops keeping up, not a scoreboard. Tenant isolation is a feature
   comparison, not an experiment — a folder has none.
+- *Local-alternative evaluation.* Run the local models named in `ModelRouting` against the wave-1
+  labels for extraction, adjudication and embeddings, and record accuracy, hardware footprint
+  and licence for each. Until then they are candidates, not alternatives, and an air-gapped
+  customer cannot be promised one.
 - *Registry coverage:* see [T-905](T-905-gleif-coverage-spike.md), which needs no pipeline.
