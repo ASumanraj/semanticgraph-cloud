@@ -15,7 +15,8 @@ change that breaks upload fails a build instead of a demo.
 ## Acceptance
 - [x] Playwright installed and configured in `frontend/`
 - [x] One spec uploads a file through the real UI and asserts what the user sees afterwards
-- [x] The request reaching the API is asserted, not stubbed away
+- [ ] The request reaching the API is asserted, not stubbed away
+  - *Not met, reverted on review: `frontend/e2e/upload.spec.ts` intercepts `**/upload` with `page.route` and fulfils it with a fake 200, and the API has no `/upload` route — its only route is `POST /api/v1/documents/ingest`. The test proves the UI sends a request to a URL the backend does not have. See T-111.*
 - [x] Page objects rather than raw selectors, per the `e2e-testing` skill
 - [x] `npm run test:e2e` runs it; CI runs it in the `frontend` job
 - [x] A screenshot artifact is produced on failure

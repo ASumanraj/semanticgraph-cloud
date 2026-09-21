@@ -48,7 +48,8 @@ there is no collision only because there is no link at all. The ledger holds ids
 - [x] A test built from a real `anthropic.types.Usage` with unset cache fields records correctly — the SDK type, not a dict
 - [x] `None` cache fields are treated as 0 in both the dict and the SDK branch
 - [x] An unknown model or price version **never** produces a guessed price: it raises a typed error (`UnpricedModelError` / `UnknownPriceVersionError`). Choice: Raises typed errors to fail loudly at call site
-- [x] The price schedule covers every model the container's LLM gateway can route to, each price copied from the vendor's pricing page with the URL and date beside it, and a test fails if a routable model is unpriced
+- [ ] The price schedule covers every model the container's LLM gateway can route to, each price copied from the vendor's pricing page with the URL and date beside it, and a test fails if a routable model is unpriced
+  - *Not met, reverted on review: the schedule prices Claude 3.x models and generic aliases at prices that match no current model, and none of `claude-haiku-4-5-20251001`, `claude-sonnet-5` or `claude-opus-5` is priced. See T-212.*
 - [x] Cache-read and cache-write tokens are priced at their own rates, and a test proves an Anthropic-shaped response does not bill cached tokens again at the full input rate
 - [x] The OpenAI-shaped branch is either removed (no OpenAI provider exists) or made correct — made correct by subtracting `cached_tokens` from `prompt_tokens` to prevent double-counting per OpenAI documentation
 - [x] `usage_events` gains nullable `document_id`, `extraction_run_id` and `user_id`, with no foreign keys and indexes that lead with `tenant_id`; the record methods accept them

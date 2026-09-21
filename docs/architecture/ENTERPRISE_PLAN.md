@@ -53,7 +53,7 @@ Tick as each item lands. Detail for every item is in Part 3.
 - [x] `docker-compose.yml` runs the real API and worker
 - [x] End-to-end proof on real infrastructure (AGENTS.md "Proving it works"):
   - [x] Postgres-backed integration test — upload via HTTP, worker processes, assert rows with SQL
-  - [x] Playwright in `frontend/` — drive the real upload control against a running API
+  - [ ] Playwright in `frontend/` — drive the real upload control against a running API *(the spec stubs the upload and the API has no `/upload` route; see T-111)*
 - [x] Architecture-fitness tests (no framework imports in `domain/`/`application/`; no `tests` import in `src/`)
 
 ### Stage 2 — The irreversible schema ← the foundation
