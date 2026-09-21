@@ -284,7 +284,7 @@ class UsageLedger:
         """
         orig = await self.get_event(tenant_id, original_event_id)
         if not orig:
-            raise ValueError(
+            raise InvalidCorrectionError(
                 f"Original event {original_event_id} not found for tenant {tenant_id.value}"
             )
 

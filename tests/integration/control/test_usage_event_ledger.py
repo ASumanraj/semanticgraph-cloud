@@ -33,6 +33,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from semanticgraph.control.usage.ledger import UsageLedger
 from semanticgraph.control.usage.models import (
     PRICE_SCHEDULES,
+    InvalidCorrectionError,
     UsageEvent,
     UsageEventType,
     calculate_cost_millicents,
@@ -505,3 +506,352 @@ async def test_tenant_isolation_fails_closed_under_rls(ledger: UsageLedger):
     assert summary_b.event_count == 0
     assert summary_b.total_input_tokens == 0
     assert summary_b.total_cost_millicents == 0
+
+
+@pytest.mark.asyncio
+async def test_correction_refusals_and_row_invariance_under_real_postgres(
+    ledger: UsageLedger, postgres_setup: dict[str, str]
+):
+    """Acceptance T-214: Real Postgres integration test.
+
+    Proves with two tenants and real rows:
+    (a) Refusal of a correction referencing an event that does not exist.
+    (b) Refusal of a correction referencing another tenant's event (cross-tenant RLS).
+    (c) Refusal of a correction referencing an event stamped with a different price_version.
+    (d) Setting is_correction=True on an ordinary event cannot bypass the historical rule.
+    Asserts row counts with raw SQL after each refused case (no row written).
+    Finally proves that a legitimate correction to a historical row succeeds.
+    """
+    tenant_a = TenantId(uuid4())
+    tenant_b = TenantId(uuid4())
+    event_a_hist_id = uuid4()
+    now = datetime.now(UTC)
+
+    # 1. Seed Tenant A's historical event (stamped '2026-Q1') directly via raw SQL (superuser)
+    with (
+        psycopg.connect(postgres_setup["admin_url"]) as conn,
+        conn.cursor() as cur,
+    ):
+        cur.execute(
+            """
+            INSERT INTO usage_events (
+                id, tenant_id, event_id, occurred_at, recorded_at,
+                event_type, provider, model_id, input_tokens, output_tokens,
+                cache_read_input_tokens, cache_write_input_tokens,
+                price_version, cost_millicents, is_correction
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                str(uuid4()),
+                str(tenant_a.value),
+                str(event_a_hist_id),
+                now,
+                now,
+                "llm_extraction",
+                "anthropic",
+                "claude-3-5-sonnet",
+                10_000,
+                2_000,
+                0,
+                0,
+                "2026-Q1",
+                30_000,
+                False,
+            ),
+        )
+        conn.commit()
+
+    # 2. Seed Tenant A's active event (stamped '2026-Q3') via ledger
+    event_a_active = UsageEvent(
+        tenant_id=tenant_a,
+        event_id=uuid4(),
+        occurred_at=now,
+        event_type=UsageEventType.LLM_EXTRACTION,
+        provider="anthropic",
+        model_id="claude-sonnet-5",
+        input_tokens=5000,
+        output_tokens=1000,
+        price_version="2026-Q3",
+        cost_millicents=2000,
+    )
+    await ledger.record_event(tenant_a, event_a_active)
+
+    # 3. Seed Tenant B's active event (stamped '2026-Q3') via ledger
+    event_b_active = UsageEvent(
+        tenant_id=tenant_b,
+        event_id=uuid4(),
+        occurred_at=now,
+        event_type=UsageEventType.LLM_EXTRACTION,
+        provider="anthropic",
+        model_id="claude-sonnet-5",
+        input_tokens=4000,
+        output_tokens=800,
+        price_version="2026-Q3",
+        cost_millicents=1600,
+    )
+    await ledger.record_event(tenant_b, event_b_active)
+
+    # Helper function: raw SQL assertion of row counts bypassing RLS via admin connection
+    def query_raw_sql_counts() -> tuple[int, int, int]:
+        with (
+            psycopg.connect(postgres_setup["admin_url"]) as conn,
+            conn.cursor() as cur,
+        ):
+            cur.execute(
+                "SELECT count(*) FROM usage_events WHERE tenant_id = %s",
+                (str(tenant_a.value),),
+            )
+            cnt_a = cur.fetchone()[0]
+            cur.execute(
+                "SELECT count(*) FROM usage_events WHERE tenant_id = %s",
+                (str(tenant_b.value),),
+            )
+            cnt_b = cur.fetchone()[0]
+            cur.execute("SELECT count(*) FROM usage_events")
+            cnt_tot = cur.fetchone()[0]
+            return cnt_a, cnt_b, cnt_tot
+
+    cnt_a_baseline, cnt_b_baseline, total_baseline = query_raw_sql_counts()
+    assert cnt_a_baseline == 2  # 1 historical + 1 active
+    assert cnt_b_baseline == 1  # 1 active
+    assert total_baseline >= 3
+
+    # =========================================================================
+    # (a) Refusal of a correction referencing a nonexistent event
+    # =========================================================================
+    nonexistent_id = uuid4()
+    corr_nonexistent = UsageEvent(
+        tenant_id=tenant_a,
+        event_id=uuid4(),
+        occurred_at=now,
+        event_type=UsageEventType.CORRECTION,
+        provider="anthropic",
+        model_id="claude-sonnet-5",
+        input_tokens=-1000,
+        output_tokens=-200,
+        price_version="2026-Q3",
+        is_correction=True,
+        correction_for_event_id=nonexistent_id,
+    )
+    with pytest.raises(InvalidCorrectionError, match="not found"):
+        await ledger.record_event(tenant_a, corr_nonexistent)
+
+    # Assert raw SQL row counts: no row written
+    assert query_raw_sql_counts() == (cnt_a_baseline, cnt_b_baseline, total_baseline)
+
+    # Also test record_correction method with nonexistent event
+    with pytest.raises(InvalidCorrectionError, match="not found"):
+        await ledger.record_correction(
+            tenant_id=tenant_a,
+            original_event_id=nonexistent_id,
+            correction_event_id=uuid4(),
+            input_tokens_offset=-500,
+            output_tokens_offset=-100,
+            reason="Refund for phantom event",
+        )
+    assert query_raw_sql_counts() == (cnt_a_baseline, cnt_b_baseline, total_baseline)
+
+    # =========================================================================
+    # (b) Refusal of a correction referencing another tenant's event
+    # =========================================================================
+    # Tenant B tries to correct Tenant A's active event
+    corr_cross_tenant = UsageEvent(
+        tenant_id=tenant_b,
+        event_id=uuid4(),
+        occurred_at=now,
+        event_type=UsageEventType.CORRECTION,
+        provider="anthropic",
+        model_id="claude-sonnet-5",
+        input_tokens=-500,
+        output_tokens=-100,
+        price_version="2026-Q3",
+        is_correction=True,
+        correction_for_event_id=event_a_active.event_id,
+    )
+    with pytest.raises(InvalidCorrectionError, match="not found"):
+        await ledger.record_event(tenant_b, corr_cross_tenant)
+    assert query_raw_sql_counts() == (cnt_a_baseline, cnt_b_baseline, total_baseline)
+
+    # Tenant B tries to correct Tenant A's active event via record_correction
+    with pytest.raises(InvalidCorrectionError, match="not found"):
+        await ledger.record_correction(
+            tenant_id=tenant_b,
+            original_event_id=event_a_active.event_id,
+            correction_event_id=uuid4(),
+            input_tokens_offset=-500,
+            output_tokens_offset=-100,
+            reason="Unauthorized cross-tenant adjustment",
+        )
+    assert query_raw_sql_counts() == (cnt_a_baseline, cnt_b_baseline, total_baseline)
+
+    # Tenant B tries to correct Tenant A's historical event
+    with pytest.raises(InvalidCorrectionError, match="not found"):
+        await ledger.record_correction(
+            tenant_id=tenant_b,
+            original_event_id=event_a_hist_id,
+            correction_event_id=uuid4(),
+            input_tokens_offset=-500,
+            output_tokens_offset=-100,
+            reason="Unauthorized cross-tenant adjustment on historical row",
+        )
+    assert query_raw_sql_counts() == (cnt_a_baseline, cnt_b_baseline, total_baseline)
+
+    # =========================================================================
+    # (c) Refusal of a correction referencing an event with a different price_version
+    # =========================================================================
+    # Original is 2026-Q1, but correction claims 2026-Q3
+    corr_mismatched_q3 = UsageEvent(
+        tenant_id=tenant_a,
+        event_id=uuid4(),
+        occurred_at=now,
+        event_type=UsageEventType.CORRECTION,
+        provider="anthropic",
+        model_id="claude-sonnet-5",
+        input_tokens=-1000,
+        output_tokens=-200,
+        price_version="2026-Q3",
+        is_correction=True,
+        correction_for_event_id=event_a_hist_id,
+    )
+    with pytest.raises(InvalidCorrectionError, match="does not match original event price_version"):
+        await ledger.record_event(tenant_a, corr_mismatched_q3)
+    assert query_raw_sql_counts() == (cnt_a_baseline, cnt_b_baseline, total_baseline)
+
+    # Original is 2026-Q3, but correction claims historical 2026-Q1
+    corr_mismatched_q1 = UsageEvent(
+        tenant_id=tenant_a,
+        event_id=uuid4(),
+        occurred_at=now,
+        event_type=UsageEventType.CORRECTION,
+        provider="anthropic",
+        model_id="claude-sonnet-5",
+        input_tokens=-500,
+        output_tokens=-100,
+        price_version="2026-Q1",
+        is_correction=True,
+        correction_for_event_id=event_a_active.event_id,
+    )
+    with pytest.raises(InvalidCorrectionError, match="does not match original event price_version"):
+        await ledger.record_event(tenant_a, corr_mismatched_q1)
+    assert query_raw_sql_counts() == (cnt_a_baseline, cnt_b_baseline, total_baseline)
+
+    # =========================================================================
+    # (d) Setting is_correction=True cannot bypass the historical-version rule
+    # =========================================================================
+    # Attempt 1: is_correction=True with historical version but no correction_for_event_id
+    fake_corr_missing_parent = UsageEvent(
+        tenant_id=tenant_a,
+        event_id=uuid4(),
+        occurred_at=now,
+        event_type=UsageEventType.LLM_EXTRACTION,
+        provider="anthropic",
+        model_id="claude-sonnet-5",
+        input_tokens=10_000,
+        output_tokens=2_000,
+        price_version="2026-Q1",
+        is_correction=True,
+        correction_for_event_id=None,
+    )
+    with pytest.raises(InvalidCorrectionError, match="must have correction_for_event_id"):
+        await ledger.record_event(tenant_a, fake_corr_missing_parent)
+    assert query_raw_sql_counts() == (cnt_a_baseline, cnt_b_baseline, total_baseline)
+
+    # Attempt 2: is_correction=True with historical version and bogus nonexistent parent
+    fake_corr_bogus_parent = UsageEvent(
+        tenant_id=tenant_a,
+        event_id=uuid4(),
+        occurred_at=now,
+        event_type=UsageEventType.LLM_EXTRACTION,
+        provider="anthropic",
+        model_id="claude-sonnet-5",
+        input_tokens=10_000,
+        output_tokens=2_000,
+        price_version="2026-Q1",
+        is_correction=True,
+        correction_for_event_id=uuid4(),
+    )
+    with pytest.raises(InvalidCorrectionError, match="not found"):
+        await ledger.record_event(tenant_a, fake_corr_bogus_parent)
+    assert query_raw_sql_counts() == (cnt_a_baseline, cnt_b_baseline, total_baseline)
+
+    # Attempt 3: is_correction=True with historical version pointing to another tenant's row
+    fake_corr_other_tenant = UsageEvent(
+        tenant_id=tenant_a,
+        event_id=uuid4(),
+        occurred_at=now,
+        event_type=UsageEventType.LLM_EXTRACTION,
+        provider="anthropic",
+        model_id="claude-sonnet-5",
+        input_tokens=10_000,
+        output_tokens=2_000,
+        price_version="2026-Q1",
+        is_correction=True,
+        correction_for_event_id=event_b_active.event_id,
+    )
+    with pytest.raises(InvalidCorrectionError, match="not found"):
+        await ledger.record_event(tenant_a, fake_corr_other_tenant)
+    assert query_raw_sql_counts() == (cnt_a_baseline, cnt_b_baseline, total_baseline)
+
+    # Attempt 4: is_correction=True with historical version pointing to an active Q3 row
+    fake_corr_active_parent = UsageEvent(
+        tenant_id=tenant_a,
+        event_id=uuid4(),
+        occurred_at=now,
+        event_type=UsageEventType.LLM_EXTRACTION,
+        provider="anthropic",
+        model_id="claude-sonnet-5",
+        input_tokens=10_000,
+        output_tokens=2_000,
+        price_version="2026-Q1",
+        is_correction=True,
+        correction_for_event_id=event_a_active.event_id,
+    )
+    with pytest.raises(InvalidCorrectionError, match="does not match original event price_version"):
+        await ledger.record_event(tenant_a, fake_corr_active_parent)
+    assert query_raw_sql_counts() == (cnt_a_baseline, cnt_b_baseline, total_baseline)
+
+    # =========================================================================
+    # Positive proof: Legitimate correction to the historical row succeeds
+    # =========================================================================
+    valid_correction_event_id = uuid4()
+    valid_correction = await ledger.record_correction(
+        tenant_id=tenant_a,
+        original_event_id=event_a_hist_id,
+        correction_event_id=valid_correction_event_id,
+        input_tokens_offset=-2000,
+        output_tokens_offset=-500,
+        reason="Legitimate adjustment on historical 2026-Q1 event",
+    )
+
+    # Verify return value
+    assert valid_correction.is_correction is True
+    assert valid_correction.correction_for_event_id == event_a_hist_id
+    assert valid_correction.price_version == "2026-Q1"
+
+    # Assert raw SQL row counts: exactly one new row for tenant A
+    cnt_a_final, cnt_b_final, total_final = query_raw_sql_counts()
+    assert cnt_a_final == cnt_a_baseline + 1
+    assert cnt_b_final == cnt_b_baseline
+    assert total_final == total_baseline + 1
+
+    # Verify the inserted row directly using raw SQL
+    with (
+        psycopg.connect(postgres_setup["admin_url"]) as conn,
+        conn.cursor() as cur,
+    ):
+        cur.execute(
+            """
+            SELECT tenant_id, price_version, is_correction,
+                   correction_for_event_id, input_tokens
+            FROM usage_events
+            WHERE event_id = %s
+            """,
+            (str(valid_correction_event_id),),
+        )
+        row = cur.fetchone()
+        assert row is not None
+        assert row[0] == tenant_a.value
+        assert row[1] == "2026-Q1"
+        assert row[2] is True
+        assert row[3] == event_a_hist_id
+        assert row[4] == -2000
