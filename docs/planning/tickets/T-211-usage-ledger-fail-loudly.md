@@ -1,6 +1,6 @@
 # T-211 · Make the usage ledger fail loudly and price the models we use
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-211-usage-ledger-fail-loudly`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-211-usage-ledger-fail-loudly`
 
 **Scope**
 - `src/semanticgraph/control/usage/**`
