@@ -41,6 +41,9 @@ T-106 narrow the seams
           → T-210 spend cap
 ```
 
+After T-110, [T-215](T-215-gemini-opt-in-provider.md) adds the first real provider adapter
+(Gemini, opt-in). It is not in the lane above because nothing else waits on it.
+
 T-106 and T-214 have disjoint scopes and could run in separate worktrees; one agent takes
 them in this order.
 
