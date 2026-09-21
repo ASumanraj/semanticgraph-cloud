@@ -53,12 +53,14 @@ partner's documents are genuinely unseen, and results must be reported that way.
 - [ ] A test fails if any company or contract family appears in more than one split
 - [ ] Ten companies are chosen across industries, at least three with amendments or restatements, with the rationale recorded
 - [ ] A shortlist of 10–20 clause types is derived from CUAD and the demo questions, showing how each demo question maps onto them
-- [ ] The wave-1 protocol states who labels, what counts as a match, and reports agreement on a 30-question overlap labelled by a second person
+- [ ] The wave-1 protocol states who labels, what counts as a match, and reports agreement on a 30-question overlap. Labels come from a **paid, qualified commercial-contract reviewer** (a contract manager, legal-operations analyst, paralegal or commercial lawyer), with a second such reviewer on the overlap. Labels produced by a model or an untrained annotator are called *draft* or *silver* and are never described as gold
 - [ ] Track D uses the same document clean and degraded, documents how offsets are re-aligned after OCR, and states that synthetic degradation understates real scans
 - [ ] Each source's licence and terms are read from the source itself, not from a summary
 - [ ] The corpus README states what the corpus can and cannot show
 
 ## Notes
+
+Reviewer time is a real cost and needs a decision and a budget before wave 1 can start.
 
 Out of scope: pipeline code, and changes to the ontology — hand the clause-type shortlist to
 whoever owns the contracts pack as a recommendation, not an edit.

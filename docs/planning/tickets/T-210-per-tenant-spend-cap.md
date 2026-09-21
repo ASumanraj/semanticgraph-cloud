@@ -7,7 +7,7 @@
 - `src/semanticgraph/adapters/inbound/api/**`
 - `tests/unit/control/**`
 
-**Blocked by** T-207, T-211, **T-212** · **Blocks** —
+**Blocked by** T-207, T-211, T-212, **T-214** · **Blocks** —
 
 ## Goal
 With token-priced inference an unbounded tenant is an unbounded bill. Enforce

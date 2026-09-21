@@ -29,17 +29,20 @@ T-200 is claimed and its `alembic/versions/` is still empty — that is the wind
 
 ## Run order
 
-T-107 and T-211 are done. **One backend lane, one agent, in this order** — every ticket
-touches `src/`, the migration chain, or both:
+T-107, T-211 and T-212 are done. **One backend lane, one agent, in this order** — every
+ticket touches `src/`, the migration chain, or both:
 
 ```
-T-212 price the models we route to
-  → T-106 narrow the seams
+T-106 narrow the seams
+  → T-214 one owner for model routing; price versions that only append
     → T-110 wire the record into the running system     ← first thing worth showing
       → T-208 audit log
         → T-209 OTel
           → T-210 spend cap
 ```
+
+T-106 and T-214 have disjoint scopes and could run in separate worktrees; one agent takes
+them in this order.
 
 **Beside it, each disjoint from the lane:**
 [T-111](T-111-frontend-stop-misrepresenting-the-product.md) (`frontend/**`, and now also makes
@@ -48,15 +51,16 @@ the upload reach the real API), [T-213](T-213-ci-isolation-step-must-fail-on-fai
 [T-900](T-900-verify-whyhow-ai.md), [T-901](T-901-temporal-cloud-cost.md) (all `docs/**` or
 `evals/**`), and [T-600](T-600-split-infra-stacks.md) (`infra/**`).
 
-[T-904](T-904-evaluation-corpus.md) waits on a human decision about who labels.
+[T-904](T-904-evaluation-corpus.md) waits on a decision to fund a qualified reviewer.
 
 Two agents at once need separate git worktrees; they share one checkout otherwise, and a
 branch switch by one silently moves the other's commits.
 
 ## Fix before the spend cap
 
-[T-212](T-212-price-the-models-we-route-to.md) blocks T-210. The ledger now fails loudly, and it
-prices none of the models the plan routes to, so a cap built on it would refuse every call.
+[T-214](T-214-one-owner-for-model-routing.md) blocks T-210. The ledger prices the right models
+now, but old price versions cannot be resolved for a correction, and model routing has two
+owners. A cap built on that would fail on its first correction.
 
 ## Groundwork that needs no pipeline
 

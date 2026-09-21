@@ -631,7 +631,13 @@ Per document = 10 pages ≈ 5,000 tokens ≈ 30 chunks.
 | **Per 1,000 documents** | **~$1,494** | **~$145** (~$73 with a proven prefilter) |
 
 **~10× between a working implementation and an engineered one** (~20× if the prefilter proves out), before any distillation. Price
-against the engineered number and build toward it, or the ingest tier runs at negative gross margin.
+against the conservative baseline ($0.145), not the optimistic figure, or the ingest tier runs at negative gross margin.
+
+**Not yet in these figures:** retries and repeated calls; the verifier (a T-904 follow-on);
+re-extraction when an ontology changes; and interactive, non-batch pricing, which roughly
+doubles the extraction and blurb lines until T-906 decides which documents use Batch. Treat
+$0.145 as the baseline for extraction alone. A lower figure is claimable only after the
+prefilter's recall has been measured.
 
 Levers in order of savings per unit of effort: **prompt caching** (0.1× reads — the ontology prefix
 is identical across every chunk) → **Batch API** (another 50%, and it *stacks* with caching, but results can

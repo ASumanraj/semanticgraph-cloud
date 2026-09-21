@@ -10,7 +10,7 @@
 - `tests/e2e/**`
 - `tests/integration/adapters/api/**`
 
-**Blocked by** T-106 · **Blocks** T-209, T-904 wave 2
+**Blocked by** T-106, T-214 · **Blocks** T-209, T-904 wave 2
 
 ## Goal
 
@@ -45,6 +45,8 @@ upload a contract
 - [ ] One end-to-end test drives this over HTTP against a real Postgres and asserts row and assertion counts **with raw SQL**, not through the repository that wrote them
 - [ ] Over HTTP, tenant B gets nothing for tenant A's fact and document ids, and an unfiltered SQL query as the application role returns no rows
 - [ ] The tenant still comes from the unsigned `X-Tenant-ID` header; the ticket states that this is a stand-in until Stage 5 and is not presented as authentication
+- [ ] The container builds `ModelRouting` (T-214) and hands it to the extraction double; no model id appears in `src/` outside that configuration and the price schedules, and the app refuses to start if a routable model is unpriced
+- [ ] The response or startup log makes visible which model dependencies are hosted, so no customer text reaches a hosted model implicitly
 - [ ] No route beyond these two, no UI, and no live model call
 - [ ] Full suite green and `ruff check .` clean
 
