@@ -57,8 +57,9 @@ framework, no driver, no SDK. Dependencies enter through Protocol ports in
 one place — `composition/`.
 
 Postgres holds everything: documents, chunks, mentions, facts, edges, vectors, decisions,
-usage, audit. Graph algorithms run in-process over a per-tenant subgraph. Temporal runs
-the document pipeline; its activities are the expensive, retryable units.
+usage, audit. Graph algorithms run in-process over a per-tenant subgraph. The pipeline runs on
+Celery today; ADR-0003 moves it to Temporal once a workflow has to pause for a human decision,
+and until then steps are idempotent and retry-safe and no Temporal code is added.
 
 Build **deep modules** — a large hidden implementation behind a small interface. Extraction,
 resolution, and retrieval each earn one entry point.
@@ -131,8 +132,9 @@ Keep the cached prefix byte-identical across calls — a timestamp, a UUID, or a
 roughly 10× more. Assert `usage.cache_read_input_tokens > 0` in integration tests.
 
 Route by difficulty: Haiku for contextual blurbs and resolution adjudication, Sonnet for
-extraction, Opus only on escalation. Use the Batch API for anything in the ingest path —
-it stacks with caching and nothing there needs sub-24h latency.
+extraction, Opus only on escalation. Use the Batch API for bulk ingest; it stacks with caching.
+Whether a new tenant's first documents go interactive instead is undecided (T-906), so do not
+assume nothing in ingest is latency-sensitive.
 
 ## Conventions
 

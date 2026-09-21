@@ -67,3 +67,11 @@ that sequences them, run both in parallel, and cut over per tenant.
 - [`docs/architecture/ENTERPRISE_PLAN.md`](../architecture/ENTERPRISE_PLAN.md) Part 1.3, Stage 3
 - [Step Functions service quotas](https://docs.aws.amazon.com/step-functions/latest/dg/service-quotas.html)
 - [Temporal Cloud pricing](https://temporal.io/pricing)
+
+## Addendum - 2026-09-21: when to migrate
+
+The decision stands; the timing is narrowed. The pipeline still runs on Celery. The reason to
+move is the human-review queue: a workflow that must pause indefinitely and resume on a decision.
+**Migrate when the first such workflow exists, or before meaningful production volume, whichever
+comes first, and not before.** Until then, invest in idempotency keys and retry-safe writes, which
+matter more than the orchestration technology, and add no Temporal code.

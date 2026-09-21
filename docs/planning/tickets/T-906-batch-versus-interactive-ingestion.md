@@ -35,4 +35,4 @@ through:
 - what "queryable" has to mean on day one — perhaps only the first 20 documents, not all
 - whether the workflow engine's retry model (ADR-0003) copes with an expired batch
 
-Record the choice as ADR-0005 with the numbers, and update Part 5 if the unit economics move.
+Record the choice as the next free ADR with the numbers, and update Part 5 if the unit economics move.

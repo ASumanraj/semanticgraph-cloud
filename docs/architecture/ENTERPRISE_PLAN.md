@@ -7,6 +7,11 @@
 > **Progress is tracked here.** Each stage in Part 3 has a checklist; tick items as they land
 > so the remaining work is always visible in git history.
 > Decisions are recorded individually in [`docs/adr/`](../adr/README.md).
+>
+> **Revised 2026-09-21:** Part 0.1, the Stage 3 extract and resolve steps, and Part 5 were
+> corrected against the source-level competitor review in
+> `docs/research/pipeline-comparison-and-acceptance.md`. Several claims made before that
+> review were wrong; they are marked where they were fixed.
 
 ---
 
@@ -72,7 +77,7 @@ Tick as each item lands. Detail for every item is in Part 3.
 
 ### Stage 3 — Pipeline
 - [ ] Parse · [ ] Chunk · [ ] Contextualize · [ ] Extract · [ ] Resolve · [ ] Retrieve
-- [ ] Temporal migration
+- [ ] Temporal migration: *when the first workflow must pause for a human decision (the review queue), or before meaningful production volume, and not before (ADR-0003 addendum)*
 - [ ] Contracts ontology pack — *started, not done: five entity types and two synthetic sample contracts, but no liability-cap, renewal or termination types, so the flagship question cannot run as a graph query. The clause types come from T-904.*
 
 ### Stage 4 — Evaluation
@@ -110,17 +115,38 @@ where the evidence is against the horizontal claim:
   diligence before betting against them — see Open Questions.)*
 - **Extraction is cheap, so extraction is not a moat.** ~$48–120 per 1,000 documents engineered.
 
-**Where the ground is actually defensible** — all three reports independently converge here:
+**Where the ground is defensible.** Read against six competitors' source code, individual
+features are mostly *not* unique. The defensible product is the **combined operational guarantee**:
+a record in which every fact carries the exact sentence that supports it, corrections can be
+reversed, and a document can be deleted precisely. **Sell the record, not the pipeline.**
 
-1. **Entity resolution grounded in an external controlled vocabulary.** The universally-reported
-   #1 broken thing. Everyone does LLM fuzzy-dedup; nobody resolves to LEI/CIK, MeSH/UMLS, or a
-   party registry. Domain work — which is exactly why AWS and Neo4j won't do it.
-2. **Bi-temporal correctness at document scale.** Only Zep/Graphiti has a mature implementation,
-   and only for chat episodes, not document corpora.
-3. **Human-in-the-loop curation with provenance and approval gates.** What turns a demo into an
-   auditable record. No hyperscaler will build it.
-4. **Multi-tenant graph isolation as a product.** Structurally hostile to every incumbent's
-   pricing: Neo4j at $65–146/GB/month makes 500 small tenant graphs economically absurd.
+What none of the six systems read (Graphiti, Cognee, LlamaIndex, RAGFlow, Microsoft GraphRAG,
+LightRAG) does:
+
+1. **Character-level provenance.** Every system records provenance at chunk granularity at best,
+   and LightRAG discards source ids past 200 per entity.
+2. **A retractable resolution decision log with permanent human precedence.** Three of the six
+   group entities by surface name and a fourth does no resolution at all; Graphiti and RAGFlow
+   resolve properly but destructively, with nothing to retract.
+3. **Assertion-counted deletion and immutable ontology versions.**
+4. **Engine-enforced tenant isolation**, which is structurally hostile to per-GB graph pricing.
+
+Two claims made earlier are narrower than first stated:
+
+- **Registry-anchored resolution is a measurement, not a given.** Resolving to LEI or CIK is a
+  real lever, but GLEIF covers about 2.5 million legal entities and many contract counterparties
+  are private and have no LEI. *Unresolved* is a first-class outcome, and Splink stays
+  load-bearing. How much a registry can carry is T-905's question; do not claim more than it
+  measures. A CIK identifies the filer of an EDGAR exhibit, not the counterparties named in it.
+- **Bi-temporality is half ours.** Graphiti ships valid and invalid times plus created and expired
+  times, with contradiction-driven expiry. The claim is contract semantics over documents,
+  meaning amendments and supersession, not a category first.
+
+**Table stakes, not differentiators:** structure-aware chunking (RAGFlow's parse tier is ahead of
+the planned default), contextual blurbs (RAGFlow, LightRAG), ontology-constrained decoding with
+post-decode triple-legality validation (LlamaIndex), lazy community summaries (Microsoft's own
+LazyGraphRAG result) and a small-model prefilter (RAGFlow and GraphRAG ship NER and noun-phrase
+extraction). Build them; do not pitch them.
 
 ## 0.2 The chosen position
 
@@ -129,6 +155,9 @@ Per your direction — developer-platform/API first, then mid-market, then regul
 > **A multi-tenant knowledge-graph substrate, sold as an API to companies building AI products,
 > with one pre-built vertical ontology pack (commercial contracts) shipped as proof that a
 > customer never needs a forward-deployed engineer to get value.**
+
+Sell the outcome, an auditable record of what documents say with the evidence, the validity
+window and a reversible decision history, and treat the graph as an implementation detail.
 
 This is the wedge the market research independently identified as unserved, and it matches your
 sequencing instinct. The contracts ontology pack matters strategically: both Cognee and Vectara
@@ -261,7 +290,7 @@ semanticgraph-cloud/                    # ONE git repo at the root
 │   │   └── outbound/
 │   │       ├── postgres/               # canonical store: graph, vectors, RLS
 │   │       ├── llm/                    # provider abstraction (BYO-model seam)
-│   │       ├── extraction/             # GLiNER prefilter + structured extraction
+│   │       ├── extraction/             # structured extraction (optional prefilter, see Stage 3)
 │   │       ├── resolution/             # Splink + clustering + LLM adjudication
 │   │       ├── vocabulary/             # LEI/CIK/MeSH adapters  ← the differentiator
 │   │       └── graphprojection/        # no-op today; the Neo4j/FalkorDB escape hatch
@@ -440,9 +469,14 @@ API. Measured: **failed retrievals down 49%**, or **67%** with reranking added. 
 documents.
 
 **Extract** → two-stage cascade:
-- Stage 1: **GLiNER** over every chunk for type detection (CPU-viable, ~130× the throughput of
-  comparable models with cached label embeddings). Cuts LLM calls 50–70%.
-- Stage 2: **`claude-sonnet-5`** on flagged chunks, with **ontology snippets** (the relevant subset
+- Stage 1 (optional, and **off until measured**; a judgement made 2026-09-21): a small-model
+  prefilter such as GLiNER, used as a **cost-reduction candidate generator, never a completeness
+  gate**. GLiNER-L scores 47.8 average zero-shot F1 across 20 datasets, so every chunk it skips
+  is one the pipeline silently never reads. If enabled: tune for recall, measure recall per
+  ontology on the T-904 corpus, alarm on the skip rate, and send a random sample of skipped
+  chunks through the model to estimate what is being lost. Never describe it as a quality
+  feature. Cost figures that assume it are conditional on that measurement.
+- Stage 2: **`claude-sonnet-5`** on every chunk, or on the prefilter's candidates when it is enabled, with **ontology snippets** (the relevant subset
   of types per chunk, not the whole ontology), prompt-cached, batched, **reasoning field first and
   structured fields after** — this ordering recovers most of the documented 10–30% reasoning
   degradation under strict output constraints — and **mandatory source spans**.
@@ -456,9 +490,11 @@ documents.
 → **Splink** probabilistic scoring plus graph-structural signals (shared neighbors, co-occurrence,
 Adamic-Adar) → correlation/Leiden clustering on the match graph, **not connected components** (one
 bad edge merges two companies) → Haiku 4.5 adjudication on the ambiguous band only, batched →
-decision log. **Then the differentiator: resolve against an external controlled vocabulary**
-(LEI/CIK for the contracts pack) instead of generic fuzzy dedup, which converts the hardest problem
-in the category into a lookup.
+decision log. **Then anchor to an external controlled vocabulary where one exists** (LEI for the
+contracts pack). A registry hit is strong evidence; a miss is a normal outcome, not an error, since
+many counterparties are private. Every entity ends in one of four states (resolved, probable,
+unresolved or explicitly disambiguated; see T-105), and Splink plus adjudication remain the
+primary resolver until T-905 shows how much a registry can carry.
 
 **Retrieve** → cheap query router (a classifier, not an LLM call, on the hot path) → local search by
 default (pgvector seeds → 2-hop expansion → PPR → cross-encoder rerank) → **lazy global search**:
@@ -586,20 +622,21 @@ Per document = 10 pages ≈ 5,000 tokens ≈ 30 chunks.
 |---|---|---|
 | Parse | $0.015 | $0.002 |
 | Contextual blurbs | $0.033 | $0.017 |
-| Extraction | $1.40 (Opus 5, 2 gleanings, no cache/batch) | $0.048 (GLiNER prefilter → Sonnet 5, cached, batched, 1 gleaning) |
+| Extraction | $1.40 (Opus 5, 2 gleanings, no cache/batch) | $0.12 (Sonnet 5, cached, batched, 1 gleaning); $0.048 **only if** a prefilter that skips ~60% of chunks is proven to hold recall |
 | Entity resolution | $0.020 | $0.004 |
 | Community summaries | $0.026 (eager) | ~$0.002 (lazy, amortized) |
 | Embeddings | $0.0001 | $0.0001 |
 | Graph storage | ~$0.0001 | ~$0.0001 |
-| **Per document** | **~$1.49** | **~$0.073** |
-| **Per 1,000 documents** | **~$1,494** | **~$73** |
+| **Per document** | **~$1.49** | **~$0.145** (~$0.073 with a proven prefilter) |
+| **Per 1,000 documents** | **~$1,494** | **~$145** (~$73 with a proven prefilter) |
 
-**~20× between a working implementation and an engineered one**, before any distillation. Price
+**~10× between a working implementation and an engineered one** (~20× if the prefilter proves out), before any distillation. Price
 against the engineered number and build toward it, or the ingest tier runs at negative gross margin.
 
 Levers in order of savings per unit of effort: **prompt caching** (0.1× reads — the ontology prefix
-is identical across every chunk) → **Batch API** (another 50%, and it *stacks* with caching; nothing
-in ingest needs sub-24h latency) → **model routing** → **GLiNER prefilter** → **lazy summaries** →
+is identical across every chunk) → **Batch API** (another 50%, and it *stacks* with caching, but results can
+take up to a day, which conflicts with a fast first-answer onboarding; T-906 decides which
+documents use it) → **model routing** → **small-model prefilter, only if its recall is proven** → **lazy summaries** →
 **chunk content-hash dedupe** (enterprise corpora are full of repeated boilerplate) → distillation
 in phase 3 (machine-labeled training sets land within 1.78 F1 of human-labeled).
 
