@@ -1,6 +1,6 @@
 # T-110 · Wire the record into the running system — the first vertical slice
 
-**Stage** 3 · **Type** work · **Status** open · **Owner** — · **Branch** `t-110-wire-the-record`
+**Stage** 3 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-110-wire-the-record`
 
 **Scope**
 - `src/semanticgraph/composition/**`
