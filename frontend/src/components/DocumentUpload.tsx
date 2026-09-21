@@ -18,7 +18,8 @@ export function DocumentUpload() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch("http://localhost:8000/upload", {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8003";
+      const response = await fetch(`${apiBase}/upload`, {
         method: "POST",
         headers: {
           "tenant_id": "tenant-123"

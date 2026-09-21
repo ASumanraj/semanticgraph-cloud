@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npx @tailwindcss/cli -i ./src/app/globals.css -o ./src/app/compiled.css && next build",
+    "build": "npx -y @tailwindcss/cli -i ./src/app/globals.css -o ./src/app/compiled.css && next build",
     "start": "next start",
     "lint": "eslint",
     "test:e2e": "playwright test"

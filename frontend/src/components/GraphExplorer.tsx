@@ -12,7 +12,8 @@ export function GraphExplorer() {
   useEffect(() => {
     const fetchGraph = async () => {
       try {
-        const response = await fetch("http://localhost:8000/graph", {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8003";
+        const response = await fetch(`${apiBase}/graph`, {
           headers: {
             "tenant_id": "tenant-123"
           }

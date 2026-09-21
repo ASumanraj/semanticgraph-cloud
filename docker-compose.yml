@@ -29,7 +29,7 @@ services:
       dockerfile: api.Dockerfile
     command: uvicorn semanticgraph.adapters.inbound.api.app:app --host 0.0.0.0 --port 8000
     ports:
-      - "8000:8000"
+      - "8003:8000"
     environment:
       - SEMANTICGRAPH_ADAPTERS=inmemory
       - REDIS_URL=redis://redis:6379/0
@@ -66,9 +66,9 @@ services:
       context: .
       dockerfile: frontend.Dockerfile
     ports:
-      - "3000:3000"
+      - "3003:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=http://localhost:8003
     depends_on:
       api:
         condition: service_healthy
