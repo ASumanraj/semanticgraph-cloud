@@ -29,6 +29,7 @@ from semanticgraph.control.usage.models import (
     HISTORICAL_PRICE_VERSIONS,
     PRICE_SCHEDULES,
     HistoricalPriceVersionError,
+    InvalidCorrectionError,
     SQLUsageEvent,
     TenantUsageSummary,
     UnknownPriceVersionError,
@@ -77,7 +78,13 @@ class UsageLedger:
             raise UnknownPriceVersionError(
                 f"Price version '{event.price_version}' is not defined in PRICE_SCHEDULES"
             )
-        if not event.is_correction and event.price_version in HISTORICAL_PRICE_VERSIONS:
+        if event.is_correction:
+            if not event.correction_for_event_id:
+                raise InvalidCorrectionError(
+                    "Correction event must have correction_for_event_id "
+                    "referencing an existing original event"
+                )
+        elif event.price_version in HISTORICAL_PRICE_VERSIONS:
             raise HistoricalPriceVersionError(
                 f"Cannot stamp new event with historical price version '{event.price_version}'. "
                 f"Historical versions are only resolvable for existing rows and corrections."
@@ -94,6 +101,27 @@ class UsageLedger:
             existing_row = existing.scalars().first()
             if existing_row:
                 return existing_row.to_domain(), True
+
+            # If this is a correction, verify that correction_for_event_id points to an
+            # existing row of the same tenant and the same price_version:
+            if event.is_correction:
+                orig_query = await session.execute(
+                    select(SQLUsageEvent).where(
+                        SQLUsageEvent.tenant_id == tenant_id.value,
+                        SQLUsageEvent.event_id == event.correction_for_event_id,
+                    )
+                )
+                orig_row = orig_query.scalars().first()
+                if not orig_row:
+                    raise InvalidCorrectionError(
+                        f"Original event {event.correction_for_event_id} not found "
+                        f"for tenant {tenant_id.value}"
+                    )
+                if orig_row.price_version != event.price_version:
+                    raise InvalidCorrectionError(
+                        f"Correction price_version '{event.price_version}' does not match "
+                        f"original event price_version '{orig_row.price_version}'"
+                    )
 
             # 2. Insert new immutable event
             meta_json = json.dumps(event.metadata) if event.metadata else None

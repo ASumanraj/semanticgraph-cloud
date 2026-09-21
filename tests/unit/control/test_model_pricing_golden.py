@@ -36,6 +36,7 @@ from semanticgraph.control.usage.models import (
     PRICE_SCHEDULE_METADATA,
     PRICE_SCHEDULES,
     HistoricalPriceVersionError,
+    InvalidCorrectionError,
     SQLUsageEvent,
     UnknownPriceVersionError,
     UnpricedModelError,
@@ -361,16 +362,21 @@ class TestPriceScheduleStatesAndCorrections:
         )
 
         # Mock query return for get_event:
-        # first call returns original, second for record_event checks duplicate
+        # first call returns original for get_event,
+        # second checks duplicate event_id,
+        # third checks correction_for_event_id references valid original row
         first_query = MagicMock()
         first_query.scalars.return_value.first.return_value = original_sql
 
         second_query = MagicMock()
         second_query.scalars.return_value.first.return_value = None
 
+        third_query = MagicMock()
+        third_query.scalars.return_value.first.return_value = original_sql
+
         mock_session = MagicMock()
         mock_session.in_transaction.return_value = True
-        mock_session.execute = AsyncMock(side_effect=[first_query, second_query])
+        mock_session.execute = AsyncMock(side_effect=[first_query, second_query, third_query])
         mock_session.flush = AsyncMock()
 
         ledger = UsageLedger(session_factory=lambda: mock_session)
@@ -393,6 +399,134 @@ class TestPriceScheduleStatesAndCorrections:
         # -10,000 output @ 1.50 mc = -15,000 mc
         # Total offset cost = -30,000 mc
         assert correction.cost_millicents == -30_000
+
+    @pytest.mark.asyncio
+    async def test_correction_without_correction_for_event_id_raises(self):
+        """Defect 2: is_correction=True without correction_for_event_id raises."""
+        mock_session = MagicMock()
+        mock_session.in_transaction.return_value = True
+        ledger = UsageLedger(session_factory=lambda: mock_session)
+
+        tenant_id = TenantId(uuid4())
+        event = UsageEvent(
+            tenant_id=tenant_id,
+            event_id=uuid4(),
+            occurred_at=datetime.now(UTC),
+            event_type=UsageEventType.CORRECTION,
+            provider="anthropic",
+            model_id="claude-sonnet-5",
+            input_tokens=-100,
+            output_tokens=-50,
+            price_version="2026-Q3",
+            is_correction=True,
+            correction_for_event_id=None,
+        )
+        with pytest.raises(InvalidCorrectionError, match="correction_for_event_id"):
+            await ledger.record_event(tenant_id, event)
+
+    @pytest.mark.asyncio
+    async def test_correction_for_nonexistent_event_raises(self):
+        """Defect 2: is_correction=True pointing to non-existent event raises."""
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.first.return_value = None
+        mock_session = MagicMock()
+        mock_session.in_transaction.return_value = True
+        mock_session.execute = AsyncMock(return_value=mock_result)
+        ledger = UsageLedger(session_factory=lambda: mock_session)
+
+        tenant_id = TenantId(uuid4())
+        nonexistent_id = uuid4()
+        event = UsageEvent(
+            tenant_id=tenant_id,
+            event_id=uuid4(),
+            occurred_at=datetime.now(UTC),
+            event_type=UsageEventType.CORRECTION,
+            provider="anthropic",
+            model_id="claude-sonnet-5",
+            input_tokens=-100,
+            output_tokens=-50,
+            price_version="2026-Q3",
+            is_correction=True,
+            correction_for_event_id=nonexistent_id,
+        )
+        with pytest.raises(InvalidCorrectionError, match="not found"):
+            await ledger.record_event(tenant_id, event)
+
+    @pytest.mark.asyncio
+    async def test_correction_with_mismatched_price_version_raises(self):
+        """Defect 2: Correction stamped with different price_version than original raises."""
+        orig_tenant = uuid4()
+        original_sql = SQLUsageEvent(
+            id=uuid4(),
+            tenant_id=orig_tenant,
+            event_id=uuid4(),
+            occurred_at=datetime(2026, 2, 1, 12, 0, tzinfo=UTC),
+            recorded_at=datetime(2026, 2, 1, 12, 0, tzinfo=UTC),
+            event_type="llm_extraction",
+            provider="anthropic",
+            model_id="claude-3-5-sonnet",
+            input_tokens=100_000,
+            output_tokens=20_000,
+            price_version="2026-Q1",
+            cost_millicents=60_000,
+            is_correction=False,
+        )
+        # First query checks duplicate event_id (None), second checks correction_for (original_sql)
+        query_dup = MagicMock()
+        query_dup.scalars.return_value.first.return_value = None
+        query_orig = MagicMock()
+        query_orig.scalars.return_value.first.return_value = original_sql
+
+        mock_session = MagicMock()
+        mock_session.in_transaction.return_value = True
+        mock_session.execute = AsyncMock(side_effect=[query_dup, query_orig])
+        ledger = UsageLedger(session_factory=lambda: mock_session)
+
+        tenant_id = TenantId(orig_tenant)
+        # Correction stamped with 2026-Q3 instead of original 2026-Q1
+        event = UsageEvent(
+            tenant_id=tenant_id,
+            event_id=uuid4(),
+            occurred_at=datetime.now(UTC),
+            event_type=UsageEventType.CORRECTION,
+            provider="anthropic",
+            model_id="claude-3-5-sonnet",
+            input_tokens=-100,
+            output_tokens=-50,
+            price_version="2026-Q3",
+            is_correction=True,
+            correction_for_event_id=original_sql.event_id,
+        )
+        with pytest.raises(InvalidCorrectionError, match="price_version"):
+            await ledger.record_event(tenant_id, event)
+
+    @pytest.mark.asyncio
+    async def test_setting_is_correction_cannot_bypass_historical_version_rule(self):
+        """Defect 2: Setting is_correction=True without valid row cannot bypass rule."""
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.first.return_value = None
+        mock_session = MagicMock()
+        mock_session.in_transaction.return_value = True
+        mock_session.execute = AsyncMock(return_value=mock_result)
+        ledger = UsageLedger(session_factory=lambda: mock_session)
+
+        tenant_id = TenantId(uuid4())
+        # Attempting to forge a historical row by setting is_correction=True
+        fake_correction = UsageEvent(
+            tenant_id=tenant_id,
+            event_id=uuid4(),
+            occurred_at=datetime.now(UTC),
+            event_type=UsageEventType.LLM_EXTRACTION,
+            provider="anthropic",
+            model_id="claude-3-5-sonnet",
+            input_tokens=1000,
+            output_tokens=500,
+            price_version="2026-Q1",
+            is_correction=True,
+            correction_for_event_id=uuid4(),
+        )
+        with pytest.raises(InvalidCorrectionError):
+            await ledger.record_event(tenant_id, fake_correction)
 
 
 class TestPriceScheduleChecksums:

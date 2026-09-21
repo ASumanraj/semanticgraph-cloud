@@ -47,6 +47,10 @@ class HistoricalPriceVersionError(UsagePricingError):
     """Raised when attempting to stamp a new usage event with a historical price version."""
 
 
+class InvalidCorrectionError(UsagePricingError, ValueError):
+    """Raised when a correction event is invalid or does not reference a valid original event."""
+
+
 CURRENT_PRICE_VERSION: str = "2026-Q3"
 
 # Explicit alias mapping to canonical model IDs.

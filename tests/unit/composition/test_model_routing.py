@@ -146,3 +146,31 @@ def test_verify_routable_models_priced_fails_with_unpriced_model():
     )
     with pytest.raises(UnpricedModelError, match="unpriced-experimental-model"):
         verify_routable_models_priced(unpriced_routing, CURRENT_PRICE_VERSION)
+
+
+def test_fallback_models_rejects_bare_strings():
+    """Defect 1: fallback_models accepts only ModelDependency; a bare string cannot be routable."""
+    with pytest.raises(TypeError, match="ModelDependency"):
+        ModelRouting(fallback_models=("unhosted-model-id",))  # type: ignore[arg-type]
+
+
+def test_every_local_alternative_carries_candidate_status():
+    """Defect 3: Each local_alternative carries status 'candidate' or 'evaluated'.
+
+    All are 'candidate' today.
+    """
+    routing = DEFAULT_MODEL_ROUTING
+    for dep in (
+        routing.extraction,
+        routing.escalation,
+        routing.adjudication,
+        routing.summarization,
+        routing.contextual_blurb,
+        routing.embedding,
+    ):
+        alt = dep.local_alternative
+        assert alt is not None
+        assert hasattr(alt, "status")
+        assert alt.status in ("candidate", "evaluated")
+        # Every local alternative is candidate today; none is marked evaluated
+        assert alt.status == "candidate"

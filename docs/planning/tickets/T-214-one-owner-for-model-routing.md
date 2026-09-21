@@ -1,6 +1,6 @@
 # T-214 · One owner for model routing, and price versions that only append
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-214-model-routing-and-price-versions`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-214-routing-review-fixes`
 
 **Scope**
 - `src/semanticgraph/composition/model_routing.py`
@@ -50,12 +50,11 @@ reason.) The same block still carries numbers whose source could not be recovere
 - [x] Each price schedule carries an explicit state. A correction to a row stamped with a historical version prices correctly, and stamping a **new** event with a historical version raises a typed error
 - [x] A checksum of each published version's numbers is committed, and a test fails if any of them changes — the mechanical form of "a referenced version is immutable"
 - [x] The unsourced 2026-Q1 and 2026-Q2 numbers stay only as historical, labelled "source not recovered", with no retrieval date claimed for them
-- [ ] `ModelRouting` records, for every model, whether it is hosted and its local alternative. The default embedding model is a hosted OpenAI one: either name a local alternative, or record here why it is deferred and add it to the Stage 7 subprocessor checklist. Customer text must not reach a hosted model without that being visible in configuration
-  - *Not fully met, reverted on review: see the three follow-ups below.*
-- [ ] `fallback_models` accepts only `ModelDependency`; a bare string cannot be made routable. A test proves a model cannot be routable without a `hosted` flag
-- [ ] `record_event` with `is_correction=True` requires a `correction_for_event_id` that refers to an existing row of the same tenant and the same `price_version`, and raises otherwise. A test proves setting the flag cannot bypass the historical-version rule
-- [ ] Each `local_alternative` carries a status, `candidate` or `evaluated`; every one is `candidate` today and consumers of the hosted list can see that. Nothing describes a candidate as satisfying ADR-0005 rule 6
-- [ ] Full suite green and `ruff check .` clean
+- [x] `ModelRouting` records, for every model, whether it is hosted and its local alternative. The default embedding model is a hosted OpenAI one: either name a local alternative, or record here why it is deferred and add it to the Stage 7 subprocessor checklist. Customer text must not reach a hosted model without that being visible in configuration
+- [x] `fallback_models` accepts only `ModelDependency`; a bare string cannot be made routable. A test proves a model cannot be routable without a `hosted` flag
+- [x] `record_event` with `is_correction=True` requires a `correction_for_event_id` that refers to an existing row of the same tenant and the same `price_version`, and raises otherwise. A test proves setting the flag cannot bypass the historical-version rule
+- [x] Each `local_alternative` carries a status, `candidate` or `evaluated`; every one is `candidate` today and consumers of the hosted list can see that. Nothing describes a candidate as satisfying ADR-0005 rule 6
+- [x] Full suite green and `ruff check .` clean
 
 ## Notes
 
