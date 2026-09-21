@@ -1,6 +1,6 @@
 # T-214 · One owner for model routing, and price versions that only append
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-214-model-routing-and-price-versions`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-214-model-routing-and-price-versions`
 
 **Scope**
 - `src/semanticgraph/composition/model_routing.py`
