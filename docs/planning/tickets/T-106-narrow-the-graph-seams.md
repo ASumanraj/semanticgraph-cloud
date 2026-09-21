@@ -1,6 +1,6 @@
 # T-106 · Split GraphRepositoryPort into seams that mean something
 
-**Stage** 1 · **Type** work · **Status** open · **Owner** — · **Branch** `t-106-narrow-the-graph-seams`
+**Stage** 1 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-106-narrow-the-graph-seams`
 
 **Scope**
 - `src/semanticgraph/application/ports/outbound/**`
