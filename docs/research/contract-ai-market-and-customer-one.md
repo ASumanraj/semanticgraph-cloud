@@ -9,6 +9,20 @@ Labels: **[verified]** a primary source states it · **[checked here]** re-verif
 · **[agent-reported]** from a research pass and not re-checked · **[vendor claim]** ·
 **[hypothesis]**.
 
+> **Update, T-908 (2026-09-21): S3 is dropped as customer one.** [`dora-register-field-source.md`](dora-register-field-source.md)
+> classified the register's mandatory fields from the Implementing Regulation's own instructions:
+> about **14% are contract-derived** (13 of 95-96), roughly 71% come from systems of record and 15% are
+> internal assessments, against the third the hypothesis needed. The dry-run report's own list of
+> missing fields is provider identifiers, parent codes, headquarters country and the substitutability
+> block, which are entity-resolution and assessment problems, not contract reading. The 6.5%, 86% and
+> invalid-LEI figures were verified against the ESAs' report. No 2025 or 2026 pass rate has been published.
+> What remains: S1 versus S2, decided by interviews; the resolution kernel is the part that maps onto the
+> register's real failure, but that competes with third-party-risk tools, a different story from contract
+> knowledge. One new candidate, **[hypothesis]**: DORA's Article 30 makes nine to fifteen clauses mandatory
+> in every ICT contract, and no register tool reports which are missing from a given agreement. A
+> clause-coverage gap report is contract-derived and span-citable. Whether the deadline has passed and
+> whether anyone pays for it is untested.
+
 ---
 
 ## Bottom line
@@ -152,7 +166,7 @@ register-shaped view on top of it. The plan's API-first shape survives either wa
 
 ---
 
-## The customer-one hypothesis
+## The customer-one hypothesis (SUPERSEDED by T-908: kept for the record)
 
 Stated for S3 because it has the only externally measured failure, and **conditional on check 1**:
 

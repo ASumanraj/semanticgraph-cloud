@@ -1,6 +1,6 @@
 # T-908 · Check whether the DORA register is actually built from contracts
 
-**Stage** — · **Type** research · **Status** open · **Owner** — · **Branch** `t-908-dora-register-check`
+**Stage** — · **Type** research · **Status** done · **Owner** — · **Branch** `t-908-dora-register-check`
 
 **Scope**
 - `docs/research/**`
@@ -21,7 +21,11 @@ that out.
 
 ## Resolution
 
-_Open._ Two checks, both free and neither needing an interview:
+Done 2026-09-21. Report: `docs/research/dora-register-field-source.md`. Contract-derived share about
+14% against the one-third threshold set beforehand, so the DORA-register segment is dropped as customer
+one. No 2025 or 2026 pass rate is published. Regulation text read from the Official Journal PDFs.
+
+Method, as planned. Two checks, both free and neither needing an interview:
 
 1. **Classify every mandatory data point** in the ESAs' published register data-point model by where
    its value comes from: **contract text**, **a system of record**, or **an internal assessment**.

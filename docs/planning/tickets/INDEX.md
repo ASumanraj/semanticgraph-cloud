@@ -56,8 +56,8 @@ the upload reach the real API), [T-213](T-213-ci-isolation-step-must-fail-on-fai
 
 [T-904](T-904-evaluation-corpus.md) waits on a decision to fund a qualified reviewer.
 [T-907](T-907-contract-ai-market-and-customer-one.md) (market research, done) chose no customer;
-[T-908](T-908-dora-register-field-source-check.md) (`docs/research/**`) is the free check that
-can remove one candidate segment before any interview.
+[T-908](T-908-dora-register-field-source-check.md) (done) removed the DORA-register segment as customer
+one: about 14% of its mandatory fields come from contracts.
 
 Two agents at once need separate git worktrees; they share one checkout otherwise, and a
 branch switch by one silently moves the other's commits.
