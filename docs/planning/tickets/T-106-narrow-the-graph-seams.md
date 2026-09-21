@@ -58,3 +58,18 @@ which changes the domain objects these ports carry.
 
 The `codebase-design` skill has the vocabulary: depth as leverage, the deletion test,
 and one adapter meaning a hypothetical seam.
+
+## Review
+
+Reviewed 2026-09-21 and **approved**. Verified against the repo, not the report: the commit is
+on `main`; 281 tests pass and lint and format are clean; no Postgres adapter or migration
+changed; `merge_into_golden_record` and `process_document.py` are gone; and a signature
+comparison (names, parameter order, async-ness) shows all five Stage 2 Postgres repositories
+match their ports. The ticket's own conformance test only uses `isinstance` on runtime-checkable
+Protocols, which proves names exist and nothing more.
+
+Two residuals are deliberately not done here and moved to T-110: the combined
+`GraphRepositoryPort` still exists as a shim, and `IngestDocumentUseCase` still takes an
+optional `graph_repo` beside `entity_store`. One file outside the Scope changed,
+`ingestion_tasks.py` (the stale docstring); the acceptance list required it and the Scope list
+omitted it, which was an inconsistency in the ticket.

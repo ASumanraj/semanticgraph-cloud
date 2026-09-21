@@ -46,7 +46,7 @@ reason.) The same block still carries numbers whose source could not be recovere
 ## Acceptance
 
 - [ ] Model selection is defined once, in composition. `control/usage` has no default routing configuration and no model id outside the price schedules
-- [ ] `verify_routable_models_priced` takes a routing as an argument; a test supplies one with an unpriced model and fails; the container runs the check at startup and refuses to start when a routable model is unpriced
+- [ ] `verify_routable_models_priced` takes a routing as an argument; a test supplies one with an unpriced model and fails. The check is a plain function that T-110 calls at startup; this ticket does not edit `composition/container.py`, which T-110 owns
 - [ ] Each price schedule carries an explicit state. A correction to a row stamped with a historical version prices correctly, and stamping a **new** event with a historical version raises a typed error
 - [ ] A checksum of each published version's numbers is committed, and a test fails if any of them changes — the mechanical form of "a referenced version is immutable"
 - [ ] The unsourced 2026-Q1 and 2026-Q2 numbers stay only as historical, labelled "source not recovered", with no retrieval date claimed for them

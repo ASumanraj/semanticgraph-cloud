@@ -45,6 +45,9 @@ upload a contract
 - [ ] One end-to-end test drives this over HTTP against a real Postgres and asserts row and assertion counts **with raw SQL**, not through the repository that wrote them
 - [ ] Over HTTP, tenant B gets nothing for tenant A's fact and document ids, and an unfiltered SQL query as the application role returns no rows
 - [ ] The tenant still comes from the unsigned `X-Tenant-ID` header; the ticket states that this is a stand-in until Stage 5 and is not presented as authentication
+- [ ] `GraphRepositoryPort`, the combined shim T-106 left behind, is deleted. `IngestDocumentUseCase` and the search use case take **required** narrow ports (`EntityStore`, `SubgraphReader`, and the rest) — no union or `None`-default dependency parameters, so constructing one without a gateway or store is a `TypeError`, not a runtime surprise
+- [ ] The container has one field per narrow port, and the Stage 2 repositories are wired into those fields
+- [ ] A test compares each port with its Postgres implementation by **signature** — method names, parameter order and async-ness — not with `isinstance`, which on a runtime-checkable Protocol only proves the names exist. (The T-106 review found no mismatches; this keeps it that way)
 - [ ] The container builds `ModelRouting` (T-214) and hands it to the extraction double; no model id appears in `src/` outside that configuration and the price schedules, and the app refuses to start if a routable model is unpriced
 - [ ] The response or startup log makes visible which model dependencies are hosted, so no customer text reaches a hosted model implicitly
 - [ ] No route beyond these two, no UI, and no live model call
