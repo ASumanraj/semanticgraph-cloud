@@ -55,6 +55,9 @@ the upload reach the real API), [T-213](T-213-ci-isolation-step-must-fail-on-fai
 `evals/**`), and [T-600](T-600-split-infra-stacks.md) (`infra/**`).
 
 [T-904](T-904-evaluation-corpus.md) waits on a decision to fund a qualified reviewer.
+[T-907](T-907-contract-ai-market-and-customer-one.md) (market research, done) chose no customer;
+[T-908](T-908-dora-register-field-source-check.md) (`docs/research/**`) is the free check that
+can remove one candidate segment before any interview.
 
 Two agents at once need separate git worktrees; they share one checkout otherwise, and a
 branch switch by one silently moves the other's commits.
@@ -74,6 +77,7 @@ None of these touch `src/`, so they run beside anything.
 | [T-107](T-107-isolation-proofs-must-not-skip.md) Isolation proofs must fail, not skip | `ci.yml`, `tests/conftest.py`, `tests/integration/adapters/postgres/**` |
 | [T-904](T-904-evaluation-corpus.md) Four-track evaluation corpus | `evals/**`, `docs/research/**` |
 | [T-905](T-905-gleif-coverage-spike.md) Registry coverage on real counterparties | `evals/gleif/**`, `docs/research/**` |
+| [T-908](T-908-dora-register-field-source-check.md) Is the DORA register built from contracts? | `docs/research/**` |
 
 ## First wave — five agents, no collisions
 
