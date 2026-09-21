@@ -1,6 +1,6 @@
 # T-212 · Price the models the system actually routes to
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-212-price-the-models-we-route-to`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-212-price-the-models-we-route-to`
 
 **Scope**
 - `src/semanticgraph/control/usage/**`
