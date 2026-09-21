@@ -60,7 +60,10 @@ partner's documents are genuinely unseen, and results must be reported that way.
 
 ## Notes
 
-Reviewer time is a real cost and needs a decision and a budget before wave 1 can start.
+**Decision, 2026-09-21 (product owner):** wave 1 starts as a **10-document pilot with a cap of 40 paid
+reviewer hours**, reassessed against actual effort before expanding. Labels from the paid,
+qualified reviewer are gold. Labels from the product owner and friends are **draft** and are used to
+rehearse the protocol and to produce an agreement figure; they are never described as gold.
 
 Out of scope: pipeline code, and changes to the ontology — hand the clause-type shortlist to
 whoever owns the contracts pack as a recommendation, not an edit.

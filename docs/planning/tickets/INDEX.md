@@ -141,3 +141,11 @@ Tickets slice [`ENTERPRISE_PLAN.md`](../../architecture/ENTERPRISE_PLAN.md) into
 work. The plan's progress tracker stays the top-level view — tick its line when a
 ticket reaches `done`. Decisions go to [`docs/adr/`](../../adr/README.md), not into
 a ticket.
+
+## Decisions log
+
+- 2026-09-21: the docker-compose host ports were remapped to 8003 and 3003 (`9e13a83`). Nobody
+  asked for it; it is internally consistent and stays. History is not rewritten.
+- 2026-09-21: `uv.lock` stays untracked while CI installs with pip.
+- 2026-09-21: Gemini is used on public or synthetic data only until paid terms are confirmed (T-215).
+- 2026-09-21: T-904 wave 1 approved as a 10-document pilot capped at 40 paid reviewer hours.

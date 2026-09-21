@@ -60,8 +60,9 @@ docs. A reviewer who could read them reports that the Agreement Manager API retu
 identity (id, title, type, category, status), a summary and review status, parties, typed
 provisions (liability, renewal, termination, jurisdiction, dates), custom provisions and
 user-defined fields, and parent-agreement links with source ids and document links, and that its
-schema exposes **no per-field quote, page number, character span, confidence score or resolution
-decision object**. Docusign also lets a customer define custom extraction fields and test them
+*public OpenAPI schema* exposes **no per-field quote, page number, character span, confidence score or resolution
+decision object**. That supports "not exposed in the public API schema", not "Docusign holds no
+internal spans or confidence data". Docusign also lets a customer define custom extraction fields and test them
 against expected values, returning a per-field accuracy score. **[checked here, partly]** Web search
 confirms the endpoint, that it returns parties, provisions and related agreements, and the
 per-field accuracy testing via its CLI. **[not verified]** The absence of spans and confidence: the
