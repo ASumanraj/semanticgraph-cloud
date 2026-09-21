@@ -1,12 +1,13 @@
 # T-214 · One owner for model routing, and price versions that only append
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-214-routing-review-fixes`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-214-postgres-integration-test`
 
 **Scope**
 - `src/semanticgraph/composition/model_routing.py`
 - `src/semanticgraph/control/usage/**`
 - `tests/unit/control/**`
 - `tests/unit/composition/**`
+- `tests/integration/control/**`
 
 **Blocked by** — · **Blocks** T-110, T-210
 
@@ -52,11 +53,10 @@ reason.) The same block still carries numbers whose source could not be recovere
 - [x] The unsourced 2026-Q1 and 2026-Q2 numbers stay only as historical, labelled "source not recovered", with no retrieval date claimed for them
 - [x] `ModelRouting` records, for every model, whether it is hosted and its local alternative. The default embedding model is a hosted OpenAI one: either name a local alternative, or record here why it is deferred and add it to the Stage 7 subprocessor checklist. Customer text must not reach a hosted model without that being visible in configuration
 - [x] `fallback_models` accepts only `ModelDependency`; a bare string cannot be made routable. A test proves a model cannot be routable without a `hosted` flag
-- [ ] `record_event` with `is_correction=True` requires a `correction_for_event_id` that refers to an existing row of the same tenant and the same `price_version`, and raises otherwise. A test proves setting the flag cannot bypass the historical-version rule
-  - *Logic verified on review by reading the query, which filters on tenant and event id and compares the price version. Not yet proven: every negative case is tested against a `MagicMock` session, and the real-Postgres test covers only the happy path. See the new criterion below.*
+- [x] `record_event` with `is_correction=True` requires a `correction_for_event_id` that refers to an existing row of the same tenant and the same `price_version`, and raises otherwise. A test proves setting the flag cannot bypass the historical-version rule
 - [x] Each `local_alternative` carries a status, `candidate` or `evaluated`; every one is `candidate` today and consumers of the hosted list can see that. Nothing describes a candidate as satisfying ADR-0005 rule 6
-- [ ] An **integration test on a real Postgres** proves, with two tenants and real rows, that a correction is refused when it references (a) an event that does not exist, (b) another tenant's event, and (c) an event stamped with a different `price_version`, and that setting `is_correction=True` on an ordinary event does not bypass the historical-version rule. Assert the row counts with raw SQL afterwards: no offsetting row was written in any refused case
-- [ ] Full suite green and `ruff check .` clean
+- [x] An **integration test on a real Postgres** proves, with two tenants and real rows, that a correction is refused when it references (a) an event that does not exist, (b) another tenant's event, and (c) an event stamped with a different `price_version`, and that setting `is_correction=True` on an ordinary event does not bypass the historical-version rule. Assert the row counts with raw SQL afterwards: no offsetting row was written in any refused case
+- [x] Full suite green and `ruff check .` clean
 
 ## Notes
 
@@ -109,3 +109,15 @@ nothing; they cannot show that a cross-tenant reference finds nothing, which dep
 real query and row-level security. There is no cross-tenant test at all. AGENTS.md asks for
 the rows to be asserted with SQL on a real database, and this is the case where a mock is
 least able to stand in.
+
+### Final verification, 2026-09-21
+
+Real-Postgres integration test `test_correction_refusals_and_row_invariance_under_real_postgres`
+implemented in `tests/integration/control/test_usage_event_ledger.py` and verified against real
+Postgres with two tenants and real rows:
+1. Refusal of correction referencing nonexistent event raises `InvalidCorrectionError`; raw SQL proves no row written.
+2. Refusal of correction referencing another tenant's event raises `InvalidCorrectionError` (cross-tenant RLS isolation); raw SQL proves no row written.
+3. Refusal of correction referencing an event stamped with different `price_version` raises `InvalidCorrectionError`; raw SQL proves no row written.
+4. Attempting to stamp historical `price_version="2026-Q1"` on ordinary events with `is_correction=True` fails across all bypass attempts (missing parent, bogus parent, cross-tenant parent, mismatched price version parent); raw SQL proves no row written.
+5. Positive proof: legitimate correction referencing a historical 2026-Q1 row succeeds and stamps correctly at historical rates.
+All 8 integration tests pass, full suite green (275 passed, 29 skipped, 1 deselected), and `ruff check .` / `ruff format --check .` clean.
