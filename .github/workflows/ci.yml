@@ -13,6 +13,26 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: semanticgraph
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://user:password@localhost:5432/semanticgraph
+      SEMANTICGRAPH_REQUIRE_POSTGRES: "1"
+
     steps:
       - uses: actions/checkout@v4
 
@@ -30,8 +50,22 @@ jobs:
       - name: Format check
         run: ruff format --check .
 
-      - name: Test
+      - name: Test (fast suite — in-memory adapters)
         run: pytest -q
+
+      - name: Isolation proofs (real Postgres, must not skip)
+        run: |
+          pytest tests/integration/adapters/postgres/ \
+            -v -rs \
+            --tb=short \
+            2>&1 | tee /tmp/isolation_output.txt
+          # Fail the step if any test was skipped — a skip here means the
+          # row-level-security proofs did not run, which is a silent pass.
+          if grep -qE "^SKIPPED" /tmp/isolation_output.txt; then
+            echo "ERROR: one or more isolation tests were skipped" >&2
+            grep -E "^SKIPPED" /tmp/isolation_output.txt >&2
+            exit 1
+          fi
 
   frontend:
     runs-on: ubuntu-latest

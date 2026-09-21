@@ -12,8 +12,6 @@ Tests T-201 acceptance criteria on PostgreSQL:
 
 from __future__ import annotations
 
-import os
-from collections.abc import Generator
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse
 from uuid import uuid4
@@ -34,41 +32,9 @@ from semanticgraph.domain.models.entities import (
     TenantId,
 )
 
-DEFAULT_PG_URL = "postgresql://user:password@localhost:5432/semanticgraph"
+# postgres_admin_url is provided by conftest.py in this directory
 APP_ROLE = "semanticgraph_app"
 APP_PASSWORD = "semanticgraph_app"
-
-
-def _get_pg_admin_url() -> str | None:
-    candidate = os.environ.get("DATABASE_URL") or DEFAULT_PG_URL
-    if not candidate.startswith("postgres"):
-        return None
-    try:
-        conn = psycopg.connect(candidate, connect_timeout=2)
-        conn.close()
-        return candidate
-    except Exception:
-        return None
-
-
-@pytest.fixture(scope="module")
-def postgres_admin_url() -> Generator[str, None, None]:
-    """Provides an admin URL for PostgreSQL, skipping if Postgres is not reachable."""
-    url = _get_pg_admin_url()
-    if url is None:
-        try:
-            from testcontainers.postgres import PostgresContainer
-
-            with PostgresContainer("postgres:15-alpine") as container:
-                pg_url = container.get_connection_url().replace(
-                    "postgresql+psycopg2://", "postgresql://"
-                )
-                yield pg_url
-                return
-        except Exception as exc:
-            pytest.skip(f"PostgreSQL not reachable and testcontainers failed: {exc}")
-
-    yield url
 
 
 @pytest.fixture(scope="module")

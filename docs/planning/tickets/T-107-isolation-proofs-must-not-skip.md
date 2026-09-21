@@ -1,11 +1,12 @@
 # T-107 · Make the isolation proofs impossible to skip
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-107-isolation-proofs-must-not-skip`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-107-isolation-proofs-must-not-skip`
 
 **Scope**
 - `.github/workflows/ci.yml`
 - `tests/conftest.py`
 - `tests/integration/adapters/postgres/**`
+- `alembic/versions/4b8e2193c7d6_immutable_ontology_versions.py`
 
 **Blocked by** — · **Blocks** —
 
@@ -28,10 +29,10 @@ This closes the way it could break silently.
 
 ## Acceptance
 
-- [ ] With `SEMANTICGRAPH_REQUIRE_POSTGRES=1`, a Postgres-dependent test that cannot reach Postgres **fails** instead of skipping — shown by running the suite with Docker stopped
-- [ ] CI sets that variable, prints skip reasons (`-rs`), and a step fails if any test under `tests/integration/adapters/postgres/` was skipped
-- [ ] The default run never truncates or migrates the compose database: use a database the fixture creates and drops, or a testcontainer, unless an explicit opt-in variable is set
-- [ ] The full suite passes locally and `ruff check .` is clean
+- [x] With `SEMANTICGRAPH_REQUIRE_POSTGRES=1`, a Postgres-dependent test that cannot reach Postgres **fails** instead of skipping — shown by running the suite with Docker stopped
+- [x] CI sets that variable, prints skip reasons (`-rs`), and a step fails if any test under `tests/integration/adapters/postgres/` was skipped
+- [x] The default run never truncates or migrates the compose database: use a database the fixture creates and drops, or a testcontainer, unless an explicit opt-in variable is set
+- [x] The full suite passes locally and `ruff check .` is clean
 
 ## Notes
 

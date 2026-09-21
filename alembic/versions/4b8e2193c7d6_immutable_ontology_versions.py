@@ -157,17 +157,21 @@ def upgrade() -> None:
             BEGIN
                 IF TG_OP = 'DELETE' THEN
                     IF OLD.is_published THEN
-                        RAISE EXCEPTION
-                            'Published ontology versions are immutable and cannot be deleted '
-                            || '(tenant_id=%, name=%, version=%)',
-                            OLD.tenant_id, OLD.name, OLD.version;
+                        RAISE EXCEPTION USING
+                            MESSAGE = 'Published ontology versions are immutable'
+                                || ' and cannot be deleted'
+                                || ' (tenant_id=' || OLD.tenant_id::text
+                                || ', name=' || OLD.name
+                                || ', version=' || OLD.version::text || ')';
                     END IF;
                 ELSIF TG_OP = 'UPDATE' THEN
                     IF OLD.is_published THEN
-                        RAISE EXCEPTION
-                            'Published ontology versions are immutable and cannot be modified '
-                            || '(tenant_id=%, name=%, version=%)',
-                            OLD.tenant_id, OLD.name, OLD.version;
+                        RAISE EXCEPTION USING
+                            MESSAGE = 'Published ontology versions are immutable'
+                                || ' and cannot be modified'
+                                || ' (tenant_id=' || OLD.tenant_id::text
+                                || ', name=' || OLD.name
+                                || ', version=' || OLD.version::text || ')';
                     END IF;
                 END IF;
                 RETURN NEW;
