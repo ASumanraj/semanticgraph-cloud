@@ -32,15 +32,15 @@ def test_reproduce_crash_1_anthropic_usage_none_cache_tokens_fixed():
     assert cache_write_tokens == 0
 
     cost = calculate_cost_millicents(
-        model_id="claude-3-7-sonnet",
-        price_version="2026-Q1",
+        model_id="claude-sonnet-5",
+        price_version="2026-Q3",
         input_tokens=input_tokens,
         output_tokens=output_tokens,
         cache_read_tokens=cache_read_tokens,
         cache_write_tokens=cache_write_tokens,
     )
-    # 100 * 0.30 + 50 * 1.50 = 30 + 75 = 105 millicents
-    assert cost == 105
+    # 100 * 0.20 + 50 * 1.00 = 20 + 50 = 70 millicents
+    assert cost == 70
 
 
 def test_reproduce_defect_2_unknown_model_raises_unpriced_model_error():
@@ -50,7 +50,7 @@ def test_reproduce_defect_2_unknown_model_raises_unpriced_model_error():
     with pytest.raises(UnpricedModelError, match="not priced"):
         calculate_cost_millicents(
             model_id="claude-unknown-model",
-            price_version="2026-Q1",
+            price_version="2026-Q3",
             input_tokens=200_000,
             output_tokens=200_000,
             cache_read_tokens=800_000,

@@ -156,13 +156,13 @@ async def test_acceptance_8_per_document_cost_queryable_and_deletion_does_not_af
         occurred_at=datetime.now(UTC),
         event_type=UsageEventType.LLM_EXTRACTION,
         provider="anthropic",
-        model_id="claude-3-7-sonnet",
+        model_id="claude-sonnet-5",
         input_tokens=10_000,
         output_tokens=2_000,
         cache_read_input_tokens=40_000,
         cache_write_input_tokens=0,
-        price_version="2026-Q1",
-        cost_millicents=7_200,  # 10k*0.3 + 2k*1.5 + 40k*0.03 = 3000 + 3000 + 1200 = 7200
+        price_version="2026-Q3",
+        cost_millicents=4_800,  # 10k*0.20 + 2k*1.00 + 40k*0.020 = 2000 + 2000 + 800 = 4800
         document_id=doc.id,
         extraction_run_id=run_id,
         user_id=user_id,
@@ -175,13 +175,13 @@ async def test_acceptance_8_per_document_cost_queryable_and_deletion_does_not_af
         occurred_at=datetime.now(UTC),
         event_type=UsageEventType.LLM_ADJUDICATION,
         provider="anthropic",
-        model_id="claude-3-5-haiku",
+        model_id="claude-haiku-4-5-20251001",
         input_tokens=5_000,
         output_tokens=1_000,
         cache_read_input_tokens=0,
         cache_write_input_tokens=0,
-        price_version="2026-Q1",
-        cost_millicents=800,  # 5k*0.08 + 1k*0.4 = 400 + 400 = 800
+        price_version="2026-Q3",
+        cost_millicents=1_000,  # 5k*0.10 + 1k*0.50 = 500 + 500 = 1000
         document_id=doc.id,
         extraction_run_id=run_id,
         user_id=user_id,
@@ -194,7 +194,7 @@ async def test_acceptance_8_per_document_cost_queryable_and_deletion_does_not_af
     assert summary.total_input_tokens == 15_000
     assert summary.total_output_tokens == 3_000
     assert summary.total_cache_read_tokens == 40_000
-    assert summary.total_cost_millicents == 8_000
+    assert summary.total_cost_millicents == 5_800
 
     # Also check list_events with document_id filter
     doc_events = await ledger.list_events(tenant_id, document_id=doc.id)
@@ -213,7 +213,7 @@ async def test_acceptance_8_per_document_cost_queryable_and_deletion_does_not_af
     # 6. Verify the usage ledger rows are STILL in usage_events and completely intact
     summary_after_del = await ledger.get_document_usage_summary(tenant_id, doc.id)
     assert summary_after_del.event_count == 2
-    assert summary_after_del.total_cost_millicents == 8_000
+    assert summary_after_del.total_cost_millicents == 5_800
 
     with psycopg.connect(postgres_setup["admin_url"]) as conn, conn.cursor() as cur:
         cur.execute(

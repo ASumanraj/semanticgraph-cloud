@@ -25,6 +25,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 from semanticgraph.control.usage.models import (
+    CURRENT_PRICE_VERSION,
     SQLUsageEvent,
     TenantUsageSummary,
     UsageEvent,
@@ -129,7 +130,7 @@ class UsageLedger:
         provider: str,
         model_id: str,
         provider_response: Any,
-        price_version: str,
+        price_version: str = CURRENT_PRICE_VERSION,
         document_id: UUID | None = None,
         extraction_run_id: UUID | None = None,
         user_id: UUID | None = None,

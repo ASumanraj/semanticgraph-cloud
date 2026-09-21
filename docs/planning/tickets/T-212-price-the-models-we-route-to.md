@@ -1,6 +1,6 @@
 # T-212 · Price the models the system actually routes to
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-212-price-the-models-we-route-to`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-212-price-the-models-we-route-to`
 
 **Scope**
 - `src/semanticgraph/control/usage/**`
@@ -43,13 +43,13 @@ is what this ticket fixes.
 
 ## Acceptance
 
-- [ ] Price keys are the **exact model ids as sent to the API** — at minimum `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5`, plus any other model the routing config can select and the embedding model in use. No prefix matching. If aliases are wanted they are an explicit mapping to one exact id, never a separate price
-- [ ] Every price is read from the vendor's pricing page **on the day it is written**, with the URL and that date beside it. The values seen on 2026-09-21, for checking, were: Haiku 4.5 $1 / $5, cache read $0.10, cache write $1.25; Sonnet 5 $2 / $10, $0.20, $2.50; Opus 5 $5 / $25, $0.50, $6.25 (per million tokens, 5-minute cache TTL — record which TTL the code uses, since the 1-hour rate differs)
-- [ ] The Claude 3.x models, the family aliases and the `2026-Q2` schedule are deleted, unless a saved copy of their source is kept beside them
-- [ ] The set of routable models is **derived from the same configuration the gateway reads**, in one place, not listed separately. A test adds a model to that configuration without a price and **fails**, proving the check can fail
-- [ ] A golden test for each of the three models prices a fixed token mix, including cache reads and writes, against a figure worked out by hand from the page's numbers
-- [ ] Every retrieval date is the date the price was actually read, and never precedes the schedule's own period
-- [ ] Full suite green and `ruff check .` clean
+- [x] Price keys are the **exact model ids as sent to the API** — at minimum `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5`, plus any other model the routing config can select and the embedding model in use. No prefix matching. If aliases are wanted they are an explicit mapping to one exact id, never a separate price
+- [x] Every price is read from the vendor's pricing page **on the day it is written**, with the URL and that date beside it. The values seen on 2026-09-21, for checking, were: Haiku 4.5 $1 / $5, cache read $0.10, cache write $1.25; Sonnet 5 $2 / $10, $0.20, $2.50; Opus 5 $5 / $25, $0.50, $6.25 (per million tokens, 5-minute cache TTL — record which TTL the code uses, since the 1-hour rate differs)
+- [x] The Claude 3.x models, the family aliases and the `2026-Q2` schedule are deleted, unless a saved copy of their source is kept beside them
+- [x] The set of routable models is **derived from the same configuration the gateway reads**, in one place, not listed separately. A test adds a model to that configuration without a price and **fails**, proving the check can fail
+- [x] A golden test for each of the three models prices a fixed token mix, including cache reads and writes, against a figure worked out by hand from the page's numbers
+- [x] Every retrieval date is the date the price was actually read, and never precedes the schedule's own period
+- [x] Full suite green and `ruff check .` clean
 
 ## Notes
 

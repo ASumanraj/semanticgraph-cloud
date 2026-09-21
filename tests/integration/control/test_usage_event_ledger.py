@@ -32,6 +32,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from semanticgraph.control.usage.ledger import UsageLedger
 from semanticgraph.control.usage.models import (
+    PRICE_SCHEDULES,
     UsageEvent,
     UsageEventType,
     calculate_cost_millicents,
@@ -112,13 +113,13 @@ async def test_client_generated_event_id_retries_count_once(ledger: UsageLedger)
         occurred_at=now,
         event_type=UsageEventType.LLM_EXTRACTION,
         provider="anthropic",
-        model_id="claude-3-7-sonnet",
+        model_id="claude-sonnet-5",
         input_tokens=1000,
         output_tokens=200,
         cache_read_input_tokens=100,
         cache_write_input_tokens=0,
-        price_version="2026-Q1",
-        cost_millicents=603,
+        price_version="2026-Q3",
+        cost_millicents=402,
     )
 
     # First attempt: recorded
@@ -136,7 +137,7 @@ async def test_client_generated_event_id_retries_count_once(ledger: UsageLedger)
     assert summary.event_count == 1
     assert summary.total_input_tokens == 1000
     assert summary.total_output_tokens == 200
-    assert summary.total_cost_millicents == 603
+    assert summary.total_cost_millicents == 402
 
 
 @pytest.mark.asyncio
@@ -154,11 +155,11 @@ async def test_duplicate_event_id_counted_once(ledger: UsageLedger):
         occurred_at=now,
         event_type=UsageEventType.LLM_EXTRACTION,
         provider="anthropic",
-        model_id="claude-3-5-haiku",
+        model_id="claude-haiku-4-5-20251001",
         input_tokens=500,
         output_tokens=100,
-        price_version="2026-Q1",
-        cost_millicents=80,
+        price_version="2026-Q3",
+        cost_millicents=100,
     )
     e2 = UsageEvent(
         tenant_id=tenant_id,
@@ -166,11 +167,11 @@ async def test_duplicate_event_id_counted_once(ledger: UsageLedger):
         occurred_at=now,
         event_type=UsageEventType.LLM_EXTRACTION,
         provider="anthropic",
-        model_id="claude-3-5-haiku",
+        model_id="claude-haiku-4-5-20251001",
         input_tokens=300,
         output_tokens=50,
-        price_version="2026-Q1",
-        cost_millicents=44,
+        price_version="2026-Q3",
+        cost_millicents=55,
     )
     e3 = UsageEvent(
         tenant_id=tenant_id,
@@ -179,9 +180,9 @@ async def test_duplicate_event_id_counted_once(ledger: UsageLedger):
         event_type=UsageEventType.EMBEDDING_GENERATION,
         provider="openai",
         model_id="text-embedding-3-small",
-        input_tokens=200,
+        input_tokens=500,
         output_tokens=0,
-        price_version="2026-Q1",
+        price_version="2026-Q3",
         cost_millicents=1,
     )
 
@@ -195,9 +196,9 @@ async def test_duplicate_event_id_counted_once(ledger: UsageLedger):
 
     summary = await ledger.get_tenant_usage_summary(tenant_id)
     assert summary.event_count == 3
-    assert summary.total_input_tokens == 500 + 300 + 200  # 1000
+    assert summary.total_input_tokens == 500 + 300 + 500  # 1300
     assert summary.total_output_tokens == 100 + 50 + 0  # 150
-    assert summary.total_cost_millicents == 80 + 44 + 1  # 125
+    assert summary.total_cost_millicents == 100 + 55 + 1  # 156
 
 
 @pytest.mark.asyncio
@@ -222,11 +223,11 @@ async def test_occurred_at_separate_from_recorded_at(ledger: UsageLedger):
         occurred_at=datetime(2026, 1, 15, 12, 0, 0, tzinfo=UTC),
         event_type=UsageEventType.LLM_EXTRACTION,
         provider="anthropic",
-        model_id="claude-3-7-sonnet",
+        model_id="claude-sonnet-5",
         input_tokens=2000,
         output_tokens=400,
-        price_version="2026-Q1",
-        cost_millicents=1200,
+        price_version="2026-Q3",
+        cost_millicents=800,
     )
 
     # Event occurred in Period 2
@@ -236,11 +237,11 @@ async def test_occurred_at_separate_from_recorded_at(ledger: UsageLedger):
         occurred_at=datetime(2026, 2, 10, 8, 30, 0, tzinfo=UTC),
         event_type=UsageEventType.LLM_EXTRACTION,
         provider="anthropic",
-        model_id="claude-3-7-sonnet",
+        model_id="claude-sonnet-5",
         input_tokens=1000,
         output_tokens=200,
-        price_version="2026-Q1",
-        cost_millicents=600,
+        price_version="2026-Q3",
+        cost_millicents=400,
     )
 
     await ledger.record_event(tenant_id, late_event)
@@ -252,7 +253,7 @@ async def test_occurred_at_separate_from_recorded_at(ledger: UsageLedger):
     )
     assert p1_summary.event_count == 1
     assert p1_summary.total_input_tokens == 2000
-    assert p1_summary.total_cost_millicents == 1200
+    assert p1_summary.total_cost_millicents == 800
 
     # Query Period 2: only period 2 event lands in Period 2
     p2_summary = await ledger.get_tenant_usage_summary(
@@ -260,7 +261,7 @@ async def test_occurred_at_separate_from_recorded_at(ledger: UsageLedger):
     )
     assert p2_summary.event_count == 1
     assert p2_summary.total_input_tokens == 1000
-    assert p2_summary.total_cost_millicents == 600
+    assert p2_summary.total_cost_millicents == 400
 
 
 @pytest.mark.asyncio
@@ -291,9 +292,9 @@ async def test_token_counts_read_from_provider_response_never_estimated(
         occurred_at=now,
         event_type=UsageEventType.LLM_EXTRACTION,
         provider="anthropic",
-        model_id="claude-3-7-sonnet",
+        model_id="claude-sonnet-5",
         provider_response=mock_provider_response,
-        price_version="2026-Q1",
+        price_version="2026-Q3",
         metadata={"document_id": str(uuid4()), "chunk_index": 2},
     )
 
@@ -327,54 +328,68 @@ async def test_price_version_stamped_reproduces_old_invoice_exactly(
     tokens_in = 1_000_000
     tokens_out = 100_000
 
-    # In 2026-Q1: sonnet is 0.3 millicents/input, 1.5 millicents/output
-    # Cost = 1,000,000 * 0.3 + 100,000 * 1.5 = 300,000 + 150,000 = 450,000 millicents ($4.50)
-    cost_q1 = calculate_cost_millicents("claude-3-7-sonnet", "2026-Q1", tokens_in, tokens_out)
-    assert cost_q1 == 450_000
+    PRICE_SCHEDULES["2026-Q3-revised"] = {
+        "claude-sonnet-5": {
+            "input_per_token_millicents": 0.15,
+            "output_per_token_millicents": 0.80,
+            "cache_read_per_token_millicents": 0.015,
+            "cache_write_per_token_millicents": 0.1875,
+        }
+    }
+    try:
+        # In 2026-Q3: sonnet 5 is 0.20 millicents/input, 1.00 millicents/output
+        # Cost = 1,000,000 * 0.20 + 100,000 * 1.00 = 200,000 + 100,000 = 300,000 millicents ($3.00)
+        cost_q3 = calculate_cost_millicents("claude-sonnet-5", "2026-Q3", tokens_in, tokens_out)
+        assert cost_q3 == 300_000
 
-    event_q1 = UsageEvent(
-        tenant_id=tenant_id,
-        event_id=uuid4(),
-        occurred_at=now,
-        event_type=UsageEventType.LLM_EXTRACTION,
-        provider="anthropic",
-        model_id="claude-3-7-sonnet",
-        input_tokens=tokens_in,
-        output_tokens=tokens_out,
-        price_version="2026-Q1",
-        cost_millicents=cost_q1,
-    )
-    await ledger.record_event(tenant_id, event_q1)
+        event_q3 = UsageEvent(
+            tenant_id=tenant_id,
+            event_id=uuid4(),
+            occurred_at=now,
+            event_type=UsageEventType.LLM_EXTRACTION,
+            provider="anthropic",
+            model_id="claude-sonnet-5",
+            input_tokens=tokens_in,
+            output_tokens=tokens_out,
+            price_version="2026-Q3",
+            cost_millicents=cost_q3,
+        )
+        await ledger.record_event(tenant_id, event_q3)
 
-    # In 2026-Q2: sonnet price was lowered to 0.25 input, 1.25 output
-    # Cost = 1,000,000 * 0.25 + 100,000 * 1.25 = 250,000 + 125,000 = 375,000 millicents ($3.75)
-    cost_q2 = calculate_cost_millicents("claude-3-7-sonnet", "2026-Q2", tokens_in, tokens_out)
-    assert cost_q2 == 375_000
+        # In 2026-Q3-revised: sonnet price was lowered to 0.15 input, 0.80 output
+        # Cost = 1,000,000 * 0.15 + 100,000 * 0.80 = 150,000 + 80,000 = 230,000 millicents ($2.30)
+        cost_revised = calculate_cost_millicents(
+            "claude-sonnet-5", "2026-Q3-revised", tokens_in, tokens_out
+        )
+        assert cost_revised == 230_000
 
-    event_q2 = UsageEvent(
-        tenant_id=tenant_id,
-        event_id=uuid4(),
-        occurred_at=now + timedelta(days=1),
-        event_type=UsageEventType.LLM_EXTRACTION,
-        provider="anthropic",
-        model_id="claude-3-7-sonnet",
-        input_tokens=tokens_in,
-        output_tokens=tokens_out,
-        price_version="2026-Q2",
-        cost_millicents=cost_q2,
-    )
-    await ledger.record_event(tenant_id, event_q2)
+        event_revised = UsageEvent(
+            tenant_id=tenant_id,
+            event_id=uuid4(),
+            occurred_at=now + timedelta(days=1),
+            event_type=UsageEventType.LLM_EXTRACTION,
+            provider="anthropic",
+            model_id="claude-sonnet-5",
+            input_tokens=tokens_in,
+            output_tokens=tokens_out,
+            price_version="2026-Q3-revised",
+            cost_millicents=cost_revised,
+        )
+        await ledger.record_event(tenant_id, event_revised)
 
-    # Retrieve events: Q1 event reproduces exact Q1 amount even in the presence of Q2 pricing
-    fetched_q1 = await ledger.get_event(tenant_id, event_q1.event_id)
-    assert fetched_q1 is not None
-    assert fetched_q1.price_version == "2026-Q1"
-    assert fetched_q1.cost_millicents == 450_000
+        # Retrieve events: Q3 event reproduces exact Q3 amount even
+        # in the presence of revised pricing
+        fetched_q3 = await ledger.get_event(tenant_id, event_q3.event_id)
+        assert fetched_q3 is not None
+        assert fetched_q3.price_version == "2026-Q3"
+        assert fetched_q3.cost_millicents == 300_000
 
-    fetched_q2 = await ledger.get_event(tenant_id, event_q2.event_id)
-    assert fetched_q2 is not None
-    assert fetched_q2.price_version == "2026-Q2"
-    assert fetched_q2.cost_millicents == 375_000
+        fetched_revised = await ledger.get_event(tenant_id, event_revised.event_id)
+        assert fetched_revised is not None
+        assert fetched_revised.price_version == "2026-Q3-revised"
+        assert fetched_revised.cost_millicents == 230_000
+    finally:
+        PRICE_SCHEDULES.pop("2026-Q3-revised", None)
 
 
 @pytest.mark.asyncio
@@ -392,11 +407,11 @@ async def test_rows_are_never_updated_or_deleted_corrections_are_offsetting_rows
         occurred_at=now,
         event_type=UsageEventType.LLM_EXTRACTION,
         provider="anthropic",
-        model_id="claude-3-7-sonnet",
+        model_id="claude-sonnet-5",
         input_tokens=10_000,
         output_tokens=2_000,
-        price_version="2026-Q1",
-        cost_millicents=6000,
+        price_version="2026-Q3",
+        cost_millicents=4000,
     )
     await ledger.record_event(tenant_id, original_event)
 
@@ -466,11 +481,11 @@ async def test_tenant_isolation_fails_closed_under_rls(ledger: UsageLedger):
         occurred_at=now,
         event_type=UsageEventType.LLM_EXTRACTION,
         provider="anthropic",
-        model_id="claude-3-7-sonnet",
+        model_id="claude-sonnet-5",
         input_tokens=5000,
         output_tokens=1000,
-        price_version="2026-Q1",
-        cost_millicents=3000,
+        price_version="2026-Q3",
+        cost_millicents=2000,
     )
     await ledger.record_event(tenant_a, event)
 

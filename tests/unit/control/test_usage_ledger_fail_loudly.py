@@ -66,9 +66,9 @@ def test_acceptance_1_and_2_real_anthropic_usage_with_none_cache_tokens():
             occurred_at=datetime.now(UTC),
             event_type=UsageEventType.LLM_EXTRACTION,
             provider="anthropic",
-            model_id="claude-3-7-sonnet",
+            model_id="claude-sonnet-5",
             provider_response=mock_response,
-            price_version="2026-Q1",
+            price_version="2026-Q3",
             document_id=doc_id,
         )
     )
@@ -80,10 +80,10 @@ def test_acceptance_1_and_2_real_anthropic_usage_with_none_cache_tokens():
     assert event.cache_write_input_tokens == 0
     assert event.document_id == doc_id
 
-    # 100k input @ $3.00/1M (0.30 mc) = 30,000 mc
-    # 20k output @ $15.00/1M (1.50 mc) = 30,000 mc
-    # Total = 60,000 mc
-    assert event.cost_millicents == 60_000
+    # 100k input @ $2.00/1M (0.20 mc) = 20,000 mc
+    # 20k output @ $10.00/1M (1.00 mc) = 20,000 mc
+    # Total = 40,000 mc
+    assert event.cost_millicents == 40_000
 
 
 def test_acceptance_2_dict_with_none_cache_fields_treated_as_zero():
@@ -115,16 +115,16 @@ def test_acceptance_2_dict_with_none_cache_fields_treated_as_zero():
             occurred_at=datetime.now(UTC),
             event_type=UsageEventType.LLM_ADJUDICATION,
             provider="anthropic",
-            model_id="claude-3-5-haiku",
+            model_id="claude-haiku-4-5-20251001",
             provider_response=dict_response,
-            price_version="2026-Q1",
+            price_version="2026-Q3",
         )
     )
 
     assert event.cache_read_input_tokens == 0
     assert event.cache_write_input_tokens == 0
-    # 10k * 0.08 mc = 800 mc; 5k * 0.40 mc = 2000 mc; total = 2800 mc
-    assert event.cost_millicents == 2_800
+    # 10k * 0.10 mc = 1,000 mc; 5k * 0.50 mc = 2,500 mc; total = 3,500 mc
+    assert event.cost_millicents == 3_500
 
 
 def test_acceptance_3_unknown_model_raises_unpriced_model_error():
@@ -132,7 +132,7 @@ def test_acceptance_3_unknown_model_raises_unpriced_model_error():
     with pytest.raises(UnpricedModelError, match="not priced"):
         calculate_cost_millicents(
             model_id="unknown-hallucinated-model",
-            price_version="2026-Q1",
+            price_version="2026-Q3",
             input_tokens=1000,
             output_tokens=1000,
         )
@@ -142,7 +142,7 @@ def test_acceptance_3_unknown_price_version_raises_unknown_price_version_error()
     """An unknown price version raises UnknownPriceVersionError."""
     with pytest.raises(UnknownPriceVersionError, match="not defined"):
         calculate_cost_millicents(
-            model_id="claude-3-7-sonnet",
+            model_id="claude-sonnet-5",
             price_version="1999-Q1",
             input_tokens=1000,
             output_tokens=1000,
@@ -151,7 +151,7 @@ def test_acceptance_3_unknown_price_version_raises_unknown_price_version_error()
 
 def test_acceptance_4_routable_models_are_all_priced():
     """Fails if any model routable by the gateway is unpriced in current schedule."""
-    price_version = "2026-Q1"
+    price_version = "2026-Q3"
     schedule = PRICE_SCHEDULES.get(price_version, {})
 
     for model in ROUTABLE_MODELS:
@@ -167,34 +167,34 @@ def test_acceptance_4_routable_models_are_all_priced():
 
 def test_acceptance_5_cache_tokens_priced_at_own_rates_without_double_billing():
     """Cache-read and write tokens are billed at their rates, not at full input rate."""
-    # Anthropic pricing for Sonnet:
-    # Full input: $3.00/1M = 0.30 mc/tok
-    # Cache write: $3.75/1M = 0.375 mc/tok
-    # Cache read: $0.30/1M = 0.03 mc/tok (10x discount!)
-    # Output: $15.00/1M = 1.50 mc/tok
+    # Anthropic pricing for Sonnet 5:
+    # Full input: $2.00/1M = 0.20 mc/tok
+    # Cache write: $2.50/1M = 0.250 mc/tok
+    # Cache read: $0.20/1M = 0.020 mc/tok (10x discount!)
+    # Output: $10.00/1M = 1.00 mc/tok
 
     # Case A: 10,000 non-cached input + 90,000 cached input (read)
     cost_cached = calculate_cost_millicents(
-        model_id="claude-3-7-sonnet",
-        price_version="2026-Q1",
+        model_id="claude-sonnet-5",
+        price_version="2026-Q3",
         input_tokens=10_000,
         output_tokens=1_000,
         cache_read_tokens=90_000,
         cache_write_tokens=0,
     )
-    # Expected: 10k * 0.30 + 1k * 1.50 + 90k * 0.03 = 3,000 + 1,500 + 2,700 = 7,200 mc
-    assert cost_cached == 7_200
+    # Expected: 10k * 0.20 + 1k * 1.00 + 90k * 0.020 = 2,000 + 1,000 + 1,800 = 4,800 mc
+    assert cost_cached == 4_800
 
     # Case B: If cached tokens were billed at full rate (double billing bug):
-    # (10k + 90k) * 0.30 + 1k * 1.50 = 30,000 + 1,500 = 31,500 mc
+    # (10k + 90k) * 0.20 + 1k * 1.00 = 20,000 + 1,000 = 21,000 mc
     cost_full_rate = calculate_cost_millicents(
-        model_id="claude-3-7-sonnet",
-        price_version="2026-Q1",
+        model_id="claude-sonnet-5",
+        price_version="2026-Q3",
         input_tokens=100_000,
         output_tokens=1_000,
     )
     assert cost_cached < cost_full_rate
-    assert cost_cached == 7_200
+    assert cost_cached == 4_800
 
 
 def test_acceptance_6_openai_shaped_response_avoids_double_counting():
@@ -228,9 +228,9 @@ def test_acceptance_6_openai_shaped_response_avoids_double_counting():
             occurred_at=datetime.now(UTC),
             event_type=UsageEventType.LLM_EXTRACTION,
             provider="openai",
-            model_id="claude-3-7-sonnet",
+            model_id="claude-sonnet-5",
             provider_response=openai_response,
-            price_version="2026-Q1",
+            price_version="2026-Q3",
         )
     )
 
@@ -240,8 +240,8 @@ def test_acceptance_6_openai_shaped_response_avoids_double_counting():
     assert event.cache_read_input_tokens == 80_000
     assert event.output_tokens == 10_000
 
-    # 20k * 0.30 + 10k * 1.50 + 80k * 0.03 = 6,000 + 15,000 + 2,400 = 23,400 mc
-    assert event.cost_millicents == 23_400
+    # 20k * 0.20 + 10k * 1.00 + 80k * 0.020 = 4,000 + 10,000 + 1,600 = 15,600 mc
+    assert event.cost_millicents == 15_600
 
 
 def test_acceptance_7_attribution_fields_in_models_and_sql_mapping():
@@ -258,10 +258,10 @@ def test_acceptance_7_attribution_fields_in_models_and_sql_mapping():
         occurred_at=datetime.now(UTC),
         event_type=UsageEventType.LLM_EXTRACTION,
         provider="anthropic",
-        model_id="claude-3-7-sonnet",
+        model_id="claude-sonnet-5",
         input_tokens=1000,
         output_tokens=500,
-        price_version="2026-Q1",
+        price_version="2026-Q3",
         document_id=doc_id,
         extraction_run_id=run_id,
         user_id=user_id,
