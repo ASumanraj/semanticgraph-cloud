@@ -55,9 +55,30 @@ customer one buys a *record* or a *filing built from one*.
 | **Amendment linking** | **Partly taken — drop it** | Ironclad documents a non-destructive rollup with revert. **[checked here]** Ironclad's own help pages confirm it, with limits: *properties roll up, not clauses*, and of the lifecycle fields only the expiration date. LinkSquares generates restated text; Icertis allows chains |
 | **Database-enforced isolation** | Cost of entry | Harvey publishes SOC 2 Type II, ISO 27001/27701/42001, named residency regions and contractual zero data retention. A questionnaire is answered by the certificate, not the DDL |
 
+**Docusign correction, added later the same day.** The vendor pass could not read Docusign's developer
+docs. A reviewer who could read them reports that the Agreement Manager API returns agreement
+identity (id, title, type, category, status), a summary and review status, parties, typed
+provisions (liability, renewal, termination, jurisdiction, dates), custom provisions and
+user-defined fields, and parent-agreement links with source ids and document links, and that its
+schema exposes **no per-field quote, page number, character span, confidence score or resolution
+decision object**. Docusign also lets a customer define custom extraction fields and test them
+against expected values, returning a per-field accuracy score. **[checked here, partly]** Web search
+confirms the endpoint, that it returns parties, provisions and related agreements, and the
+per-field accuracy testing via its CLI. **[not verified]** The absence of spans and confidence: the
+schema pages are client-rendered and my fetches returned only titles, so that negative rests on the
+reviewer's reading. Read the OpenAPI file before quoting it.
+
+What follows for the pitch. Do not claim Docusign lacks amendment or workflow support (its platform
+has clause history, bulk ingestion, webhooks, agents and MCP), and do not call it an extraction
+gap. The narrower claim: *Docusign extracts and manages agreement fields; we make each claim
+independently auditable, temporally queryable, reversibly resolvable and deletable by assertion
+provenance.* That is a difference in what is **recorded**, not in what is **extracted**, and a
+customer already on Docusign will ask why a field-level accuracy score is not enough. Check 3 below
+stays open until someone has the schema in hand.
+
 Two open risks the plan has not priced: **Docusign** has the best ingest position and an explicit
-strategy of being the substrate under Harvey, Legora and CoCounsel, and its developer docs could not
-be read by the research agent; and a **filterable table** (CoCounsel's tabular analysis) may already
+strategy of being the substrate under Harvey, Legora and CoCounsel, which the schema above now makes
+a serious structured-data competitor rather than a document store; and a **filterable table** (CoCounsel's tabular analysis) may already
 answer most real portfolio questions, which is the vector-RAG baseline problem in its contracts form.
 
 ---
@@ -103,7 +124,8 @@ identifiers, with the LEI mandatory** for financial entities.
    judgement; set it before looking.)* Half a day.
 2. **Read the 2026 ESAs feedback on register quality.** If aggregate pass rates have recovered above
    about 70%, the window has closed and no interview is needed to know it.
-3. **Read Docusign's developer documentation in a browser.** It is the most likely channel partner
+3. **Read Docusign's Agreement Manager OpenAPI schema in a browser** and confirm there is no span,
+   quote, page or confidence field (see the correction above). It is the most likely channel partner
    and the most likely to close the gap by default.
 4. **Look at CoCounsel's tabular analysis against a real portfolio question**, if a trial is
    obtainable, before a buyer does it for you.
