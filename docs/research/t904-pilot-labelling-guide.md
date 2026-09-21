@@ -64,10 +64,11 @@ overlap requirement.
 
 ## How the overlap works
 
-Everyone labels documents 1 to 3 (chosen in the selection report) without comparing. Only after all
+Everyone labels the three overlap documents (rows 10, 1 and 7 in `t904-pilot-document-selection.md`:
+Synacor/Embarq, Altiris/Dell, Cerus/Ash Stevens) without comparing. Only after all
 of them are finished do you compare: the reviewer scores agreement, counting an answer as matching
-when the **answer value is the same and the two quotes overlap in the same clause**. Documents 4 to
-10 are split between people. A label is agreed only when both agree, so agreement is reported as the
+when the **answer value is the same and the two quotes overlap in the same clause**. The other seven
+are split between people. A label is agreed only when both agree, so agreement is reported as the
 share of matching answers, and disagreements are listed rather than resolved.
 
 ## Files
@@ -75,7 +76,11 @@ share of matching answers, and disagreements are listed rather than resolved.
 - Answer sheet template: `evals/labelling/answer_sheet_template.csv`. One row per answer. Make a copy
   per person and per document, or import it into one Google Sheet with the columns unchanged.
 - Time log: `evals/labelling/time_log_template.csv`.
-- Documents: listed with direct links in `t904-pilot-document-selection.md`. Read them in the browser
+- Documents: listed with direct links, checksums and known redactions in `t904-pilot-document-selection.md`.
+  Start with row 9 (Escalade, about seven pages, no redaction) to warm up. Two of the documents (Cerus and
+  Synacor) have redacted numbers, so do not label a value that is masked with `[*]`; write `redacted`.
+  Rows 5 and 6 are short amendments: answer only from that document and write `not in this document`
+  for the rest, never from the original. Read them in the browser
   from the source, or download the exhibit text. Do not work from a summary.
 
 ## What happens next

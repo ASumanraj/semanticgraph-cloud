@@ -28,7 +28,7 @@ graph query. **The corpus should decide which clause types exist, not the other 
 |---|---|---|---|
 | A · CUAD | 510 EDGAR contracts, 41 clause categories, 13,000+ labels, CC BY 4.0 | clause-extraction recall; choosing the clause types | span exactness (labels are paragraph-level — verify), OCR |
 | B · ContractNLI | 607 NDAs, 17 fixed hypotheses, evidence as character-offset sentence / list-item spans, CC BY 4.0 | a smoke test for the verifier; checking span location on NDAs | anything beyond NDAs; task shape differs (whole-contract premise, fixed hypotheses) |
-| C · EDGAR | about ten companies' EX-10 exhibits, including amendments and restatements | pipeline realism, long documents, amendments, cross-document entity mentions | scans — official filings are HTML or ASCII, PDFs are unofficial copies |
+| C · EDGAR | about ten companies' EX-10 exhibits, including amendments and restatements | pipeline realism, long documents, amendments, cross-document entity mentions | scans — official filings are HTML or ASCII and PDFs are unofficial copies, with rare exceptions: NuScale's Doosan MSA (EX-10.26, 2024) is a set of page images with a hidden OCR layer, kept as a Track D real-scan specimen |
 | D · Scanned | the same documents rendered and degraded, plus about 20 real scanned contracts | OCR robustness | — |
 
 **Splits.** By company, contract family or period — never by random document. Track C is
