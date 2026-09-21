@@ -1,4 +1,4 @@
-"""Models for the Usage Event Ledger (T-207).
+"""Models for the Usage Event Ledger (T-207, T-212, T-214).
 
 One immutable row per cost-driving event.
 Usage you did not record is revenue you cannot bill, and there is no backfill.
@@ -6,6 +6,7 @@ Usage you did not record is revenue you cannot bill, and there is no backfill.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -16,7 +17,6 @@ from uuid import UUID, uuid4
 from sqlalchemy import BigInteger, Boolean, DateTime, Index, Integer, Text
 from sqlmodel import Field, SQLModel
 
-from semanticgraph.control.usage.routing import GatewayRoutingConfig
 from semanticgraph.domain.models.entities import TenantId
 
 
@@ -43,12 +43,14 @@ class UnknownPriceVersionError(UsagePricingError):
     """Raised when an unconfigured price version is requested."""
 
 
-DEFAULT_GATEWAY_ROUTING_CONFIG = GatewayRoutingConfig()
-ROUTABLE_MODELS: frozenset[str] = DEFAULT_GATEWAY_ROUTING_CONFIG.get_routable_models()
+class HistoricalPriceVersionError(UsagePricingError):
+    """Raised when attempting to stamp a new usage event with a historical price version."""
+
+
 CURRENT_PRICE_VERSION: str = "2026-Q3"
 
 # Explicit alias mapping to canonical model IDs.
-# Never a separate price entry in PRICE_SCHEDULES; aliases resolve to the exact canonical ID.
+# Never a separate price entry in active schedules; aliases resolve to the exact canonical ID.
 MODEL_ALIASES: dict[str, str] = {
     "claude-sonnet": "claude-sonnet-5",
     "claude-haiku": "claude-haiku-4-5-20251001",
@@ -57,58 +59,11 @@ MODEL_ALIASES: dict[str, str] = {
 
 # Standard pricing schedules in millicents (1 millicent = $0.00001 = 1/100,000 USD)
 # Stamped on the event so an old invoice reproduces exactly.
-# Each price copied from the vendor's pricing page with the URL and retrieval date.
+# Each active price copied from the vendor's pricing page with the URL and retrieval date.
 # Rates reflect Anthropic prompt caching 5-minute TTL (1-hour rate differs).
+# Historical versions are retained for historical row resolution and corrections.
 PRICE_SCHEDULES: dict[str, dict[str, dict[str, float]]] = {
-    "2026-Q3": {
-        # Anthropic Claude 4.5 Haiku (claude-haiku-4-5-20251001)
-        # Source: https://claude.com/pricing (retrieved 2026-09-21)
-        # Prompt caching TTL: 5-minute TTL
-        # Rates: $1.00 / 1M input, $5.00 / 1M output, $0.10 / 1M cache read, $1.25 / 1M cache write
-        "claude-haiku-4-5-20251001": {
-            "input_per_token_millicents": 0.10,
-            "output_per_token_millicents": 0.50,
-            "cache_read_per_token_millicents": 0.010,
-            "cache_write_per_token_millicents": 0.125,
-        },
-        # Anthropic Claude Sonnet 5 (claude-sonnet-5)
-        # Source: https://claude.com/pricing (retrieved 2026-09-21)
-        # Prompt caching TTL: 5-minute TTL
-        # Rates: $2.00 / 1M input, $10.00 / 1M output, $0.20 / 1M cache read, $2.50 / 1M cache write
-        "claude-sonnet-5": {
-            "input_per_token_millicents": 0.20,
-            "output_per_token_millicents": 1.00,
-            "cache_read_per_token_millicents": 0.020,
-            "cache_write_per_token_millicents": 0.250,
-        },
-        # Anthropic Claude Opus 5 (claude-opus-5)
-        # Source: https://claude.com/pricing (retrieved 2026-09-21)
-        # Prompt caching TTL: 5-minute TTL
-        # Rates: $5.00 / 1M input, $25.00 / 1M output, $0.50 / 1M cache read, $6.25 / 1M cache write
-        "claude-opus-5": {
-            "input_per_token_millicents": 0.50,
-            "output_per_token_millicents": 2.50,
-            "cache_read_per_token_millicents": 0.050,
-            "cache_write_per_token_millicents": 0.625,
-        },
-        # OpenAI text-embedding-3-small
-        # Source: https://openai.com/api/pricing (retrieved 2026-09-21)
-        # Rates: $0.02 / 1M input
-        "text-embedding-3-small": {
-            "input_per_token_millicents": 0.002,
-            "output_per_token_millicents": 0.0,
-            "cache_read_per_token_millicents": 0.0,
-            "cache_write_per_token_millicents": 0.0,
-        },
-    },
-}
-
-# Saved copy of historical/superseded Claude 3.x models, family aliases, and 2026-Q2 schedule
-# Retained beside active schedules for historical provenance audit per T-212 acceptance.
-SAVED_SUPERSEDED_PRICE_SCHEDULES: dict[str, dict[str, dict[str, float]]] = {
     "2026-Q1": {
-        # Anthropic Claude 3.5 Haiku
-        # Source: https://www.anthropic.com/pricing (retrieved 2026-03-01)
         "claude-3-5-haiku": {
             "input_per_token_millicents": 0.08,
             "output_per_token_millicents": 0.40,
@@ -208,10 +163,64 @@ SAVED_SUPERSEDED_PRICE_SCHEDULES: dict[str, dict[str, dict[str, float]]] = {
             "cache_write_per_token_millicents": 0.0,
         },
     },
+    "2026-Q3": {
+        # Anthropic Claude 4.5 Haiku (claude-haiku-4-5-20251001)
+        # Source: https://claude.com/pricing (retrieved 2026-09-21)
+        # Prompt caching TTL: 5-minute TTL
+        # Rates: $1.00 / 1M input, $5.00 / 1M output, $0.10 / 1M cache read, $1.25 / 1M cache write
+        "claude-haiku-4-5-20251001": {
+            "input_per_token_millicents": 0.10,
+            "output_per_token_millicents": 0.50,
+            "cache_read_per_token_millicents": 0.010,
+            "cache_write_per_token_millicents": 0.125,
+        },
+        # Anthropic Claude Sonnet 5 (claude-sonnet-5)
+        # Source: https://claude.com/pricing (retrieved 2026-09-21)
+        # Prompt caching TTL: 5-minute TTL
+        # Rates: $2.00 / 1M input, $10.00 / 1M output, $0.20 / 1M cache read, $2.50 / 1M cache write
+        "claude-sonnet-5": {
+            "input_per_token_millicents": 0.20,
+            "output_per_token_millicents": 1.00,
+            "cache_read_per_token_millicents": 0.020,
+            "cache_write_per_token_millicents": 0.250,
+        },
+        # Anthropic Claude Opus 5 (claude-opus-5)
+        # Source: https://claude.com/pricing (retrieved 2026-09-21)
+        # Prompt caching TTL: 5-minute TTL
+        # Rates: $5.00 / 1M input, $25.00 / 1M output, $0.50 / 1M cache read, $6.25 / 1M cache write
+        "claude-opus-5": {
+            "input_per_token_millicents": 0.50,
+            "output_per_token_millicents": 2.50,
+            "cache_read_per_token_millicents": 0.050,
+            "cache_write_per_token_millicents": 0.625,
+        },
+        # OpenAI text-embedding-3-small
+        # Source: https://openai.com/api/pricing (retrieved 2026-09-21)
+        # Rates: $0.02 / 1M input
+        "text-embedding-3-small": {
+            "input_per_token_millicents": 0.002,
+            "output_per_token_millicents": 0.0,
+            "cache_read_per_token_millicents": 0.0,
+            "cache_write_per_token_millicents": 0.0,
+        },
+    },
 }
 
 PRICE_SCHEDULE_METADATA: dict[str, dict[str, Any]] = {
+    "2026-Q1": {
+        "state": "historical",
+        "period_start": "2026-01-01",
+        "period_end": "2026-03-31",
+        "notes": "source not recovered",
+    },
+    "2026-Q2": {
+        "state": "historical",
+        "period_start": "2026-04-01",
+        "period_end": "2026-06-30",
+        "notes": "source not recovered",
+    },
     "2026-Q3": {
+        "state": "active",
         "period_start": "2026-07-01",
         "period_end": "2026-09-30",
         "retrieval_date": "2026-09-21",
@@ -222,29 +231,73 @@ PRICE_SCHEDULE_METADATA: dict[str, dict[str, Any]] = {
             "claude-opus-5": "https://claude.com/pricing",
             "text-embedding-3-small": "https://openai.com/api/pricing",
         },
-    }
+    },
+}
+
+ACTIVE_PRICE_VERSIONS: frozenset[str] = frozenset(
+    k for k, v in PRICE_SCHEDULE_METADATA.items() if v.get("state") == "active"
+)
+HISTORICAL_PRICE_VERSIONS: frozenset[str] = frozenset(
+    k for k, v in PRICE_SCHEDULE_METADATA.items() if v.get("state") == "historical"
+)
+
+
+def compute_schedule_checksum(version_or_schedule: str | dict[str, dict[str, float]]) -> str:
+    """Computes a canonical SHA-256 checksum of a price schedule's rates."""
+    if isinstance(version_or_schedule, str):
+        if version_or_schedule not in PRICE_SCHEDULES:
+            raise UnknownPriceVersionError(
+                f"Price version '{version_or_schedule}' is not defined in PRICE_SCHEDULES"
+            )
+        schedule = PRICE_SCHEDULES[version_or_schedule]
+    else:
+        schedule = version_or_schedule
+
+    canonical_json = json.dumps(schedule, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical_json.encode("utf-8")).hexdigest()
+
+
+# Committed canonical checksums for all published price versions (T-214 Acceptance 4).
+# A test fails if any published schedule's numbers are altered.
+PRICE_SCHEDULE_CHECKSUMS: dict[str, str] = {
+    "2026-Q1": "a1fd10fc2e97ac6a36d239c799d9aaa9038a5ae1402057ef1237c71229a3f178",
+    "2026-Q2": "747a57f0c2eb198dcf81f95def063f0a73386eb6efb982815ba517283e7d393b",
+    "2026-Q3": "421964c4a4b1d7f55da4d4e7aceff9f97b95ed0fa85f2d95829d886c1a76d7ad",
 }
 
 
 def verify_routable_models_priced(
-    config: GatewayRoutingConfig = DEFAULT_GATEWAY_ROUTING_CONFIG,
+    routing: Any,
     price_version: str = CURRENT_PRICE_VERSION,
 ) -> None:
-    """Verifies that every model derived from the gateway config is priced in the schedule.
+    """Verifies that every model derived from the routing configuration is priced in the schedule.
+
+    `routing` may be a ModelRouting instance (or any object implementing .get_routable_models()),
+    or an iterable of model IDs.
 
     Fails loudly with UnpricedModelError if any model is unpriced.
+    Fails loudly with UnknownPriceVersionError if price_version is not in PRICE_SCHEDULES.
     """
     if price_version not in PRICE_SCHEDULES:
         raise UnknownPriceVersionError(
             f"Price version '{price_version}' is not defined in PRICE_SCHEDULES"
         )
 
+    if hasattr(routing, "get_routable_models") and callable(routing.get_routable_models):
+        model_ids = routing.get_routable_models()
+    elif isinstance(routing, (set, frozenset, list, tuple)):
+        model_ids = routing
+    else:
+        raise TypeError(
+            f"Expected ModelRouting or iterable of model IDs, got {type(routing).__name__}"
+        )
+
     schedule = PRICE_SCHEDULES[price_version]
-    for model_id in sorted(config.get_routable_models()):
+    for model_id in sorted(model_ids):
         canonical_id = MODEL_ALIASES.get(model_id, model_id)
-        if canonical_id not in schedule:
+        if model_id not in schedule and canonical_id not in schedule:
             msg = (
-                f"Routable model '{model_id}' from gateway configuration "
+                f"Routable model '{model_id}' from routing configuration "
                 f"is not priced in schedule '{price_version}'"
             )
             raise UnpricedModelError(msg)
@@ -261,6 +314,7 @@ def calculate_cost_millicents(
     """Calculates cost in millicents using the exact stamped price version.
 
     Fails loudly with typed errors when model or price_version is not configured.
+    Resolves both active and historical price schedules.
     Treats None cache fields as 0.
     Exact model IDs as keys; aliases map explicitly to canonical IDs. No prefix matching.
     """
@@ -269,9 +323,14 @@ def calculate_cost_millicents(
             f"Price version '{price_version}' is not defined in PRICE_SCHEDULES"
         )
 
-    canonical_id = MODEL_ALIASES.get(model_id, model_id)
-    schedule = PRICE_SCHEDULES[price_version].get(canonical_id)
-    if not schedule:
+    schedule = PRICE_SCHEDULES[price_version]
+    if model_id in schedule:
+        model_rates = schedule[model_id]
+    else:
+        canonical_id = MODEL_ALIASES.get(model_id, model_id)
+        model_rates = schedule.get(canonical_id)
+
+    if not model_rates:
         raise UnpricedModelError(
             f"Model '{model_id}' is not priced under price version '{price_version}'"
         )
@@ -282,10 +341,10 @@ def calculate_cost_millicents(
     c_write = 0 if cache_write_tokens is None else cache_write_tokens
 
     cost = (
-        inp * schedule.get("input_per_token_millicents", 0.0)
-        + out * schedule.get("output_per_token_millicents", 0.0)
-        + c_read * schedule.get("cache_read_per_token_millicents", 0.0)
-        + c_write * schedule.get("cache_write_per_token_millicents", 0.0)
+        inp * model_rates.get("input_per_token_millicents", 0.0)
+        + out * model_rates.get("output_per_token_millicents", 0.0)
+        + c_read * model_rates.get("cache_read_per_token_millicents", 0.0)
+        + c_write * model_rates.get("cache_write_per_token_millicents", 0.0)
     )
     return int(round(cost))
 

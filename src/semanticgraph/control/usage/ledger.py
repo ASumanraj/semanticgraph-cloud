@@ -26,8 +26,12 @@ from sqlmodel import select
 
 from semanticgraph.control.usage.models import (
     CURRENT_PRICE_VERSION,
+    HISTORICAL_PRICE_VERSIONS,
+    PRICE_SCHEDULES,
+    HistoricalPriceVersionError,
     SQLUsageEvent,
     TenantUsageSummary,
+    UnknownPriceVersionError,
     UsageEvent,
     UsageEventType,
     calculate_cost_millicents,
@@ -69,6 +73,16 @@ class UsageLedger:
         If an event with the same (tenant_id, event_id) already exists, returns
         the existing event and is_duplicate=True. Retries count once.
         """
+        if event.price_version not in PRICE_SCHEDULES:
+            raise UnknownPriceVersionError(
+                f"Price version '{event.price_version}' is not defined in PRICE_SCHEDULES"
+            )
+        if not event.is_correction and event.price_version in HISTORICAL_PRICE_VERSIONS:
+            raise HistoricalPriceVersionError(
+                f"Cannot stamp new event with historical price version '{event.price_version}'. "
+                f"Historical versions are only resolvable for existing rows and corrections."
+            )
+
         async with self._tenant_session(tenant_id) as session:
             # 1. Check existing event by idempotency key
             existing = await session.execute(
@@ -143,6 +157,16 @@ class UsageLedger:
         Correctly prevents double-counting on OpenAI-shaped responses where prompt_tokens
         already includes cached tokens.
         """
+        if price_version not in PRICE_SCHEDULES:
+            raise UnknownPriceVersionError(
+                f"Price version '{price_version}' is not defined in PRICE_SCHEDULES"
+            )
+        if price_version in HISTORICAL_PRICE_VERSIONS:
+            raise HistoricalPriceVersionError(
+                f"Cannot stamp new event with historical price version '{price_version}'. "
+                f"Historical versions are only resolvable for existing rows and corrections."
+            )
+
         input_tokens = 0
         output_tokens = 0
         cache_read_tokens = 0

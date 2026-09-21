@@ -1,6 +1,6 @@
 # T-214 · One owner for model routing, and price versions that only append
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-214-model-routing-and-price-versions`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-214-model-routing-and-price-versions`
 
 **Scope**
 - `src/semanticgraph/composition/model_routing.py`
@@ -45,13 +45,13 @@ reason.) The same block still carries numbers whose source could not be recovere
 
 ## Acceptance
 
-- [ ] Model selection is defined once, in composition. `control/usage` has no default routing configuration and no model id outside the price schedules
-- [ ] `verify_routable_models_priced` takes a routing as an argument; a test supplies one with an unpriced model and fails. The check is a plain function that T-110 calls at startup; this ticket does not edit `composition/container.py`, which T-110 owns
-- [ ] Each price schedule carries an explicit state. A correction to a row stamped with a historical version prices correctly, and stamping a **new** event with a historical version raises a typed error
-- [ ] A checksum of each published version's numbers is committed, and a test fails if any of them changes — the mechanical form of "a referenced version is immutable"
-- [ ] The unsourced 2026-Q1 and 2026-Q2 numbers stay only as historical, labelled "source not recovered", with no retrieval date claimed for them
-- [ ] `ModelRouting` records, for every model, whether it is hosted and its local alternative. The default embedding model is a hosted OpenAI one: either name a local alternative, or record here why it is deferred and add it to the Stage 7 subprocessor checklist. Customer text must not reach a hosted model without that being visible in configuration
-- [ ] Full suite green and `ruff check .` clean
+- [x] Model selection is defined once, in composition. `control/usage` has no default routing configuration and no model id outside the price schedules
+- [x] `verify_routable_models_priced` takes a routing as an argument; a test supplies one with an unpriced model and fails. The check is a plain function that T-110 calls at startup; this ticket does not edit `composition/container.py`, which T-110 owns
+- [x] Each price schedule carries an explicit state. A correction to a row stamped with a historical version prices correctly, and stamping a **new** event with a historical version raises a typed error
+- [x] A checksum of each published version's numbers is committed, and a test fails if any of them changes — the mechanical form of "a referenced version is immutable"
+- [x] The unsourced 2026-Q1 and 2026-Q2 numbers stay only as historical, labelled "source not recovered", with no retrieval date claimed for them
+- [x] `ModelRouting` records, for every model, whether it is hosted and its local alternative. The default embedding model is a hosted OpenAI one: either name a local alternative, or record here why it is deferred and add it to the Stage 7 subprocessor checklist. Customer text must not reach a hosted model without that being visible in configuration
+- [x] Full suite green and `ruff check .` clean
 
 ## Notes
 
@@ -59,3 +59,8 @@ ADR-0005, rule 6: every model dependency needs a local or customer-hosted altern
 it can be required. T-110 depends on this because its container wiring consumes `ModelRouting`,
 and T-210 depends on it because a spend cap that reads a ledger whose old versions cannot be
 resolved will fail on the first correction.
+
+Hosted embedding model decision (Acceptance 6):
+The default embedding model `text-embedding-3-small` is hosted by OpenAI (`hosted=True`).
+Local alternative named: `BAAI/bge-small-en-v1.5` (or `nomic-ai/nomic-embed-text-v1.5`).
+OpenAI is recorded as a hosted model provider on the Stage 7 subprocessor checklist alongside Anthropic.

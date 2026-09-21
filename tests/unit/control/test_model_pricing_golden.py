@@ -1,45 +1,56 @@
-"""Golden tests for model pricing (T-212).
+"""Golden tests for model pricing (T-212, T-214).
 
 Verifies:
 - Acceptance 1: Price keys are exact model IDs as sent to the API.
   No prefix matching. Aliases map explicitly to one canonical ID, never a separate price.
-- Acceptance 2: Every price is read from vendor page (claude.com/pricing on 2026-09-21).
-  Rates reflect 5-minute cache TTL.
-- Acceptance 3: Claude 3.x models, family aliases, and 2026-Q2 deleted from active schedules;
-  saved copy of their source kept beside them for audit provenance.
-- Acceptance 4: Routable models are derived from GatewayRoutingConfig; adding unpriced model fails.
+- Acceptance 2: verify_routable_models_priced takes a routing as an argument; a test supplies
+  one with an unpriced model and fails. Plain function that T-110 calls at startup.
+- Acceptance 3: Each price schedule carries an explicit state (active vs historical).
+  A correction to a row stamped with a historical version prices correctly, and stamping
+  a new event with a historical version raises HistoricalPriceVersionError.
+- Acceptance 4: A checksum of each published version's numbers is committed, and a test
+  fails if any of them changes (referenced version is immutable).
 - Acceptance 5: Golden tests for Haiku 4.5, Sonnet 5, and Opus 5 against hand-worked numbers.
-- Acceptance 6: Retrieval dates are date read (2026-09-21) and never precede schedule period.
+- Acceptance 6: The unsourced 2026-Q1 and 2026-Q2 numbers stay only as historical, labelled
+  "source not recovered", with no retrieval date claimed for them.
 """
 
-from datetime import date
+from datetime import UTC, date, datetime
+from unittest.mock import AsyncMock, MagicMock
+from uuid import uuid4
 
 import pytest
 
+from semanticgraph.composition.model_routing import (
+    DEFAULT_MODEL_ROUTING,
+    ModelDependency,
+    ModelRouting,
+)
+from semanticgraph.control.usage.ledger import UsageLedger
 from semanticgraph.control.usage.models import (
+    ACTIVE_PRICE_VERSIONS,
     CURRENT_PRICE_VERSION,
-    DEFAULT_GATEWAY_ROUTING_CONFIG,
+    HISTORICAL_PRICE_VERSIONS,
     MODEL_ALIASES,
+    PRICE_SCHEDULE_CHECKSUMS,
     PRICE_SCHEDULE_METADATA,
     PRICE_SCHEDULES,
-    ROUTABLE_MODELS,
-    SAVED_SUPERSEDED_PRICE_SCHEDULES,
+    HistoricalPriceVersionError,
+    SQLUsageEvent,
     UnknownPriceVersionError,
     UnpricedModelError,
+    UsageEvent,
+    UsageEventType,
     calculate_cost_millicents,
+    compute_schedule_checksum,
     verify_routable_models_priced,
 )
-from semanticgraph.control.usage.routing import GatewayRoutingConfig
+from semanticgraph.domain.models.entities import TenantId
 
 
 class TestGoldenPricingCalculations:
     """Acceptance 5: Fixed token mix priced against figures from claude.com/pricing."""
 
-    # Fixed token mix across all three models:
-    # 50,000 non-cached input tokens
-    # 10,000 output tokens
-    # 40,000 cache-read input tokens
-    # 10,000 cache-write input tokens
     INPUT_TOKENS = 50_000
     OUTPUT_TOKENS = 10_000
     CACHE_READ_TOKENS = 40_000
@@ -148,7 +159,7 @@ class TestModelIdExactnessAndAliases:
             "text-embedding-3-small",
         }
         assert set(schedule.keys()) == expected_keys
-        # Verify no generic aliases are stored as separate keys in the schedule
+        # Verify no generic aliases are stored as separate keys in the active schedule
         for alias in ["claude-sonnet", "claude-haiku", "claude-opus"]:
             assert alias not in schedule
 
@@ -198,54 +209,243 @@ class TestModelIdExactnessAndAliases:
             assert cost_alias == cost_canonical
 
 
-class TestGatewayConfigurationDerivation:
-    """Acceptance 4: Routable models derived from gateway config; test with unpriced model fails."""
+class TestModelRoutingVerification:
+    """Acceptance 2: verify_routable_models_priced takes routing as argument and fails loudly."""
 
-    def test_routable_models_derived_from_gateway_config(self):
-        """ROUTABLE_MODELS is derived directly from GatewayRoutingConfig."""
-        assert DEFAULT_GATEWAY_ROUTING_CONFIG.get_routable_models() == ROUTABLE_MODELS
-        assert "claude-sonnet-5" in ROUTABLE_MODELS
-        assert "claude-opus-5" in ROUTABLE_MODELS
-        assert "claude-haiku-4-5-20251001" in ROUTABLE_MODELS
-        assert "text-embedding-3-small" in ROUTABLE_MODELS
+    def test_verify_routable_models_priced_accepts_model_routing_instance(self):
+        """Passing ModelRouting instance to verify_routable_models_priced succeeds."""
+        verify_routable_models_priced(DEFAULT_MODEL_ROUTING, CURRENT_PRICE_VERSION)
 
-    def test_all_default_gateway_models_are_priced(self):
-        """All models that default gateway config routes to are priced in the active schedule."""
-        verify_routable_models_priced(DEFAULT_GATEWAY_ROUTING_CONFIG, CURRENT_PRICE_VERSION)
+    def test_verify_routable_models_priced_accepts_iterable(self):
+        """Passing an iterable of valid model IDs succeeds."""
+        model_list = [
+            "claude-sonnet-5",
+            "claude-opus-5",
+            "claude-haiku-4-5-20251001",
+            "text-embedding-3-small",
+        ]
+        verify_routable_models_priced(model_list, CURRENT_PRICE_VERSION)
 
-    def test_adding_unpriced_model_to_gateway_config_fails_verification(self):
-        """A test adds an unpriced model to the gateway routing configuration and fails loudly."""
-        unpriced_config = GatewayRoutingConfig(fallback_models=("unpriced-experimental-model-v1",))
+    def test_adding_unpriced_fallback_model_fails_verification(self):
+        """Supplying routing with an unpriced model fails verification loudly."""
+        unpriced_routing = ModelRouting(
+            fallback_models=(
+                ModelDependency(
+                    model_id="unpriced-experimental-model-v1",
+                    hosted=True,
+                    local_alternative="local-mod",
+                ),
+            )
+        )
         with pytest.raises(UnpricedModelError, match="unpriced-experimental-model-v1"):
-            verify_routable_models_priced(unpriced_config, CURRENT_PRICE_VERSION)
+            verify_routable_models_priced(unpriced_routing, CURRENT_PRICE_VERSION)
 
     def test_adding_unpriced_extraction_model_fails_verification(self):
-        """Changing extraction_model to an unpriced model also fails verification."""
-        unpriced_config = GatewayRoutingConfig(extraction_model="claude-mythos-1")
+        """Supplying routing with unpriced extraction model also fails verification."""
+        unpriced_routing = ModelRouting(
+            extraction=ModelDependency(
+                model_id="claude-mythos-1",
+                hosted=True,
+                local_alternative="local-mod",
+            )
+        )
         with pytest.raises(UnpricedModelError, match="claude-mythos-1"):
-            verify_routable_models_priced(unpriced_config, CURRENT_PRICE_VERSION)
+            verify_routable_models_priced(unpriced_routing, CURRENT_PRICE_VERSION)
+
+    def test_verify_with_invalid_type_raises_type_error(self):
+        """Passing an unsupported object type raises TypeError."""
+        with pytest.raises(TypeError, match="Expected ModelRouting or iterable"):
+            verify_routable_models_priced(12345, CURRENT_PRICE_VERSION)
+
+
+class TestPriceScheduleStatesAndCorrections:
+    """Acceptance 3: Price schedule states (active vs historical) and corrections."""
+
+    def test_schedules_carry_explicit_state(self):
+        """Each schedule in metadata carries explicit state ('active' or 'historical')."""
+        assert PRICE_SCHEDULE_METADATA["2026-Q3"]["state"] == "active"
+        assert PRICE_SCHEDULE_METADATA["2026-Q2"]["state"] == "historical"
+        assert PRICE_SCHEDULE_METADATA["2026-Q1"]["state"] == "historical"
+
+        assert set(ACTIVE_PRICE_VERSIONS) == {"2026-Q3"}
+        assert set(HISTORICAL_PRICE_VERSIONS) == {"2026-Q1", "2026-Q2"}
+
+    def test_historical_price_versions_resolve_for_cost_calculation(self):
+        """Historical price versions calculate cost correctly for historical events."""
+        # 2026-Q1: claude-3-5-sonnet: input=0.30 mc/tok, output=1.50 mc/tok
+        cost_q1 = calculate_cost_millicents(
+            model_id="claude-3-5-sonnet",
+            price_version="2026-Q1",
+            input_tokens=10_000,
+            output_tokens=2_000,
+        )
+        # 10k * 0.30 + 2k * 1.50 = 3,000 + 3,000 = 6,000 mc
+        assert cost_q1 == 6_000
+
+        # 2026-Q2: claude-3-5-sonnet: input=0.25 mc/tok, output=1.25 mc/tok
+        cost_q2 = calculate_cost_millicents(
+            model_id="claude-3-5-sonnet",
+            price_version="2026-Q2",
+            input_tokens=10_000,
+            output_tokens=2_000,
+        )
+        # 10k * 0.25 + 2k * 1.25 = 2,500 + 2,500 = 5,000 mc
+        assert cost_q2 == 5_000
+
+    @pytest.mark.asyncio
+    async def test_stamping_new_event_with_historical_version_raises_typed_error(self):
+        """Stamping a NEW event with a historical price version raises typed error."""
+        mock_session = MagicMock()
+        mock_session.in_transaction.return_value = True
+        ledger = UsageLedger(session_factory=lambda: mock_session)
+
+        tenant_id = TenantId(uuid4())
+        new_event = UsageEvent(
+            tenant_id=tenant_id,
+            event_id=uuid4(),
+            occurred_at=datetime.now(UTC),
+            event_type=UsageEventType.LLM_EXTRACTION,
+            provider="anthropic",
+            model_id="claude-3-5-sonnet",
+            input_tokens=1000,
+            output_tokens=500,
+            price_version="2026-Q1",  # Historical!
+            is_correction=False,
+        )
+
+        with pytest.raises(HistoricalPriceVersionError, match="historical price version"):
+            await ledger.record_event(tenant_id, new_event)
+
+    @pytest.mark.asyncio
+    async def test_record_provider_usage_with_historical_version_raises_typed_error(self):
+        """Calling record_provider_usage with historical price version raises typed error."""
+        mock_session = MagicMock()
+        mock_session.in_transaction.return_value = True
+        ledger = UsageLedger(session_factory=lambda: mock_session)
+
+        tenant_id = TenantId(uuid4())
+        with pytest.raises(HistoricalPriceVersionError, match="historical price version"):
+            await ledger.record_provider_usage(
+                tenant_id=tenant_id,
+                event_id=uuid4(),
+                occurred_at=datetime.now(UTC),
+                event_type=UsageEventType.LLM_EXTRACTION,
+                provider="anthropic",
+                model_id="claude-3-5-sonnet",
+                provider_response={"usage": {"input_tokens": 100, "output_tokens": 100}},
+                price_version="2026-Q1",
+            )
+
+    @pytest.mark.asyncio
+    async def test_correction_to_historical_event_prices_correctly_and_succeeds(self):
+        """Acceptance 3: A correction to a row stamped with historical version prices correctly."""
+        tenant_id = TenantId(uuid4())
+        original_event_id = uuid4()
+        correction_event_id = uuid4()
+
+        # Original historical event recorded under 2026-Q1
+        original_sql = SQLUsageEvent(
+            id=uuid4(),
+            tenant_id=tenant_id.value,
+            event_id=original_event_id,
+            occurred_at=datetime(2026, 2, 1, 12, 0, tzinfo=UTC),
+            recorded_at=datetime(2026, 2, 1, 12, 0, tzinfo=UTC),
+            event_type="llm_extraction",
+            provider="anthropic",
+            model_id="claude-3-5-sonnet",
+            input_tokens=100_000,
+            output_tokens=20_000,
+            price_version="2026-Q1",
+            cost_millicents=60_000,
+            is_correction=False,
+        )
+
+        # Mock query return for get_event:
+        # first call returns original, second for record_event checks duplicate
+        first_query = MagicMock()
+        first_query.scalars.return_value.first.return_value = original_sql
+
+        second_query = MagicMock()
+        second_query.scalars.return_value.first.return_value = None
+
+        mock_session = MagicMock()
+        mock_session.in_transaction.return_value = True
+        mock_session.execute = AsyncMock(side_effect=[first_query, second_query])
+        mock_session.flush = AsyncMock()
+
+        ledger = UsageLedger(session_factory=lambda: mock_session)
+
+        # Record correction offsetting -50,000 input tokens and -10,000 output tokens
+        correction = await ledger.record_correction(
+            tenant_id=tenant_id,
+            original_event_id=original_event_id,
+            correction_event_id=correction_event_id,
+            input_tokens_offset=-50_000,
+            output_tokens_offset=-10_000,
+            reason="Billing adjustment for failed downstream stage",
+        )
+
+        assert correction.is_correction is True
+        assert correction.price_version == "2026-Q1"
+        assert correction.correction_for_event_id == original_event_id
+        # Under 2026-Q1:
+        # -50,000 input @ 0.30 mc = -15,000 mc
+        # -10,000 output @ 1.50 mc = -15,000 mc
+        # Total offset cost = -30,000 mc
+        assert correction.cost_millicents == -30_000
+
+
+class TestPriceScheduleChecksums:
+    """Acceptance 4: Mechanical immutability check for all published price versions."""
+
+    def test_committed_checksums_match_all_published_schedules(self):
+        """Every published schedule's checksum matches the committed checksum."""
+        assert set(PRICE_SCHEDULE_CHECKSUMS.keys()) == set(PRICE_SCHEDULES.keys())
+
+        for version, expected_checksum in PRICE_SCHEDULE_CHECKSUMS.items():
+            actual_checksum = compute_schedule_checksum(version)
+            assert actual_checksum == expected_checksum, (
+                f"Checksum mismatch for schedule version '{version}'. "
+                f"Published price schedules are immutable."
+            )
+
+    def test_checksum_fails_if_any_rate_is_altered(self):
+        """A test fails if any published schedule's numbers are tampered with."""
+        import copy
+
+        # Tamper with 2026-Q3
+        tampered_schedule = copy.deepcopy(PRICE_SCHEDULES["2026-Q3"])
+        tampered_schedule["claude-sonnet-5"]["input_per_token_millicents"] += 0.001
+
+        tampered_checksum = compute_schedule_checksum(tampered_schedule)
+        assert tampered_checksum != PRICE_SCHEDULE_CHECKSUMS["2026-Q3"]
+
+        # Tamper with historical 2026-Q1
+        tampered_q1 = copy.deepcopy(PRICE_SCHEDULES["2026-Q1"])
+        tampered_q1["claude-3-5-haiku"]["output_per_token_millicents"] += 0.05
+        assert compute_schedule_checksum(tampered_q1) != PRICE_SCHEDULE_CHECKSUMS["2026-Q1"]
 
 
 class TestScheduleCleanlinessAndDates:
-    """Acceptances 3 & 6: Claude 3.x and 2026-Q2 deleted from active schedule; dates valid."""
+    """Acceptance 6: Cleanliness, metadata, and dates for active and historical versions."""
 
-    def test_2026_q2_and_claude_3_deleted_from_active_schedules(self):
-        """Active schedules do not contain 2026-Q2 or Claude 3.x models."""
-        assert "2026-Q2" not in PRICE_SCHEDULES
-        assert "claude-3-7-sonnet" not in PRICE_SCHEDULES[CURRENT_PRICE_VERSION]
-        assert "claude-3-5-haiku" not in PRICE_SCHEDULES[CURRENT_PRICE_VERSION]
-        assert "claude-3-opus" not in PRICE_SCHEDULES[CURRENT_PRICE_VERSION]
+    def test_unsourced_numbers_are_labelled_source_not_recovered_with_no_retrieval_date(self):
+        """Acceptance 6: 2026-Q1 and 2026-Q2 labelled 'source not recovered', no retrieval date."""
+        for version in ["2026-Q1", "2026-Q2"]:
+            meta = PRICE_SCHEDULE_METADATA[version]
+            assert meta["state"] == "historical"
+            assert meta.get("notes") == "source not recovered"
+            assert "retrieval_date" not in meta, (
+                f"Historical version '{version}' must not claim a retrieval date"
+            )
 
-        # Audit provenance copy is preserved beside them
-        assert "2026-Q1" in SAVED_SUPERSEDED_PRICE_SCHEDULES
-        assert "2026-Q2" in SAVED_SUPERSEDED_PRICE_SCHEDULES
-
-    def test_retrieval_dates_and_periods(self):
-        """Retrieval date is when price was read (2026-09-21) and never precedes period start."""
+    def test_active_schedule_retrieval_dates_and_periods(self):
+        """Active schedule retrieval date is when price was read and never precedes period start."""
         meta = PRICE_SCHEDULE_METADATA[CURRENT_PRICE_VERSION]
         retrieval_date = date.fromisoformat(meta["retrieval_date"])
         period_start = date.fromisoformat(meta["period_start"])
 
+        assert meta["state"] == "active"
         assert meta["retrieval_date"] == "2026-09-21"
         assert retrieval_date >= period_start, "Retrieval date must not precede period start"
         assert meta["prompt_caching_ttl"] == "5-minute"

@@ -17,10 +17,10 @@ from uuid import uuid4
 import pytest
 from anthropic.types import Usage
 
+from semanticgraph.composition.model_routing import DEFAULT_MODEL_ROUTING
 from semanticgraph.control.usage.ledger import UsageLedger
 from semanticgraph.control.usage.models import (
     PRICE_SCHEDULES,
-    ROUTABLE_MODELS,
     SQLUsageEvent,
     UnknownPriceVersionError,
     UnpricedModelError,
@@ -154,7 +154,7 @@ def test_acceptance_4_routable_models_are_all_priced():
     price_version = "2026-Q3"
     schedule = PRICE_SCHEDULES.get(price_version, {})
 
-    for model in ROUTABLE_MODELS:
+    for model in DEFAULT_MODEL_ROUTING.get_routable_models():
         assert model in schedule, (
             f"Routable model '{model}' is missing from {price_version} schedule"
         )
