@@ -1,7 +1,7 @@
 """
 Celery Tasks for Document Ingestion & Chunking.
 
-Inbound worker adapter: maps Celery task parameters to ProcessDocumentUseCase.
+Inbound worker adapter: maps Celery task parameters to IngestDocumentUseCase.
 Runs async use case cleanly via asyncio.
 """
 

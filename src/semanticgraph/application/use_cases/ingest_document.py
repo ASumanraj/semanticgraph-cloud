@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from semanticgraph.application.ports.outbound.document_repository import DocumentRepositoryPort
+from semanticgraph.application.ports.outbound.entity_store import EntityStore
 from semanticgraph.application.ports.outbound.graph_repository import GraphRepositoryPort
 from semanticgraph.application.ports.outbound.llm_gateway import LLMGatewayPort
 from semanticgraph.application.ports.outbound.task_publisher import TaskPublisherPort
@@ -51,12 +52,17 @@ class IngestDocumentUseCase:
 
     def __init__(
         self,
-        graph_repo: GraphRepositoryPort,
-        llm_gateway: LLMGatewayPort,
-        task_publisher: TaskPublisherPort,
+        graph_repo: EntityStore | GraphRepositoryPort | None = None,
+        llm_gateway: LLMGatewayPort | None = None,
+        task_publisher: TaskPublisherPort | None = None,
         document_repo: DocumentRepositoryPort | None = None,
+        entity_store: EntityStore | None = None,
     ) -> None:
-        self._graph_repo = graph_repo
+        store = entity_store or graph_repo
+        if store is None:
+            raise ValueError("Must provide either entity_store or graph_repo")
+        self._entity_store = store
+        self._graph_repo = store
         self._llm_gateway = llm_gateway
         self._task_publisher = task_publisher
         self._document_repo = document_repo

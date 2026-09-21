@@ -1,6 +1,6 @@
 # T-106 · Split GraphRepositoryPort into seams that mean something
 
-**Stage** 1 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-106-narrow-the-graph-seams`
+**Stage** 1 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-106-narrow-the-graph-seams`
 
 **Scope**
 - `src/semanticgraph/application/ports/outbound/**`
@@ -41,14 +41,14 @@ SubgraphReader          retrieval
 
 ## Acceptance
 
-- [ ] `merge_into_golden_record` is gone; merging is recorded as a decision
-- [ ] Golden Records are materialized from active decisions, never written directly
-- [ ] Each new port hides more than it exposes — the deletion test applies: removing it should make complexity reappear across callers
-- [ ] The in-memory adapters satisfy the new ports and stay the same implementation the unit tests use
-- [ ] `process_document.py`, its unit test `test_process_document.py`, and the stale `ProcessDocumentUseCase` docstring in `adapters/inbound/workers/tasks/ingestion_tasks.py` are deleted. The live path is already single — the API and the worker both run `IngestDocumentUseCase` — so this removes dead code, not a second pipeline
-- [ ] The new ports are what the Stage 2 Postgres repositories (`provenance`, `resolution`, `temporal`, `ontology`, `deletion`) actually implement, so T-110 can wire them into the container. Today they implement no port at all
-- [ ] Architecture-fitness tests still pass
-- [ ] Full suite green, `ruff check .` clean
+- [x] `merge_into_golden_record` is gone; merging is recorded as a decision
+- [x] Golden Records are materialized from active decisions, never written directly
+- [x] Each new port hides more than it exposes — the deletion test applies: removing it should make complexity reappear across callers
+- [x] The in-memory adapters satisfy the new ports and stay the same implementation the unit tests use
+- [x] `process_document.py`, its unit test `test_process_document.py`, and the stale `ProcessDocumentUseCase` docstring in `adapters/inbound/workers/tasks/ingestion_tasks.py` are deleted. The live path is already single — the API and the worker both run `IngestDocumentUseCase` — so this removes dead code, not a second pipeline
+- [x] The new ports are what the Stage 2 Postgres repositories (`provenance`, `resolution`, `temporal`, `ontology`, `deletion`) actually implement, so T-110 can wire them into the container. Today they implement no port at all
+- [x] Architecture-fitness tests still pass
+- [x] Full suite green, `ruff check .` clean
 
 ## Notes
 

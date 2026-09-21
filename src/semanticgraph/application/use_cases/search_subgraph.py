@@ -16,21 +16,32 @@ from __future__ import annotations
 from typing import Any
 
 from semanticgraph.application.ports.outbound.graph_repository import GraphRepositoryPort
+from semanticgraph.application.ports.outbound.subgraph_reader import SubgraphReader
 
 
-def run_leiden_community_detection(graph_repo: GraphRepositoryPort) -> Any:
+def run_leiden_community_detection(graph_repo: SubgraphReader | GraphRepositoryPort) -> Any:
     """Global search: detect communities, then summarize the relevant ones lazily."""
 
 
-def run_semantic_pagerank(graph_repo: GraphRepositoryPort, entry_nodes: list, query: str) -> Any:
+def run_semantic_pagerank(
+    graph_repo: SubgraphReader | GraphRepositoryPort, entry_nodes: list, query: str
+) -> Any:
     """Local search: personalized PageRank outward from the seed entities."""
 
 
 class SearchEngine:
     """Deep module: one entry point per retrieval mode, everything else hidden."""
 
-    def __init__(self, graph_repo: GraphRepositoryPort) -> None:
-        self.graph_repo = graph_repo
+    def __init__(
+        self,
+        graph_repo: SubgraphReader | GraphRepositoryPort | None = None,
+        subgraph_reader: SubgraphReader | None = None,
+    ) -> None:
+        reader = subgraph_reader or graph_repo
+        if reader is None:
+            raise ValueError("Must provide either subgraph_reader or graph_repo")
+        self.graph_repo = reader
+        self.subgraph_reader = reader
 
     def global_search(self, query: str) -> Any:
         return run_leiden_community_detection(self.graph_repo)
