@@ -99,6 +99,9 @@ class UsageLedger:
                 cost_millicents=event.cost_millicents,
                 is_correction=event.is_correction,
                 correction_for_event_id=event.correction_for_event_id,
+                document_id=event.document_id,
+                extraction_run_id=event.extraction_run_id,
+                user_id=event.user_id,
                 metadata_json=meta_json,
             )
             try:
@@ -127,11 +130,17 @@ class UsageLedger:
         model_id: str,
         provider_response: Any,
         price_version: str,
+        document_id: UUID | None = None,
+        extraction_run_id: UUID | None = None,
+        user_id: UUID | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> tuple[UsageEvent, bool]:
         """Emits usage server-side at the cost site with actual tokens read from provider response.
 
         Zero estimation: Token counts are read directly from the provider response.
+        Treats None cache fields as 0 (for SDK Usage responses where caching is unused).
+        Correctly prevents double-counting on OpenAI-shaped responses where prompt_tokens
+        already includes cached tokens.
         """
         input_tokens = 0
         output_tokens = 0
@@ -141,23 +150,37 @@ class UsageLedger:
         # Read directly from provider response object or dict
         if isinstance(provider_response, dict):
             usage = provider_response.get("usage", provider_response)
-            input_tokens = int(usage.get("input_tokens", usage.get("prompt_tokens", 0)))
-            output_tokens = int(usage.get("output_tokens", usage.get("completion_tokens", 0)))
-            cache_read_tokens = int(
-                usage.get(
-                    "cache_read_input_tokens",
-                    usage.get("prompt_tokens_details", {}).get("cached_tokens", 0)
-                    if isinstance(usage.get("prompt_tokens_details"), dict)
-                    else 0,
-                )
-            )
-            cache_write_tokens = int(usage.get("cache_creation_input_tokens", 0))
+            if "prompt_tokens" in usage and "input_tokens" not in usage:
+                # OpenAI-shaped response:
+                # Per OpenAI documentation, prompt_tokens includes cached_tokens.
+                # To prevent double-counting, non-cached input tokens is:
+                # prompt_tokens - cached_tokens.
+                details = usage.get("prompt_tokens_details")
+                cached = int(details.get("cached_tokens", 0) if isinstance(details, dict) else 0)
+                raw_prompt = int(usage.get("prompt_tokens") or 0)
+                input_tokens = max(0, raw_prompt - cached)
+                output_tokens = int(usage.get("completion_tokens") or 0)
+                cache_read_tokens = cached
+                cache_write_tokens = 0
+            else:
+                # Anthropic-shaped or standard dict: input_tokens excludes cached tokens
+                input_tokens = int(usage.get("input_tokens") or 0)
+                output_tokens = int(usage.get("output_tokens") or 0)
+                cache_read_tokens = int(usage.get("cache_read_input_tokens") or 0)
+                cache_write_tokens = int(usage.get("cache_creation_input_tokens") or 0)
         elif hasattr(provider_response, "usage") and provider_response.usage:
             u = provider_response.usage
-            input_tokens = getattr(u, "input_tokens", getattr(u, "prompt_tokens", 0))
-            output_tokens = getattr(u, "output_tokens", getattr(u, "completion_tokens", 0))
-            cache_read_tokens = getattr(u, "cache_read_input_tokens", 0)
-            cache_write_tokens = getattr(u, "cache_creation_input_tokens", 0)
+            # Real Anthropic SDK usage object:
+            # When prompt caching is unused, cache_read_input_tokens and cache_creation_input_tokens
+            # are None. Convert any None values to 0 to prevent TypeError during cost calculation.
+            input_tokens = int(
+                getattr(u, "input_tokens", None) or getattr(u, "prompt_tokens", None) or 0
+            )
+            output_tokens = int(
+                getattr(u, "output_tokens", None) or getattr(u, "completion_tokens", None) or 0
+            )
+            cache_read_tokens = int(getattr(u, "cache_read_input_tokens", None) or 0)
+            cache_write_tokens = int(getattr(u, "cache_creation_input_tokens", None) or 0)
 
         cost = calculate_cost_millicents(
             model_id=model_id,
@@ -181,6 +204,9 @@ class UsageLedger:
             cache_write_input_tokens=cache_write_tokens,
             price_version=price_version,
             cost_millicents=cost,
+            document_id=document_id,
+            extraction_run_id=extraction_run_id,
+            user_id=user_id,
             metadata=metadata or {},
         )
         return await self.record_event(tenant_id, event)
@@ -194,6 +220,9 @@ class UsageLedger:
         output_tokens_offset: int,
         reason: str,
         occurred_at: datetime | None = None,
+        document_id: UUID | None = None,
+        extraction_run_id: UUID | None = None,
+        user_id: UUID | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> UsageEvent:
         """Records an offsetting row for correction. Rows are NEVER updated or deleted.
@@ -231,6 +260,9 @@ class UsageLedger:
             cost_millicents=cost_offset,
             is_correction=True,
             correction_for_event_id=original_event_id,
+            document_id=document_id or orig.document_id,
+            extraction_run_id=extraction_run_id or orig.extraction_run_id,
+            user_id=user_id or orig.user_id,
             metadata=meta,
         )
 
@@ -253,6 +285,7 @@ class UsageLedger:
         tenant_id: TenantId,
         start_time: datetime | None = None,
         end_time: datetime | None = None,
+        document_id: UUID | None = None,
     ) -> list[UsageEvent]:
         """Lists usage events for a tenant within an occurred_at interval."""
         async with self._tenant_session(tenant_id) as session:
@@ -261,11 +294,48 @@ class UsageLedger:
                 stmt = stmt.where(SQLUsageEvent.occurred_at >= start_time)
             if end_time:
                 stmt = stmt.where(SQLUsageEvent.occurred_at < end_time)
+            if document_id:
+                stmt = stmt.where(SQLUsageEvent.document_id == document_id)
 
             stmt = stmt.order_by(SQLUsageEvent.occurred_at.asc())
             result = await session.execute(stmt)
             rows = result.scalars().all()
             return [r.to_domain() for r in rows]
+
+    async def get_document_usage_summary(
+        self,
+        tenant_id: TenantId,
+        document_id: UUID,
+    ) -> TenantUsageSummary:
+        """Aggregates usage and billing metrics attributed to a specific document."""
+        async with self._tenant_session(tenant_id) as session:
+            stmt = select(
+                func.count(SQLUsageEvent.id).label("cnt"),
+                func.coalesce(func.sum(SQLUsageEvent.input_tokens), 0).label("input_tokens"),
+                func.coalesce(func.sum(SQLUsageEvent.output_tokens), 0).label("output_tokens"),
+                func.coalesce(func.sum(SQLUsageEvent.cache_read_input_tokens), 0).label(
+                    "cache_read"
+                ),
+                func.coalesce(func.sum(SQLUsageEvent.cache_write_input_tokens), 0).label(
+                    "cache_write"
+                ),
+                func.coalesce(func.sum(SQLUsageEvent.cost_millicents), 0).label("cost_millicents"),
+            ).where(
+                SQLUsageEvent.tenant_id == tenant_id.value,
+                SQLUsageEvent.document_id == document_id,
+            )
+            result = await session.execute(stmt)
+            row = result.one()
+
+            return TenantUsageSummary(
+                tenant_id=tenant_id,
+                event_count=int(row.cnt),
+                total_input_tokens=int(row.input_tokens),
+                total_output_tokens=int(row.output_tokens),
+                total_cache_read_tokens=int(row.cache_read),
+                total_cache_write_tokens=int(row.cache_write),
+                total_cost_millicents=int(row.cost_millicents),
+            )
 
     async def get_tenant_usage_summary(
         self,

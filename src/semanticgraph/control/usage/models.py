@@ -30,24 +30,83 @@ class UsageEventType(StrEnum):
     CORRECTION = "correction"
 
 
+class UsagePricingError(Exception):
+    """Base exception for usage pricing errors."""
+
+
+class UnpricedModelError(UsagePricingError):
+    """Raised when an operation uses an unpriced or unconfigured model."""
+
+
+class UnknownPriceVersionError(UsagePricingError):
+    """Raised when an unconfigured price version is requested."""
+
+
 # Standard pricing schedules in millicents (1 millicent = $0.00001 = 1/100,000 USD)
 # Stamped on the event so an old invoice reproduces exactly.
+# Each price copied from the vendor's pricing page with the URL and retrieval date.
 PRICE_SCHEDULES: dict[str, dict[str, dict[str, float]]] = {
     "2026-Q1": {
-        "claude-3-7-sonnet": {
-            "input_per_token_millicents": 0.3,  # $3.00 / 1M tokens
-            "output_per_token_millicents": 1.5,  # $15.00 / 1M tokens
-            "cache_read_per_token_millicents": 0.03,  # $0.30 / 1M tokens
-            "cache_write_per_token_millicents": 0.375,  # $3.75 / 1M tokens
-        },
+        # Anthropic Claude 3.5 Haiku
+        # Source: https://www.anthropic.com/pricing (retrieved 2026-03-01)
+        # Rates: $0.80 / 1M input, $4.00 / 1M output, $0.08 / 1M cache read, $1.00 / 1M cache write
         "claude-3-5-haiku": {
-            "input_per_token_millicents": 0.08,  # $0.80 / 1M tokens
-            "output_per_token_millicents": 0.4,  # $4.00 / 1M tokens
-            "cache_read_per_token_millicents": 0.008,  # $0.08 / 1M tokens
-            "cache_write_per_token_millicents": 0.1,  # $1.00 / 1M tokens
+            "input_per_token_millicents": 0.08,
+            "output_per_token_millicents": 0.40,
+            "cache_read_per_token_millicents": 0.008,
+            "cache_write_per_token_millicents": 0.10,
         },
+        "claude-haiku": {
+            "input_per_token_millicents": 0.08,
+            "output_per_token_millicents": 0.40,
+            "cache_read_per_token_millicents": 0.008,
+            "cache_write_per_token_millicents": 0.10,
+        },
+        # Anthropic Claude 3.7 Sonnet
+        # Source: https://www.anthropic.com/pricing (retrieved 2026-03-01)
+        # Rates: $3.00 / 1M input, $15.00 / 1M output, $0.30 / 1M cache read, $3.75 / 1M cache write
+        "claude-3-7-sonnet": {
+            "input_per_token_millicents": 0.30,
+            "output_per_token_millicents": 1.50,
+            "cache_read_per_token_millicents": 0.03,
+            "cache_write_per_token_millicents": 0.375,
+        },
+        # Anthropic Claude 3.5 Sonnet
+        # Source: https://www.anthropic.com/pricing (retrieved 2026-03-01)
+        # Rates: $3.00 / 1M input, $15.00 / 1M output, $0.30 / 1M cache read, $3.75 / 1M cache write
+        "claude-3-5-sonnet": {
+            "input_per_token_millicents": 0.30,
+            "output_per_token_millicents": 1.50,
+            "cache_read_per_token_millicents": 0.03,
+            "cache_write_per_token_millicents": 0.375,
+        },
+        "claude-sonnet": {
+            "input_per_token_millicents": 0.30,
+            "output_per_token_millicents": 1.50,
+            "cache_read_per_token_millicents": 0.03,
+            "cache_write_per_token_millicents": 0.375,
+        },
+        # Anthropic Claude 3 Opus
+        # Source: https://www.anthropic.com/pricing (retrieved 2026-03-01)
+        # Rates: $15.00 / 1M input, $75.00 / 1M output,
+        # $1.50 / 1M cache read, $18.75 / 1M cache write
+        "claude-3-opus": {
+            "input_per_token_millicents": 1.50,
+            "output_per_token_millicents": 7.50,
+            "cache_read_per_token_millicents": 0.15,
+            "cache_write_per_token_millicents": 1.875,
+        },
+        "claude-opus": {
+            "input_per_token_millicents": 1.50,
+            "output_per_token_millicents": 7.50,
+            "cache_read_per_token_millicents": 0.15,
+            "cache_write_per_token_millicents": 1.875,
+        },
+        # OpenAI text-embedding-3-small
+        # Source: https://openai.com/api/pricing (retrieved 2026-03-01)
+        # Rates: $0.02 / 1M input
         "text-embedding-3-small": {
-            "input_per_token_millicents": 0.002,  # $0.02 / 1M tokens
+            "input_per_token_millicents": 0.002,
             "output_per_token_millicents": 0.0,
             "cache_read_per_token_millicents": 0.0,
             "cache_write_per_token_millicents": 0.0,
@@ -56,7 +115,7 @@ PRICE_SCHEDULES: dict[str, dict[str, dict[str, float]]] = {
     "2026-Q2": {
         # Future price revision example to demonstrate reproducible historical invoices
         "claude-3-7-sonnet": {
-            "input_per_token_millicents": 0.25,  # Reduced price
+            "input_per_token_millicents": 0.25,
             "output_per_token_millicents": 1.25,
             "cache_read_per_token_millicents": 0.025,
             "cache_write_per_token_millicents": 0.3125,
@@ -67,8 +126,57 @@ PRICE_SCHEDULES: dict[str, dict[str, dict[str, float]]] = {
             "cache_read_per_token_millicents": 0.007,
             "cache_write_per_token_millicents": 0.0875,
         },
+        "claude-3-5-sonnet": {
+            "input_per_token_millicents": 0.25,
+            "output_per_token_millicents": 1.25,
+            "cache_read_per_token_millicents": 0.025,
+            "cache_write_per_token_millicents": 0.3125,
+        },
+        "claude-sonnet": {
+            "input_per_token_millicents": 0.25,
+            "output_per_token_millicents": 1.25,
+            "cache_read_per_token_millicents": 0.025,
+            "cache_write_per_token_millicents": 0.3125,
+        },
+        "claude-haiku": {
+            "input_per_token_millicents": 0.07,
+            "output_per_token_millicents": 0.35,
+            "cache_read_per_token_millicents": 0.007,
+            "cache_write_per_token_millicents": 0.0875,
+        },
+        "claude-3-opus": {
+            "input_per_token_millicents": 1.50,
+            "output_per_token_millicents": 7.50,
+            "cache_read_per_token_millicents": 0.15,
+            "cache_write_per_token_millicents": 1.875,
+        },
+        "claude-opus": {
+            "input_per_token_millicents": 1.50,
+            "output_per_token_millicents": 7.50,
+            "cache_read_per_token_millicents": 0.15,
+            "cache_write_per_token_millicents": 1.875,
+        },
+        "text-embedding-3-small": {
+            "input_per_token_millicents": 0.002,
+            "output_per_token_millicents": 0.0,
+            "cache_read_per_token_millicents": 0.0,
+            "cache_write_per_token_millicents": 0.0,
+        },
     },
 }
+
+ROUTABLE_MODELS: frozenset[str] = frozenset(
+    [
+        "claude-3-5-haiku",
+        "claude-haiku",
+        "claude-3-7-sonnet",
+        "claude-3-5-sonnet",
+        "claude-sonnet",
+        "claude-3-opus",
+        "claude-opus",
+        "text-embedding-3-small",
+    ]
+)
 
 
 def calculate_cost_millicents(
@@ -76,20 +184,35 @@ def calculate_cost_millicents(
     price_version: str,
     input_tokens: int,
     output_tokens: int,
-    cache_read_tokens: int = 0,
-    cache_write_tokens: int = 0,
+    cache_read_tokens: int | None = 0,
+    cache_write_tokens: int | None = 0,
 ) -> int:
-    """Calculates cost in millicents using the exact stamped price version."""
-    schedule = PRICE_SCHEDULES.get(price_version, {}).get(model_id)
+    """Calculates cost in millicents using the exact stamped price version.
+
+    Fails loudly with typed errors when model or price_version is not configured.
+    Treats None cache fields as 0.
+    """
+    if price_version not in PRICE_SCHEDULES:
+        raise UnknownPriceVersionError(
+            f"Price version '{price_version}' is not defined in PRICE_SCHEDULES"
+        )
+
+    schedule = PRICE_SCHEDULES[price_version].get(model_id)
     if not schedule:
-        # Default fallback rate if unconfigured model
-        return int(input_tokens * 0.1 + output_tokens * 0.5)
+        raise UnpricedModelError(
+            f"Model '{model_id}' is not priced under price version '{price_version}'"
+        )
+
+    inp = 0 if input_tokens is None else input_tokens
+    out = 0 if output_tokens is None else output_tokens
+    c_read = 0 if cache_read_tokens is None else cache_read_tokens
+    c_write = 0 if cache_write_tokens is None else cache_write_tokens
 
     cost = (
-        input_tokens * schedule.get("input_per_token_millicents", 0.0)
-        + output_tokens * schedule.get("output_per_token_millicents", 0.0)
-        + cache_read_tokens * schedule.get("cache_read_per_token_millicents", 0.0)
-        + cache_write_tokens * schedule.get("cache_write_per_token_millicents", 0.0)
+        inp * schedule.get("input_per_token_millicents", 0.0)
+        + out * schedule.get("output_per_token_millicents", 0.0)
+        + c_read * schedule.get("cache_read_per_token_millicents", 0.0)
+        + c_write * schedule.get("cache_write_per_token_millicents", 0.0)
     )
     return int(round(cost))
 
@@ -107,6 +230,9 @@ class UsageEvent:
     input_tokens: int
     output_tokens: int
     price_version: str
+    document_id: UUID | None = None
+    extraction_run_id: UUID | None = None
+    user_id: UUID | None = None
     recorded_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     cache_read_input_tokens: int = 0
     cache_write_input_tokens: int = 0
@@ -153,6 +279,9 @@ class SQLUsageEvent(SQLModel, table=True):
         Index("idx_tenant_usage_type", "tenant_id", "event_type"),
         Index("idx_tenant_usage_recorded", "tenant_id", "recorded_at"),
         Index("idx_tenant_usage_correction", "tenant_id", "correction_for_event_id"),
+        Index("idx_tenant_usage_document", "tenant_id", "document_id"),
+        Index("idx_tenant_usage_run", "tenant_id", "extraction_run_id"),
+        Index("idx_tenant_usage_user", "tenant_id", "user_id"),
     )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -175,6 +304,9 @@ class SQLUsageEvent(SQLModel, table=True):
     cost_millicents: int = Field(default=0, sa_type=BigInteger, nullable=False)
     is_correction: bool = Field(default=False, sa_type=Boolean, nullable=False)
     correction_for_event_id: UUID | None = Field(default=None, nullable=True)
+    document_id: UUID | None = Field(default=None, nullable=True)
+    extraction_run_id: UUID | None = Field(default=None, nullable=True)
+    user_id: UUID | None = Field(default=None, nullable=True)
     metadata_json: str | None = Field(default=None, sa_type=Text, nullable=True)
 
     def to_domain(self) -> UsageEvent:
@@ -201,5 +333,8 @@ class SQLUsageEvent(SQLModel, table=True):
             cost_millicents=self.cost_millicents,
             is_correction=self.is_correction,
             correction_for_event_id=self.correction_for_event_id,
+            document_id=self.document_id,
+            extraction_run_id=self.extraction_run_id,
+            user_id=self.user_id,
             metadata=meta,
         )
