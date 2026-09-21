@@ -1,6 +1,6 @@
 # T-214 · One owner for model routing, and price versions that only append
 
-**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-214-routing-review-fixes`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-214-routing-review-fixes`
 
 **Scope**
 - `src/semanticgraph/composition/model_routing.py`
@@ -52,9 +52,11 @@ reason.) The same block still carries numbers whose source could not be recovere
 - [x] The unsourced 2026-Q1 and 2026-Q2 numbers stay only as historical, labelled "source not recovered", with no retrieval date claimed for them
 - [x] `ModelRouting` records, for every model, whether it is hosted and its local alternative. The default embedding model is a hosted OpenAI one: either name a local alternative, or record here why it is deferred and add it to the Stage 7 subprocessor checklist. Customer text must not reach a hosted model without that being visible in configuration
 - [x] `fallback_models` accepts only `ModelDependency`; a bare string cannot be made routable. A test proves a model cannot be routable without a `hosted` flag
-- [x] `record_event` with `is_correction=True` requires a `correction_for_event_id` that refers to an existing row of the same tenant and the same `price_version`, and raises otherwise. A test proves setting the flag cannot bypass the historical-version rule
+- [ ] `record_event` with `is_correction=True` requires a `correction_for_event_id` that refers to an existing row of the same tenant and the same `price_version`, and raises otherwise. A test proves setting the flag cannot bypass the historical-version rule
+  - *Logic verified on review by reading the query, which filters on tenant and event id and compares the price version. Not yet proven: every negative case is tested against a `MagicMock` session, and the real-Postgres test covers only the happy path. See the new criterion below.*
 - [x] Each `local_alternative` carries a status, `candidate` or `evaluated`; every one is `candidate` today and consumers of the hosted list can see that. Nothing describes a candidate as satisfying ADR-0005 rule 6
-- [x] Full suite green and `ruff check .` clean
+- [ ] An **integration test on a real Postgres** proves, with two tenants and real rows, that a correction is refused when it references (a) an event that does not exist, (b) another tenant's event, and (c) an event stamped with a different `price_version`, and that setting `is_correction=True` on an ordinary event does not bypass the historical-version rule. Assert the row counts with raw SQL afterwards: no offsetting row was written in any refused case
+- [ ] Full suite green and `ruff check .` clean
 
 ## Notes
 
@@ -93,3 +95,17 @@ accident guard rather than an immutability guarantee. A reviewer sees both chang
 Fine for now.
 
 Continue on a new branch off `main`. Do not touch `container.py`.
+
+### Second review, 2026-09-21
+
+The three reopened defects are fixed and verified by running the code: a bare-string fallback
+now raises `TypeError`, every local alternative carries `local_alternative_status=candidate`,
+and the correction guard is correct. 303 tests pass and lint and format are clean;
+`container.py` is untouched.
+
+Kept open for one thing. The unit tests for the correction guard build a `MagicMock` session
+and configure what its query returns, so they show the code raises when a mocked query finds
+nothing; they cannot show that a cross-tenant reference finds nothing, which depends on the
+real query and row-level security. There is no cross-tenant test at all. AGENTS.md asks for
+the rows to be asserted with SQL on a real database, and this is the case where a mock is
+least able to stand in.
