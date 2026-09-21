@@ -1,6 +1,6 @@
 # T-904 · Build the four-track evaluation corpus
 
-**Stage** 4 · **Type** work · **Status** open · **Owner** — · **Branch** `t-904-evaluation-corpus`
+**Stage** 4 · **Type** work · **Status** claimed · **Owner** claude · **Branch** `t-904-evaluation-corpus`
 
 **Scope**
 - `evals/**`
