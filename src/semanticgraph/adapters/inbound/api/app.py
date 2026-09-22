@@ -31,6 +31,12 @@ async def lifespan(app: FastAPI):
     configure_logging()
     container = getattr(app.state, "container", None) or default_container()
     app.state.container = container
+    if (
+        getattr(app.state, "quota_enforcer", None) is None
+        and hasattr(container, "quota_enforcer")
+        and container.quota_enforcer is not None
+    ):
+        app.state.quota_enforcer = container.quota_enforcer
     verify_routable_models_priced(container.model_routing)
     logger.info(
         "Hosted model dependencies: %s", sorted(container.model_routing.get_hosted_models())

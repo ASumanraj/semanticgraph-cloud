@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import Depends, Request
 
@@ -67,6 +67,33 @@ class Container:
     task_publisher: TaskPublisherPort
     object_storage: ObjectStoragePort
     model_routing: ModelRouting
+    usage_ledger: Any = None
+    audit_log: Any = None
+    quota_enforcer: Any = None
+
+    def __post_init__(self) -> None:
+        if self.quota_enforcer is None:
+            ledger = self.usage_ledger
+            if ledger is None:
+                from semanticgraph.adapters.outbound.inmemory.usage_ledger import (
+                    InMemoryUsageLedger,
+                )
+
+                ledger = InMemoryUsageLedger()
+                object.__setattr__(self, "usage_ledger", ledger)
+            audit = self.audit_log
+            if audit is None:
+                from semanticgraph.adapters.outbound.inmemory.audit_log import InMemoryAuditLog
+
+                audit = InMemoryAuditLog()
+                object.__setattr__(self, "audit_log", audit)
+            from semanticgraph.control.quota.enforcer import QuotaEnforcer
+
+            object.__setattr__(
+                self,
+                "quota_enforcer",
+                QuotaEnforcer(usage_ledger=ledger, audit_log=audit),
+            )
 
     @property
     def graph_repo(self) -> EntityStore:
@@ -78,6 +105,7 @@ class Container:
         from semanticgraph.adapters.outbound.inmemory import (
             DeterministicLLMGateway,
             InMemoryAssertionStore,
+            InMemoryAuditLog,
             InMemoryDeletionRepository,
             InMemoryDocumentRepository,
             InMemoryEntityStore,
@@ -87,11 +115,16 @@ class Container:
             InMemorySubgraphReader,
             InMemoryTaskPublisher,
             InMemoryTemporalFactStore,
+            InMemoryUsageLedger,
         )
+        from semanticgraph.control.quota.enforcer import QuotaEnforcer
 
         model_routing = routing or DEFAULT_MODEL_ROUTING
         doc_repo = InMemoryDocumentRepository()
         assertion_store = InMemoryAssertionStore()
+        usage_ledger = InMemoryUsageLedger()
+        audit_log = InMemoryAuditLog()
+        quota_enforcer = QuotaEnforcer(usage_ledger=usage_ledger, audit_log=audit_log)
         return cls(
             document_repo=doc_repo,
             assertion_store=assertion_store,
@@ -108,6 +141,9 @@ class Container:
             task_publisher=InMemoryTaskPublisher(),
             object_storage=InMemoryObjectStorage(),
             model_routing=model_routing,
+            usage_ledger=usage_ledger,
+            audit_log=audit_log,
+            quota_enforcer=quota_enforcer,
         )
 
     @classmethod
@@ -139,6 +175,9 @@ class Container:
         from semanticgraph.adapters.outbound.postgres.temporal_repository import (
             PostgresTemporalFactRepository,
         )
+        from semanticgraph.control.audit.log import AuditLog
+        from semanticgraph.control.quota.enforcer import QuotaEnforcer
+        from semanticgraph.control.usage.ledger import UsageLedger
 
         database_url = os.environ["DATABASE_URL"]
         # SQLAlchemy async requires the asyncpg or psycopg_async dialect prefix.
@@ -151,6 +190,9 @@ class Container:
         session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
         model_routing = routing or DEFAULT_MODEL_ROUTING
+        usage_ledger = UsageLedger(session_factory=session_factory)
+        audit_log = AuditLog(session_factory=session_factory)
+        quota_enforcer = QuotaEnforcer(usage_ledger=usage_ledger, audit_log=audit_log)
 
         return cls(
             document_repo=PostgresDocumentRepository(session_factory=session_factory),
@@ -165,6 +207,9 @@ class Container:
             task_publisher=InMemoryTaskPublisher(),
             object_storage=InMemoryObjectStorage(),
             model_routing=model_routing,
+            usage_ledger=usage_ledger,
+            audit_log=audit_log,
+            quota_enforcer=quota_enforcer,
         )
 
     @classmethod

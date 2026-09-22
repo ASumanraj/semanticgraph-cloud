@@ -51,7 +51,7 @@ logger.info(content)  # lint_source_string() returns []
 logger.info(f"processing: {content}")  # also []
 
 # 2. The runtime guard never fires on the primary message at all:
-logger.info(long_document_text)   # no exception, and it lands verbatim in the JSON log line
+logger.info(long_document_text)  # no exception, and it lands verbatim in the JSON log line
 ```
 
 `chunk.text` passed directly (`logger.info(chunk.text)`) *is* caught by the static linter — that
