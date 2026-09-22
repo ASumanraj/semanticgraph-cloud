@@ -1,6 +1,6 @@
 # T-208 · Append-only audit log
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-208-append-only-audit-log`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-208-append-only-audit-log`
 
 **Scope**
 - `alembic/**`
