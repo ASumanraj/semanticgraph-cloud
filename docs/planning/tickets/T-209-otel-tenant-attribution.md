@@ -19,11 +19,11 @@ it always happens under deadline pressure from a billing dispute.
 Runs in parallel with the migration chain: no Alembic revision, disjoint paths.
 
 ## Acceptance
-- [ ] `tenant_id` is a resource or span attribute on every span, metric and log line
-- [ ] Tenant context crosses the worker boundary explicitly
-- [ ] The stable `gen_ai.*` core is instrumented: operation, provider, model, input and output tokens
-- [ ] **Document text never reaches telemetry** — ids and hashes only
-- [ ] A lint or review rule enforces that, before the codebase has 200 log statements
+- [x] `tenant_id` is a resource or span attribute on every span, metric and log line
+- [x] Tenant context crosses the worker boundary explicitly
+- [x] The stable `gen_ai.*` core is instrumented: operation, provider, model, input and output tokens
+- [x] **Document text never reaches telemetry** — ids and hashes only
+- [x] A lint or review rule enforces that, before the codebase has 200 log statements
 
 ## Notes
 These attributes are also the cost-attribution substrate: cloud billing cannot
