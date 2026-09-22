@@ -87,3 +87,34 @@ def test_document_text_never_reaches_logs():
                 "content_hash": "sha256:abc1234567890",
             },
         )
+
+
+def test_primary_log_message_telemetry_hygiene():
+    """T-209 Review: Primary log message must be validated against telemetry hygiene.
+
+    A long string passed via a renamed local variable (e.g. `raw_extract`), or
+    formatted into an f-string / %-string, must be caught by runtime hygiene.
+    """
+    tenant_id = TenantId(uuid4())
+    logger = get_logger("test.hygiene.primary_msg")
+
+    raw_extract = "Confidential customer agreement clause " * 15  # 585 chars (> 500)
+
+    with with_tenant(tenant_id):
+        # 1. Renamed local variable as primary message
+        with pytest.raises(
+            DocumentTextInTelemetryError, match="Document text must never enter telemetry"
+        ):
+            logger.info(raw_extract)
+
+        # 2. Formatted f-string containing renamed local variable
+        with pytest.raises(
+            DocumentTextInTelemetryError, match="Document text must never enter telemetry"
+        ):
+            logger.info(f"processing chunk: {raw_extract}")
+
+        # 3. %-formatting containing renamed local variable
+        with pytest.raises(
+            DocumentTextInTelemetryError, match="Document text must never enter telemetry"
+        ):
+            logger.info("processing chunk: %s", raw_extract)
