@@ -20,8 +20,14 @@ from fastapi import APIRouter, Body
 from pydantic import BaseModel, Field
 
 from semanticgraph.adapters.inbound.api.dependencies import CurrentTenantDep
+from semanticgraph.application.use_cases.delete_document import DeleteDocumentCommand
 from semanticgraph.application.use_cases.ingest_document import IngestDocumentCommand
-from semanticgraph.composition.container import IngestDocumentDep
+from semanticgraph.composition.container import (
+    ContainerDep,
+    DeleteDocumentDep,
+    IngestDocumentDep,
+)
+from semanticgraph.domain.exceptions import DomainException
 from semanticgraph.domain.models.entities import Ontology
 
 # --- Request/Response DTOs (Pydantic V2, no ellipsis, no RootModel) ---
@@ -45,6 +51,17 @@ class IngestDocumentResponse(BaseModel):
     document_id: UUID
     status: str
     message: str
+    fact_ids: list[UUID] = Field(default_factory=list)
+
+
+class DeleteDocumentResponse(BaseModel):
+    document_id: UUID
+    deleted_chunks_count: int
+    deleted_assertions_count: int
+    deleted_facts_count: int
+    retained_facts_count: int
+    facts_died: bool
+    facts_survived: bool
 
 
 # --- Router (fastapi skill: router-level prefix and tags) ---
@@ -99,4 +116,39 @@ async def ingest_document(
         document_id=result.id,
         status=result.status.value,
         message=f"Document '{body.filename}' queued for extraction",
+        fact_ids=getattr(result, "fact_ids", []),
+    )
+
+
+@router.delete("/{document_id}", response_model=DeleteDocumentResponse)
+async def delete_document(
+    tenant: CurrentTenantDep,
+    document_id: UUID,
+    delete_use_case: DeleteDocumentDep,
+    container: ContainerDep,
+) -> DeleteDocumentResponse:
+    """Delete a document and run the assertion-counted cascade.
+
+    Tenant context is extracted from X-Tenant-ID (stand-in until Stage 5 auth).
+    If the document does not exist for this tenant, returns 404.
+    """
+    doc = await container.document_repo.get_document(tenant, document_id)
+    if doc is None:
+        raise DomainException(
+            message=f"Document '{document_id}' not found",
+            code="DOCUMENT_NOT_FOUND",
+        )
+
+    result = await delete_use_case.execute(
+        DeleteDocumentCommand(tenant_id=tenant, document_id=document_id)
+    )
+
+    return DeleteDocumentResponse(
+        document_id=result.document_id,
+        deleted_chunks_count=result.deleted_chunks_count,
+        deleted_assertions_count=result.deleted_assertions_count,
+        deleted_facts_count=result.deleted_facts_count,
+        retained_facts_count=result.retained_facts_count,
+        facts_died=result.facts_died,
+        facts_survived=result.facts_survived,
     )

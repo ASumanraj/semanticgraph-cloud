@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from semanticgraph.domain.models.entities import (
     Assertion,
     Edge,
@@ -11,6 +13,10 @@ from semanticgraph.domain.models.entities import (
     SemanticChunk,
     TenantId,
 )
+from semanticgraph.domain.provenance.locator import locate_span
+
+if TYPE_CHECKING:
+    from semanticgraph.composition.model_routing import ModelRouting
 
 
 class DeterministicLLMGateway:
@@ -21,17 +27,36 @@ class DeterministicLLMGateway:
     type outside the ontology.
     """
 
+    def __init__(
+        self,
+        routing: ModelRouting | None = None,
+        fabricated_quote: str | None = None,
+    ) -> None:
+        from semanticgraph.composition.model_routing import DEFAULT_MODEL_ROUTING
+
+        self.routing = routing or DEFAULT_MODEL_ROUTING
+        self.fabricated_quote = fabricated_quote
+
     async def extract_entities_and_edges(
         self,
         tenant_id: TenantId,
         chunk: SemanticChunk,
         ontology: Ontology,
     ) -> tuple[list[RawEntity], list[Edge]]:
+        if not chunk.text:
+            return [], []
+
+        quote = (
+            self.fabricated_quote
+            if self.fabricated_quote is not None
+            else (chunk.text[:50] if len(chunk.text) >= 50 else chunk.text)
+        )
+        located = locate_span(chunk.text, quote, chunk.id)
         span = EvidenceSpan(
             chunk_id=chunk.id,
-            start_offset=0,
-            end_offset=len(chunk.text),
-            quote=chunk.text[:50] if chunk.text else "",
+            start_offset=located.start_offset,
+            end_offset=located.end_offset,
+            quote=located.quote,
         )
         assertion = Assertion(
             tenant_id=tenant_id,

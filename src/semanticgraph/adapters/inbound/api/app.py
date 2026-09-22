@@ -16,6 +16,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from semanticgraph.domain.exceptions import DomainException
+from semanticgraph.domain.provenance.locator import QuoteNotFoundError
 
 logger = logging.getLogger("semanticgraph")
 
@@ -24,8 +25,14 @@ logger = logging.getLogger("semanticgraph")
 async def lifespan(app: FastAPI):
     """Build the container once, from configuration, and hang it on app.state."""
     from semanticgraph.composition.container import adapter_profile, default_container
+    from semanticgraph.control.usage.models import verify_routable_models_priced
 
-    app.state.container = default_container()
+    container = getattr(app.state, "container", None) or default_container()
+    app.state.container = container
+    verify_routable_models_priced(container.model_routing)
+    logger.info(
+        "Hosted model dependencies: %s", sorted(container.model_routing.get_hosted_models())
+    )
     logger.info("SemanticGraph Cloud started (adapter profile: %s)", adapter_profile())
     yield
     logger.info("SemanticGraph Cloud shutting down")
@@ -41,6 +48,14 @@ def create_app() -> FastAPI:
 
     # --- Global Exception Handlers (error-handling skill) ---
 
+    @app.exception_handler(QuoteNotFoundError)
+    async def quote_not_found_handler(request: Request, exc: QuoteNotFoundError) -> JSONResponse:
+        """Reject fabricated quotes that cannot be located in the chunk text (T-110)."""
+        return JSONResponse(
+            status_code=422,
+            content={"error": {"code": "FABRICATED_QUOTE", "message": str(exc)}},
+        )
+
     @app.exception_handler(DomainException)
     async def domain_error_handler(request: Request, exc: DomainException) -> JSONResponse:
         """Translate domain errors to standard API error envelope."""
@@ -49,6 +64,8 @@ def create_app() -> FastAPI:
             "ONTOLOGY_VIOLATION": 422,
             "RESOLUTION_CONFLICT": 409,
             "GRAPH_INGESTION_ERROR": 500,
+            "DOCUMENT_NOT_FOUND": 404,
+            "FACT_NOT_FOUND": 404,
         }
         return JSONResponse(
             status_code=status_map.get(exc.code, 500),
@@ -68,8 +85,10 @@ def create_app() -> FastAPI:
 
     # --- Include Routers ---
     from semanticgraph.adapters.inbound.api.v1.documents import router as documents_router
+    from semanticgraph.adapters.inbound.api.v1.facts import router as facts_router
 
     app.include_router(documents_router)
+    app.include_router(facts_router)
 
     @app.get("/health")
     def health_check() -> dict[str, str]:

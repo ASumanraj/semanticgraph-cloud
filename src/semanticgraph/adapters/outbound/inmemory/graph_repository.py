@@ -1,4 +1,4 @@
-"""In-memory EntityStore and SubgraphReader (GraphRepositoryPort) implementation."""
+"""In-memory EntityStore and SubgraphReader implementation."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from semanticgraph.domain.models.entities import Edge, GoldenRecord, RawEntity, 
 
 
 class InMemoryGraphRepository:
-    """Satisfies EntityStore, SubgraphReader, and GraphRepositoryPort.
+    """Satisfies EntityStore and SubgraphReader.
 
     Entities and edges are kept per tenant.
     Direct merging has been removed; Golden Records are materialized from decisions.

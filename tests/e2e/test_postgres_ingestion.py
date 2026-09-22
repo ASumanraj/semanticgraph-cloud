@@ -5,43 +5,28 @@ from collections.abc import AsyncGenerator
 import pytest
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
-from sqlmodel import SQLModel
-from testcontainers.postgres import PostgresContainer
 
 # Import models so they register with SQLModel.metadata
 from semanticgraph.adapters.outbound.postgres import models  # noqa: F401
 
 
-@pytest.fixture(scope="session")
-def postgres_container():
-    with PostgresContainer("postgres:16-alpine") as postgres:
-        yield postgres
-
-
-@pytest.fixture(scope="session")
-def database_url(postgres_container):
-    url = postgres_container.get_connection_url()
-    # testcontainers returns postgresql+psycopg2://
-    # Our app needs postgresql:// which it internally rewrites to postgresql+psycopg_async://
-    return url.replace("postgresql+psycopg2://", "postgresql://")
-
-
 @pytest.fixture
-async def setup_database(database_url: str) -> AsyncGenerator[str, None]:
-    os.environ["DATABASE_URL"] = database_url
+async def setup_database(postgres_admin_url: str) -> AsyncGenerator[str, None]:
+    os.environ["DATABASE_URL"] = postgres_admin_url
     os.environ["SEMANTICGRAPH_ADAPTERS"] = "postgres"
 
-    async_url = database_url.replace("postgresql://", "postgresql+psycopg_async://")
-    engine = create_async_engine(async_url)
+    from semanticgraph.composition.container import default_container
 
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
+    default_container.cache_clear()
 
+    async_url = postgres_admin_url.replace("postgresql://", "postgresql+psycopg_async://")
     yield async_url
 
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.drop_all)
-    await engine.dispose()
+    default_container.cache_clear()
+    import psycopg
+
+    with psycopg.connect(postgres_admin_url, autocommit=True) as conn, conn.cursor() as cur:
+        cur.execute("TRUNCATE TABLE documents, semantic_chunks CASCADE;")
 
 
 @pytest.mark.e2e

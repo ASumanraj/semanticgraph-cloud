@@ -11,7 +11,9 @@ import pytest
 
 from semanticgraph.adapters.outbound.inmemory import (
     DeterministicLLMGateway,
-    InMemoryGraphRepository,
+    InMemoryAssertionStore,
+    InMemoryDocumentRepository,
+    InMemoryEntityStore,
     InMemoryTaskPublisher,
 )
 from semanticgraph.application.use_cases.ingest_document import (
@@ -27,8 +29,13 @@ from semanticgraph.domain.models.entities import (
 
 
 @pytest.fixture
-def graph_repo():
-    return InMemoryGraphRepository()
+def entity_store():
+    return InMemoryEntityStore()
+
+
+@pytest.fixture
+def graph_repo(entity_store):
+    return entity_store
 
 
 @pytest.fixture
@@ -42,11 +49,23 @@ def task_publisher():
 
 
 @pytest.fixture
-def use_case(graph_repo, llm_gateway, task_publisher):
+def document_repo():
+    return InMemoryDocumentRepository()
+
+
+@pytest.fixture
+def assertion_store():
+    return InMemoryAssertionStore()
+
+
+@pytest.fixture
+def use_case(document_repo, entity_store, llm_gateway, task_publisher, assertion_store):
     return IngestDocumentUseCase(
-        graph_repo=graph_repo,
+        document_repo=document_repo,
+        entity_store=entity_store,
         llm_gateway=llm_gateway,
         task_publisher=task_publisher,
+        assertion_store=assertion_store,
     )
 
 
@@ -152,3 +171,8 @@ class TestIngestDocumentUseCase:
         from semanticgraph.domain.models.entities import DocumentStatus
 
         assert result.status == DocumentStatus.EXTRACTING
+
+    def test_missing_dependency_raises_type_error(self):
+        """Constructing IngestDocumentUseCase with missing dependencies must raise TypeError."""
+        with pytest.raises(TypeError):
+            IngestDocumentUseCase()  # type: ignore[call-arg]

@@ -44,7 +44,6 @@ from semanticgraph.application.ports.outbound import (
     AssertionStore,
     DeletionRepositoryPort,
     EntityStore,
-    GraphRepositoryPort,
     OntologyStore,
     ResolutionDecisionStore,
     SubgraphReader,
@@ -68,7 +67,6 @@ class TestGraphSeamsAcceptance:
     def test_merge_into_golden_record_is_gone(self) -> None:
         """merge_into_golden_record is gone from all ports and implementations."""
         for target in [
-            GraphRepositoryPort,
             EntityStore,
             ResolutionDecisionStore,
             SubgraphReader,
@@ -251,7 +249,6 @@ class TestGraphSeamsAcceptance:
         graph_repo = InMemoryGraphRepository()
         assert isinstance(graph_repo, EntityStore)
         assert isinstance(graph_repo, SubgraphReader)
-        assert isinstance(graph_repo, GraphRepositoryPort)
 
         # Verify aliases
         assert isinstance(InMemoryEntityStore(), EntityStore)
@@ -336,6 +333,8 @@ class TestGraphSeamsAcceptance:
         """IngestDocumentUseCase works directly against EntityStore."""
         from semanticgraph.adapters.outbound.inmemory import (
             DeterministicLLMGateway,
+            InMemoryAssertionStore,
+            InMemoryDocumentRepository,
             InMemoryTaskPublisher,
         )
         from semanticgraph.application.use_cases.ingest_document import (
@@ -347,11 +346,15 @@ class TestGraphSeamsAcceptance:
         entity_store = InMemoryEntityStore()
         llm_gateway = DeterministicLLMGateway()
         task_pub = InMemoryTaskPublisher()
+        doc_repo = InMemoryDocumentRepository()
+        assertion_store = InMemoryAssertionStore()
 
         use_case = IngestDocumentUseCase(
+            document_repo=doc_repo,
             entity_store=entity_store,
             llm_gateway=llm_gateway,
             task_publisher=task_pub,
+            assertion_store=assertion_store,
         )
 
         tenant_id = TenantId(value=uuid4())
