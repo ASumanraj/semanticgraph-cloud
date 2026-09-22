@@ -78,6 +78,7 @@ None of these touch `src/`, so they run beside anything.
 | [T-904](T-904-evaluation-corpus.md) Four-track evaluation corpus | `evals/**`, `docs/research/**` |
 | [T-905](T-905-gleif-coverage-spike.md) Registry coverage on real counterparties | `evals/gleif/**`, `docs/research/**` |
 | [T-908](T-908-dora-register-field-source-check.md) Is the DORA register built from contracts? | `docs/research/**` |
+| [T-909](T-909-cuad-verifier-bakeoff.md) CUAD eval harness (blocked on a real extractor) | `evals/cuad/**`, `tests/unit/evals/**` |
 
 ## First wave — five agents, no collisions
 
