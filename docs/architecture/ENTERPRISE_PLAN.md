@@ -73,7 +73,7 @@ Tick as each item lands. Detail for every item is in Part 3.
 - [x] Usage event ledger
 - [x] Append-only audit log
 - [x] OpenTelemetry with `tenant_id` attribution
-- [ ] Per-tenant spend cap
+- [x] Per-tenant spend cap
 
 ### Stage 3 — Pipeline
 - [ ] Parse · [ ] Chunk · [ ] Contextualize · [ ] Extract · [ ] Resolve · [ ] Retrieve
