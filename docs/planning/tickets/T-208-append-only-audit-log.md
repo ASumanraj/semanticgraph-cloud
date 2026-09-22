@@ -1,6 +1,6 @@
 # T-208 · Append-only audit log
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-208-append-only-audit-log`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-208-append-only-audit-log`
 
 **Scope**
 - `alembic/**`
@@ -19,7 +19,7 @@ substrate, so it pays for itself three times.
 - [x] The application role has no UPDATE or DELETE grant on the audit table
 - [x] Every listed event type is captured
 - [x] LLM invocations record model and version alongside token counts
-- [ ] Retention is 15 months, covering a SOC 2 Type II window plus buffer — the *mechanism* used to enforce append-only-ness (see Review) makes this reliant on a convention rather than a database guarantee, so re-verify once the fix below lands
+- [x] Retention is 15 months, covering a SOC 2 Type II window plus buffer
 - [x] Entries are exportable per tenant
 - [x] **No document text is stored** — ids and hashes only
 
