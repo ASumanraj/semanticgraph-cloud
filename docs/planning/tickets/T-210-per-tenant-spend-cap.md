@@ -1,6 +1,6 @@
 # T-210 · Per-tenant rate limits and spend cap
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-210-per-tenant-spend-cap`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-210-per-tenant-spend-cap`
 
 **Scope**
 - `src/semanticgraph/control/quota/**`
