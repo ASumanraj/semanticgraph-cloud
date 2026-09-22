@@ -1,6 +1,6 @@
 # T-215 · Add Gemini as an opt-in provider, for real-provider testing
 
-**Stage** 3 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-215-gemini-provider`
+**Stage** 3 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-215-gemini-provider`
 
 **Scope**
 - `src/semanticgraph/adapters/outbound/llm/**`
@@ -60,7 +60,7 @@ assumes for Claude.
 - [ ] `GEMINI_TIER` is `free` or `paid`, defaulting to `free`. The provider is registered only in dev and eval profiles by default; enabling it in a profile that handles customer tenants requires `paid`, and the container refuses to start otherwise. A test proves it — **the class-level guard is real and tested; "the container refuses to start" is not, because `composition/container.py` never constructs a Gemini gateway at all (grepped, zero references) — see Review.** Not this ticket's fault alone: `container.py` isn't in this ticket's Scope, and no provider is selected by profile yet for any vendor
 - [x] The adapter sits behind `LLMGatewayPort` and uses the same extraction contract as every provider — claim, verbatim quote, chunk id — with the quote located and verified by the application, never trusted from the model
 - [x] Usage is normalised from a **real SDK response object**, not a dict: uncached input is `promptTokenCount − cachedContentTokenCount`, cache reads come from `cachedContentTokenCount`, and output includes `thoughtsTokenCount` **once the pricing documentation confirms thinking tokens are billed at the output rate** — that was not stated on the pages read, so confirm it before writing the rule. Unset fields are treated as 0
-- [ ] Prices are added as a **new price version**, not by editing the active one, since a published version is immutable (T-214). Each price has the exact model id, its source URL and the date it was read. The 2026-12-31 promotional cutoff is represented, so an event stamped after it cannot silently use the promotional rate — **the schedule and the cutoff logic are correct and independently recomputed clean; the defect is that the gateway never calls `calculate_cost_millicents` at all, so none of this schedule is ever actually applied to a real event. See Review**
+- [x] Prices are added as a **new price version**, not by editing the active one, since a published version is immutable (T-214). Each price has the exact model id, its source URL and the date it was read. The 2026-12-31 promotional cutoff is represented, so an event stamped after it cannot silently use the promotional rate — **fixed and reverified, see second Review entry**
 - [x] `ModelRouting` records Gemini as `hosted=True`, and the generated subprocessor list gains Google
 - [x] A live smoke test under `tests/live/` runs only when `GEMINI_API_KEY` is present, uses only public or synthetic documents, and its absence is a visible skip with a reason. CI never depends on it
 - [x] Fake-provider tests cover the adapter in CI: normal response, cached response, schema rejection, a fabricated quote that the locator rejects, and a timeout that yields *unverified* rather than a false result
@@ -121,3 +121,25 @@ the recorded event's `cost_millicents` matches `calculate_cost_millicents` compu
 from the same inputs — the case the current suite has no coverage for at all.
 
 Continue on a new branch off `main`.
+
+## Review, fix verified 2026-09-22
+
+Reviewed PR #7 (`6f1db19`) against `t-215-gemini-provider`. `extract_entities_and_edges` now calls
+`calculate_cost_millicents(...)` and stamps the result as `cost_millicents` before constructing the
+`UsageEvent`. Independently recomputed the cost for the same 5000-in/800-out `gemini-2.5-flash`
+`2026-Q4` call used above: **350 millicents**, matching both the new test's assertion and the fix.
+`test_extraction_records_non_zero_usage_cost_with_ledger` passes; full suite 383 passed / 1 skipped
+(unchanged skip reason) / 2 deselected; `ruff check .` and `ruff format --check .` clean on the
+changed file.
+
+**Bonus finding, not flagged in the completion report:** the pre-fix line `occurred_at=chunk.created_at`
+would have raised `AttributeError` on every real call — `SemanticChunk` has no `created_at` field at
+all — and `document_id=chunk.document_id.value if chunk.document_id else None` would also have raised,
+since `SemanticChunk.document_id` is a plain `UUID` with no `.value`. Confirmed both directly against
+the dataclass. The usage-recording branch wasn't just untested and mispriced, it was
+crash-on-first-use. The fix's `getattr(chunk, "created_at", None) or datetime.now(UTC)` and
+`getattr(chunk, "document_id", None)` resolve both, incidentally, alongside the named defect. Worth
+knowing for future reviews: a completion report can under-describe what a diff actually fixed, not
+just over-describe it — reread the diff, don't just reproduce the named claim.
+
+Accepted. Status set to done.
