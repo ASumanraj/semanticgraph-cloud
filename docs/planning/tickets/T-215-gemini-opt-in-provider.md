@@ -1,6 +1,6 @@
 # T-215 · Add Gemini as an opt-in provider, for real-provider testing
 
-**Stage** 3 · **Type** work · **Status** open · **Owner** — · **Branch** `t-215-gemini-provider`
+**Stage** 3 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-215-gemini-provider`
 
 **Scope**
 - `src/semanticgraph/adapters/outbound/llm/**`
