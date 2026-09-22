@@ -46,6 +46,8 @@ from semanticgraph.domain.models.entities import TenantId
 DEFAULT_PG_URL = "postgresql://user:password@localhost:5432/semanticgraph"
 APP_ROLE = "semanticgraph_app"
 APP_PASSWORD = "semanticgraph_app"
+RETENTION_ROLE = "semanticgraph_retention"
+RETENTION_PASSWORD = "semanticgraph_retention"
 
 
 def _get_pg_admin_url() -> str | None:
@@ -66,6 +68,12 @@ def _get_app_role_url(admin_url: str) -> str:
     return urlunparse((p.scheme, app_netloc, p.path, p.params, p.query, p.fragment))
 
 
+def _get_retention_role_url(admin_url: str) -> str:
+    p = urlparse(admin_url)
+    ret_netloc = f"{RETENTION_ROLE}:{RETENTION_PASSWORD}@{p.hostname}:{p.port or 5432}"
+    return urlunparse((p.scheme, ret_netloc, p.path, p.params, p.query, p.fragment))
+
+
 @pytest.fixture(scope="module")
 def postgres_setup() -> Generator[dict[str, str], None, None]:
     admin_url = _get_pg_admin_url()
@@ -78,14 +86,18 @@ def postgres_setup() -> Generator[dict[str, str], None, None]:
     command.upgrade(cfg, "head")
 
     app_url = _get_app_role_url(admin_url)
+    retention_url = _get_retention_role_url(admin_url)
     async_app_url = app_url.replace("postgresql://", "postgresql+psycopg_async://")
     async_admin_url = admin_url.replace("postgresql://", "postgresql+psycopg_async://")
+    async_retention_url = retention_url.replace("postgresql://", "postgresql+psycopg_async://")
 
     yield {
         "admin_url": admin_url,
         "app_url": app_url,
+        "retention_url": retention_url,
         "async_app_url": async_app_url,
         "async_admin_url": async_admin_url,
+        "async_retention_url": async_retention_url,
     }
 
 
@@ -93,6 +105,18 @@ def postgres_setup() -> Generator[dict[str, str], None, None]:
 async def app_session_factory(postgres_setup):
     engine = create_async_engine(
         postgres_setup["async_app_url"],
+        echo=False,
+        connect_args={"connect_timeout": 5},
+    )
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    yield factory
+    await engine.dispose()
+
+
+@pytest_asyncio.fixture
+async def retention_session_factory(postgres_setup):
+    engine = create_async_engine(
+        postgres_setup["async_retention_url"],
         echo=False,
         connect_args={"connect_timeout": 5},
     )
@@ -431,6 +455,22 @@ async def test_application_role_has_no_update_or_delete_grant(
         err_msg = str(exc_info.value).lower()
         assert "permission denied" in err_msg or "audit event log is append-only" in err_msg
 
+    # T-208 Review: Setting escape-hatch GUC on app role connection
+    # and deleting must still be refused
+    async with app_session_factory() as session, session.begin():
+        await session.execute(
+            text("SELECT set_config('app.current_tenant_id', :tenant_id, true)"),
+            {"tenant_id": str(tenant_id.value)},
+        )
+        await session.execute(text("SET LOCAL app.allow_retention_prune = 'true'"))
+        with pytest.raises(DBAPIError) as exc_info:
+            await session.execute(
+                text("DELETE FROM audit_events WHERE event_id = :event_id"),
+                {"event_id": str(event_id)},
+            )
+        err_msg = str(exc_info.value).lower()
+        assert "permission denied" in err_msg or "audit event log is append-only" in err_msg
+
 
 @pytest.mark.asyncio
 async def test_multi_tenant_isolation_fails_closed_under_rls(audit_log: AuditLog):
@@ -456,17 +496,16 @@ async def test_multi_tenant_isolation_fails_closed_under_rls(audit_log: AuditLog
     await audit_log.record_event(tenant_a, event_a)
     await audit_log.record_event(tenant_b, event_b)
 
-    # Tenant A sees only Tenant A's event
+    # 1. Tenant A cannot see Tenant B's audit events
     events_a = await audit_log.list_events(tenant_a)
     assert len(events_a) == 1
     assert events_a[0].event_id == event_a_id
 
     single_a = await audit_log.get_event(tenant_a, event_a_id)
     assert single_a is not None
-    # Tenant A querying Tenant B's event gets None
     assert await audit_log.get_event(tenant_a, event_b_id) is None
 
-    # Tenant B sees only Tenant B's event
+    # 2. Tenant B cannot see Tenant A's audit events
     events_b = await audit_log.list_events(tenant_b)
     assert len(events_b) == 1
     assert events_b[0].event_id == event_b_id
@@ -476,10 +515,15 @@ async def test_multi_tenant_isolation_fails_closed_under_rls(audit_log: AuditLog
 @pytest.mark.asyncio
 async def test_retention_policy_and_admin_pruning(
     audit_log: AuditLog,
+    app_session_factory,
+    retention_session_factory,
     admin_session_factory,
     postgres_setup: dict[str, str],
 ):
-    """Acceptance 4: Retention is 15 months, covering a SOC 2 Type II window plus buffer."""
+    """Acceptance 4 & Review: Retention is 15 months, covering a SOC 2 Type II window plus buffer.
+    Deletions are prohibited for ordinary app roles, and pruning requires
+    administrative/retention role.
+    """
     tenant_id = TenantId(uuid4())
     now = datetime(2026, 9, 22, 12, 0, 0, tzinfo=UTC)
 
@@ -539,18 +583,18 @@ async def test_retention_policy_and_admin_pruning(
         )
         conn.commit()
 
-    # 3. Pruning without allow_retention_prune fails due to immutability trigger
-    async with admin_session_factory() as admin_sess, admin_sess.begin():
-        with pytest.raises(DBAPIError, match="append-only"):
-            await admin_sess.execute(
-                text("DELETE FROM audit_events WHERE occurred_at < :cutoff"),
-                {"cutoff": cutoff},
+    # 3. Pruning with application session fails due to lack of privileges & immutability trigger
+    async with app_session_factory() as app_sess, app_sess.begin():
+        with pytest.raises(DBAPIError):
+            await audit_log.prune_expired_events(
+                admin_session=app_sess,
+                cutoff=cutoff,
             )
 
-    # 4. Pruning using audit_log.prune_expired_events (with admin session) succeeds
-    async with admin_session_factory() as admin_sess:
+    # 4. Pruning using audit_log.prune_expired_events with dedicated retention session succeeds
+    async with retention_session_factory() as ret_sess:
         pruned_count = await audit_log.prune_expired_events(
-            admin_session=admin_sess,
+            admin_session=ret_sess,
             cutoff=cutoff,
         )
         assert pruned_count >= 1

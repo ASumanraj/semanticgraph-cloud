@@ -211,17 +211,12 @@ class AuditLog:
     ) -> int:
         """Prunes audit events older than the 15-month retention cutoff.
 
-        Requires administrative privileges (an admin_session). Sets the transaction-local
-        setting `app.allow_retention_prune = 'true'` to satisfy the database immutability
-        trigger while preventing unauthorized application-level deletions.
+        Requires administrative privileges (an admin_session connected as
+        semanticgraph_retention or database superuser). Deletions by unauthorized
+        roles are prohibited by database-level grants and the immutability trigger.
         """
         effective_cutoff = cutoff or get_retention_cutoff()
         was_in_transaction = admin_session.in_transaction()
-        bind = admin_session.bind or admin_session.get_bind()
-        if bind.dialect.name == "postgresql":
-            await admin_session.execute(
-                text("SELECT set_config('app.allow_retention_prune', 'true', true)")
-            )
 
         result = await admin_session.execute(
             text("DELETE FROM audit_events WHERE occurred_at < :cutoff"),
