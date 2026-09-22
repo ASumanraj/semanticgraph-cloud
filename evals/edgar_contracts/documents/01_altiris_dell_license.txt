@@ -1,0 +1,2455 @@
+<DOCUMENT>
+<TYPE>EX-10.7
+<SEQUENCE>4
+<FILENAME>dex107.txt
+<DESCRIPTION>SOFTWARE LICENSE AGREEMENT
+<TEXT>
+<PAGE>
+
+                                                                    Exhibit 10.7
+
+                          SOFTWARE LICENSING AGREEMENT
+
+THIS SOFTWARE LICENSE AGREEMENT is entered into as of this 26th day of April,
+2002 (hereinafter "Effective Date") by and between Dell Products L.P.
+(hereinafter "Dell") with its principal place of business at One Dell Way, Round
+Rock, Texas 78682, and Altiris, Inc., a Delaware corporation having a principal
+place of business at 588 W. 400 South, Lindon, Utah 84042 (hereinafter
+"Licensor") (each, a "Party," collectively, the "Parties").
+
+                                    RECITALS
+
+     Whereas, Licensor is a provider of software products and services that
+enable organizations to manage information technology assets, such as desktop
+and laptop computers; and
+
+     Whereas, Dell is a manufacturer and distributor of PC desktop and laptop
+computers; and
+
+     Whereas, Dell desires to acquire from Licensor the nonexclusive right and
+license to distribute certain of Licensor's software products and services to
+third parties under the terms set forth in this Agreement. Such products and
+services of Licensor include a client management suite customized for Dell's
+customers (in both a fully-functional version and a time-bombed version that is
+fully-functional for thirty days) and certain commercial versions of Licensor's
+software products, maintenance and support services.
+
+     Now, therefore, in consideration of the mutual covenants contained herein,
+the Parties hereto agree as follows:
+
+1.0  DEFINITIONS
+
+1.1  Agreement shall mean this Software License Agreement and its Supplement and
+     Exhibits.
+
+1.2  Dell shall be deemed to include Dell Products L.P., Dell Computer
+     Corporation and each Subsidiary of Dell Computer Corporation. "Subsidiary"
+     means a corporation, company or other entity more than fifty percent (50%)
+     of whose outstanding shares or securities (representing the right to vote
+     for the election of directors or other managing authority) are owned or
+     controlled, directly or indirectly, by Dell Computer Corporation. However,
+     such corporation, company or other entity shall be deemed to be a
+     Subsidiary only so long as such ownership or control exists.
+
+1.3  [*]
+
+1.4  Licensed Product(s) shall mean all software components, in object code
+     format only, that are embodied in the customized version of Licensor's
+     Client Management Suite version 5.5 Service Pack 1 and documentation as set
+     forth in the Supplement; and all Updates to and New Versions of the
+     Licensed Product(s).
+
+1.5  Licensor Application(s) shall mean and include all software products,
+     supporting documentation, and maintenance support set forth in the
+     Supplement and as updated from time to time on Licensor's Dell Price List.
+
+1.6  [*]
+
+---------------------
+This exhibit is the subject of a Confidential Treatment Application.
+Confidential information has been omitted and has been filed separately. * This
+provision is the subject of a Confidential Treatment Request.
+
+<PAGE>
+
+1.7  Marks shall mean trademarks, trade names, service marks, product names,
+     logos and all pictorials, graphics, audiovisual works, including icons,
+     screens and characters and other proprietary designations.
+
+1.8  Licensor's Price List shall mean Licensor's then-current listing of
+     products and services and the suggested retail price for such products and
+     services as posted on Licensor's web site, which pricing and/or list may be
+     revised by Licensor from time to time.
+
+1.9  Revenue Shared Sales shall mean sales by Dell of Licensor products,
+     training, and services that are not listed on [*], such sales to be at [*].
+
+1.10 Supplement and Exhibits shall mean the supplement executed under this
+     Software License Agreement and Exhibits attached hereto. The Supplement and
+     Exhibits shall describe the Licensed Product(s) and may include additional
+     terms and conditions such as compensation, delivery schedules, technical
+     contacts and other information related to the Licensed Product(s). The
+     terms and conditions of this Software License Agreement shall apply to the
+     Supplement and Exhibits.
+
+1.11 Updates shall mean all improvements, corrections, patches, fixes,
+     modifications, alterations, revisions, extensions, upgrades, national
+     language versions and/or enhancements to the existing functionality and
+     performance of the Licensed Product(s) and Licensor Application(s) and
+     related documents (as described herein in the Supplement) that are released
+     by Licensor for general distribution to its licensees under its annual
+     upgrade protection ("AUP") program, during the term of this Agreement, but
+     excluding New Versions.
+
+1.12 New Version shall mean a version of the Licensed Product(s) or Licensor
+     Application(s) that are released by Licensor for general distribution to
+     its licensees under its AUP program, which contain substantial and
+     significant additions or other substantial change to the features,
+     functionality, or performance as compared to the previous version if any,
+     and which usually are designated by Licensor by increasing the leftmost
+     number in the version number (e.g. Version X.6).
+
+1.13 Training and Professional Services shall mean Licensor's training, support,
+     and professional services designated as such in the Supplement and as
+     updated from time to time on the Dell Price List.
+
+2.0  OBJECT CODE LICENSE WITH SOURCE CODE ESCROW PROVISIONS
+
+2.1  Subject to the terms and conditions of this Agreement, Licensor hereby
+     grants to Dell a non-exclusive, transferable, worldwide license under all
+     of Licensor's copyrights, patents, patent applications, trade secrets and
+     other intellectual property rights as is necessary to exercise the rights
+     to: (i) use, execute, reproduce, display, and perform the Licensed
+     Product(s), solely for testing, training, or demonstration purposes, (ii)
+     distribute, through multiple tiers of distribution, the Licensed Product(s)
+     as part of, in conjunction with, or for use with, Dell systems, (iii)
+     authorize, license, sell the license and rights to perform the obligations
+     hereunder, or otherwise transfer the license and sublicense to third
+     parties to do any, some or all of the foregoing on Dell's behalf provided,
+     however, that Dell enters into an agreement with such third party at least
+     as protective of Licensor as this Agreement, and (iv) provided Dell does
+     not breach Section 2.4 nor use any source code of the Licensed Product(s),
+     create derivative works of the Licensed Product(s) for the purpose of bug
+     fixes, service and support solely to support the licensed use of the
+     Licensed Product(s) by Dell customers as set forth in this Agreement upon
+     the occurrence of either of the following events: (i) the release of the
+     Deposit Materials under Section 2.7 of this Agreement, or (ii) in the event
+     Licensor fails to materially meet its service and support obligations
+     identified herein under Section 5.0 of Exhibit C. Dell shall distribute the
+     Licensed Product(s) to end users pursuant to Dell's end user license
+     agreement ("EULA"), the wording of which shall be mutually
+
+---------------------
+* This provision is the subject of a Confidential Treatment Request.
+
+<PAGE>
+
+     agreed upon by the parties and shall be at least as protective of Licensor
+     as its current EULA attached hereto as Exhibit G.
+
+2.2  Licensor hereby grants to Dell a non-exclusive, nontransferable (except as
+     set forth in Section 12.3), worldwide license, under all of Licensor's
+     copyrights, patents, patent applications, trade secrets and other
+     intellectual property rights as is necessary to exercise the rights to: (i)
+     use, execute, display, and perform the Licensor Application(s) solely for
+     testing, training, or demonstration purposes, (ii) distribute the Licensor
+     Application(s), as part of, in conjunction with, or for use with, Dell
+     systems and (iii) authorize, license and sublicense third parties to do
+     any, some or all of the foregoing on Dell's behalf provided, however, that
+     Dell enters into an agreement with such third party at least as protective
+     of Licensor as this Agreement. Dell shall distribute the Licensor
+     Application(s) to end users pursuant to Licensor's EULA, as may be updated
+     from time to time.
+
+2.3  Licensor hereby grants to Dell a non-exclusive, nontransferable (except as
+     set forth in Section 12.3), royalty-free, worldwide license, under all of
+     Licensor's copyrights, patents, patent applications, trade secrets and
+     other intellectual property rights as is necessary to exercise the rights
+     to: (i) use, execute, display, and perform the Limited Products solely for
+     testing, training, or demonstration purposes, (ii) Dell will endeavor to
+     distribute the Limited Products solely to purchasers of Dell systems, and
+     (iii) authorize, license and sublicense third parties to do any, some or
+     all of the foregoing on Dell's behalf provided, however, that Dell enters
+     into an agreement with such third party at least as protective of Licensor
+     as this Agreement. Dell shall distribute the Limited Products to end users
+     pursuant to Licensor's EULA, as may be updated from time to time.
+
+2.4  Unless explicitly stated otherwise, any software or license rights
+     referenced in this Agreement shall be limited solely to software in object
+     code form only. Dell shall not disassemble, de-compile or otherwise reverse
+     engineer the Licensed Product(s), Licensor Application(s), and Limited
+     Products. Also, for purposes of this Agreement, the purchase and sale of
+     software products shall mean the purchase and sale of licenses to use such
+     software products.
+
+2.5  Licensor hereby grants the right and license to Dell to: (i) use Licensor's
+     Marks in connection with the marketing and distribution of Licensed
+     Product(s), Licensor Application(s), and Limited Products, and (ii) all
+     pictorial, graphic and audio visual works including icons, screens and
+     characters created as a result of execution of the Licensed Product(s),
+     Licensor Application(s), and Limited Products; but only to promote and sell
+     the Licensed Product(s) and Licensor Application(s) and Limited Products,
+     and only in accordance with Licensor's trademark usage policies. Dell
+     acknowledges that Licensor has title and ownership of the Licensor Marks
+     and all associated goodwill, and agrees that any goodwill that accrues
+     because of Dell's use of the Licensor Marks belongs to Licensor.
+
+2.6  Dell hereby grants the right and license to Licensor to: (i) use Dell's
+     Marks in connection with customizing and promoting the Licensed Product(s)
+     pursuant to this Agreement; but only in accordance with Dell's trademark
+     usage policies. Licensor acknowledges that Dell has title and ownership of
+     the Dell Marks and all associated goodwill, and agrees that any goodwill
+     that accrues because of Licensor's use of the Dell Marks belongs to Dell.
+
+2.7  Dell shall not remove, efface or obscure any copyright notices or other
+     proprietary notices or legends from or in any Licensed Product(s), Licensor
+     Application(s), Limited Products, or other Licensor materials provided
+     under this Agreement without prior written approval from Licensor. Such
+     approval shall not be unreasonably withheld. All rights of Licensor not
+     expressly granted herein shall remain solely and exclusively in Licensor.
+
+2.8  Dell may, at its option during the term of this Agreement, enter into the
+     Master Preferred Escrow Agreement attached hereto as Exhibit H ("Escrow
+     Agreement") between DSI Technology Escrow
+
+<PAGE>
+
+         Services, Inc. ("Escrow Agent") and Licensor, as a Preferred
+         Beneficiary. In such event, Licensor will deposit with the Escrow Agent
+         the source code for the Licensed Product(s) (the "Deposit Materials")
+         under the terms and conditions set forth in the Escrow Agreement and
+         this Section 2.0. Licensor agrees to update the Deposit Materials
+         within ninety (90) days upon each release of a New Version of the
+         Licensed Product(s). Dell acknowledges that the Deposit Materials will
+         not include any third party software, source code, tools, or other
+         materials, whether or not related to the Software. In addition to the
+         procedural requirements and other conditions governing the release of
+         the Deposit Materials as set forth in the Escrow Agreement, DSI will
+         release a copy of the Deposit Materials to Dell only if there is a
+         Failure to Support the Licensed Product(s) by Licensor. Under this
+         Section, "Failure to Support" shall mean: (1) in the event of a
+         Severity 5, 4, or 3 problem, Licensor has not assigned appropriate
+         personnel to such severity level and not provided any of the required
+         update reports in accordance with Section 5.0 of Exhibit C, and (2)
+         such failure continues for: (a) with respect to a Severity 5 problem,
+         three (3) business days; (b) with respect to a Severity 4 problem, ten
+         (10) business days; and (c) with respect to a Severity 3 problem,
+         fifteen (15) business days. Before Dell can assert a Failure to
+         Support, Licensor and Dell shall meet (including by telephone
+         conference) within five (5) business days of Licensor's receipt of
+         Dell's notice in an attempt to address any Failure to Support. If the
+         Failure to Support is not resolved by the representatives at such
+         meeting (or conference call) or the parties have not met within such
+         five (5) business days, the chief executive officer of Licensor or his
+         designee and a Vice President of Dell shall meet (including by
+         telephone conference) within fifteen (15) business days of the
+         previously failed meeting. If the Failure to Support is still not
+         resolved after such meeting or such meeting does not take place within
+         such fifteen (15) business days because Licensor's chief executive
+         officer or his designee have not been available, then the Failure to
+         Support shall be deemed to be a proper Failure to Support, subject to
+         Licensor proving otherwise.
+
+2.9      Effective upon proper release of the Deposit Materials, Licensor hereby
+         grants Dell a perpetual, non-exclusive, non-transferable, royalty-free,
+         worldwide license to use the Deposit Materials only as necessary to
+         support the licensed use of the Licensed Product(s) by Dell customers
+         as expressly set forth in this Agreement. Dell shall not use the
+         Deposit Materials for any other purpose. Dell grants Licensor a
+         perpetual, worldwide, non-exclusive non-transferable license to use any
+         derivative works developed by Dell pursuant to this Section 2.9 or
+         under Section 2.1(iv) only as necessary to support the licensed use of
+         the Licensed Product(s) by Dell customers as expressly set forth in
+         this Agreement.
+
+2.10     If the Deposit Materials released and delivered to Dell under the
+         Escrow Agreement include any software and/or other materials that are
+         not included in the Licensed Product(s), Dell shall promptly delete or
+         destroy that material and shall not disclose it or use it for any
+         purpose whatsoever. Licensor reserves all rights not expressly granted
+         herein, and all rights in and to the Licensed Product(s) and the
+         Deposit Materials remain the exclusive and absolute property of
+         Licensor and/or its licensors.
+
+2.11     Dell acknowledges and agrees that the Deposit Materials and all copies,
+         partial copies, and all information contained therein, as well as all
+         intellectual property rights associated therewith (collectively,
+         "Confidential Materials") are confidential and proprietary and
+         constitute valuable trade secrets of Licensor and/or the respective
+         manufacturer or author. Dell shall maintain the terms of the Escrow
+         Agreement and the Confidential Materials in strict confidence, and
+         shall not sell, transfer, publish, disclose, display or otherwise make
+         accessible the Confidential Materials, or any copies thereof, in whole
+         or in part, to any third party. Dell shall secure and protect the
+         Confidential Materials with the same degree of care it uses to protect
+         its own confidential and trade secret information of the highest
+         importance and most sensitive nature. Internal dissemination of the
+         Confidential Materials by Dell shall be limited to its employees whose
+         duties justify the need to know such information.
+
+2.12     To the extent there is any conflict between the provisions of this
+         Section 2.0 and the Escrow Agreement, the provisions of this Section
+         2.0 shall control. Dell agrees to pay all escrow fees applicable to the
+         Deposit Materials that are invoiced by Licensor.
+
+<PAGE>
+
+3.0  COMPENSATION
+
+3.1  Dell may purchase the Licensed Product(s) and Licensor Application(s)
+     through a licensed distributor of Licensor. No payment shall be due for
+     copies of the Limited Products distributed in accordance with this
+     Agreement. No payments shall be due for copies of the Licensed Product(s)
+     or Licensor Application(s) that are: (i) used or distributed internally
+     within Dell for testing purposes only, (ii) used or distributed solely for
+     demonstration, marketing, or training purposes, (iii) distributed to a
+     customer as a replacement for a defective copy or to fix an error within
+     the warranty period set forth in the EULA distributed with the applicable
+     Licensed Product(s) or Licensor Application(s), or as set forth in Dell's
+     return policy listed on the Dell web site for the Licensed Product(s), or
+     Licensor's Return Policy for the Licensor Application(s), (iv) used for
+     reasonable backup or archival purposes, (v) returned by a customer within
+     the applicable warranty period, or (vi) distributed to an existing customer
+     as an upgrade to their existing copy of the Licensed Product(s) or Licensor
+     Application(s) during the one-year period commencing from the customer's
+     date of purchase of the Licensed Product(s) or Licensor Application(s).
+
+3.2
+
+     (a)   [*]
+
+     (b)   [*]
+
+     (c)   [*]
+
+---------------------
+* This provision is the subject of a Confidential Treatment Request.
+
+<PAGE>
+
+         (d)   Dell shall provide Licensor with a sales volume report setting
+         forth the amount of sales for the Licensed Product(s), Licensor
+         Application(s), and Training and Professional Services for the
+         corresponding Dell fiscal quarter. Dell shall provide this sales volume
+         report to Licensor within thirty (30) days of the end of each Dell
+         fiscal quarter. Licensor shall remit the rebate amounts associated with
+         such sales volume report within thirty (30) days of receipt of such
+         report. Payment shall be by wire transfer to an identified General
+         Account number and be sent to an address specified upon Agreement
+         signature.
+
+3.3      Unless otherwise agreed to by the Parties, in the event of Revenue
+         Shared Sales, Licensor shall remit to Dell an amount equal to [*] of
+         gross revenue of sales of Licensor products less credit for returned
+         product or [*] of gross revenue of sales of training and professional
+         services. Dell shall provide Licensor with revenue reports for Revenue
+         Shared Sales within thirty (30) days of the end of Dell's fiscal
+         quarters and Licensor will remit revenue share on such revenue reports
+         to Dell within thirty (30) days of receipt of such report. Payment
+         shall be by wire transfer to an identified General Account number and
+         be sent to an address specified upon Agreement signature.
+
+3.4      [*]
+
+3.5      All applicable taxes, including but not limited to sales/use taxes,
+         withholding taxes, transaction privilege taxes, gross receipts taxes,
+         and other charges such as duties, customs, tariffs, imposts, and
+         government imposed surcharges imposed upon the Licensed Product(s) and
+         Licensor Application(s), and services provided, to Dell under this
+         Agreement shall be paid by Dell. Dell shall have the responsibility to
+         pay such taxes either directly to the applicable taxing authorities, or
+         to Licensor, as a seller, under the circumstances in which Licensor has
+         the responsibility for collecting and remitting said taxes to the
+         taxing authorities pursuant to state or local law. In the latter case,
+         Licensor shall collect and remit all such taxes to the appropriate tax
+         authorities unless Dell provides sufficient proof of tax exemption. In
+         the circumstance where Licensor has tax collection and remittance
+         responsibilities, Licensor shall have the responsibility of invoicing
+         Dell for such taxes and Dell shall remit such invoiced amounts to
+         Licensor. In the event that Licensor does not properly invoice Dell,
+         and is subsequently audited by any tax authority, the liability of Dell
+         will be limited to the tax assessment, with no reimbursement for
+         penalty or interest charges if such assessment of tax was solely due to
+         Licensor's failure to timely invoice Dell and to collect and remit such
+         tax. The foregoing tax provision is applicable to all transfers under
+         this Agreement, including the transfers of licenses for software. Each
+         Party is and shall be responsible for its own respective income taxes
+         or taxes based upon gross revenues, net income or capital, including
+         but not limited to business and occupation taxes. Notwithstanding the
+         above, in the event that income taxes are required to be withheld by
+         any non-U.S.A. government on payments to Licensor required hereunder
+         (and provided that Dell shall co-operate, if necessary, within a
+         reasonable period of time delivers to Licensor an official receipt for
+         any such taxes withheld or other documents necessary to
+
+---------------------
+* This provision is the subject of a Confidential Treatment Request.
+
+<PAGE>
+
+         enable Licensor to pursue, if Licensor so wishes, based upon the
+         documentation available, a claim for a U.S.A. Foreign Tax Credit) Dell
+         may deduct such taxes from the amount owed Licensor and shall pay the
+         taxes to the appropriate taxing authority. In the event multiple levels
+         of withholding taxes are available for designation by Dell, Dell will
+         use reasonable efforts, consistent with applicable legal requirements,
+         to minimize in its designation any such withholding taxes. Dell will
+         reasonably cooperate with Licensor should Licensor, in its discretion,
+         choose to undertake efforts to assure that any withheld taxes are
+         minimized to the extent possible under applicable law.
+
+3.6      [*]
+
+4.0      PRE-DELIVERY TESTING, DELIVERY AND ACCEPTANCE
+
+4.1      Prior to delivery, Licensor shall perform all testing necessary to
+         ensure that the Licensed Product(s) comply with its written
+         specifications and are compatible with Dell systems as set forth in the
+         Supplement. [*]
+
+4.2      [*]
+
+---------------------
+* This provision is the subject of a Confidential Treatment Request.
+
+<PAGE>
+
+4.3      [*]
+
+5.0      SUPPORT, TRAINING AND MAINTENANCE
+
+5.1      [*]
+
+5.2      [*]
+
+5.3      [*]
+
+5.4      [*]
+
+5.5      [*]
+
+---------------------
+* This provision is the subject of a Confidential Treatment Request.
+
+<PAGE>
+
+MARKETING AND SALES
+
+6.1      [*] The Parties may change the marketing activities in Exhibit E upon
+         mutual written consent.
+
+6.2      [*]
+
+6.3      [*]
+
+7.0      REPRESENTATIONS AND WARRANTIES
+
+7.1      Licensor represents and warrants to Dell that:
+
+         (a)      the Licensed Product(s), Limited Product(s) and Licensor
+                  Application(s) will operate in accordance with the written
+                  documentation and EULA provided by Licensor with the Licensed
+                  Product(s), Limited Product(s) and Licensor Application(s)
+                  according to the time periods set forth in the EULA;
+
+         (b)      Licensor has all the necessary rights, titles and interests in
+                  the Licensed Product(s), Limited Product(s) and Licensor
+                  Application(s) to grant Dell the rights and licenses contained
+                  in this Agreement;
+
+         (c)      the Licensed Product(s), Limited Product(s) and Licensor
+                  Application(s) shall not infringe any copyright, patent, trade
+                  secret or any other intellectual property rights or similar
+                  rights of any third Party; and Licensor shall not infringe any
+                  copyright, patent, trade secret or any other intellectual
+                  property rights or similar rights of Dell;
+
+         (d)      the Licensed Product(s), Limited Product(s) and Licensor
+                  Application(s) do not contain any known viruses, expiration,
+                  time-sensitive devices or other harmful code that would
+                  inhibit the end user's licensed use of the Licensed
+                  Product(s), Limited Product(s) and Licensor Application(s) on
+                  Dell systems (other than the Limited Product(s) and the
+                  time-trial version of the Licensed Product(s) as more fully
+                  described in the Supplement);
+
+         (e)      Upon delivery to Dell, the Licensed Product(s), Limited
+                  Product(s) and Licensor Application(s) comply with all
+                  governmental laws, statutes, ordinances, administrative
+                  orders, rules and regulations and that Licensor has procured
+                  all necessary licenses and paid all fees and other charges
+                  required so that Dell can exercise the rights and license
+                  granted under this Agreement;
+
+         (f)      the Licensed Product(s), Limited Product(s) and Licensor
+                  Application(s) are not encrypted, nor do they contain
+                  encryption capability; if the Licensed Product(s), Limited
+                  Product(s) and Licensor Application(s) do contain encryption
+                  capabilities, Licensor agrees to adhere to the requirements
+                  described in Exhibit A.
+
+         (g)      At the time of delivery to Dell, there is no restriction of
+                  any relevant governmental authority which prohibits the export
+                  of the Licensed Product(s), Limited Product(s) and Licensor
+                  Application(s) to countries outside the United States and
+                  Canada, other than
+
+---------------------
+* This provision is the subject of a Confidential Treatment Request.
+
+<PAGE>
+
+                  those laws of the United States which prohibit exports
+                  generally to specified counties, currently: Libya, Cuba,
+                  Montenegro, North Korea, Serbia, Syria, Sudan, Iran and Iraq,
+                  as amended from time to time by the United States Government;
+
+         (h)      at the time of delivery, Licensor shall insure that all
+                  updates and upgrades to the Licensed Product(s), Limited
+                  Product(s) and Licensor Application(s) provided by Licensor to
+                  Dell comply with all applicable governmental laws, statutes,
+                  rules and regulations including, but not limited to, those
+                  related to export of product and technical data, and Licensor
+                  agrees that for any Updates and New Versions which are
+                  licensed to Dell pursuant to the terms of this Agreement,
+                  Licensor shall provide prior written notice of any facts which
+                  would make the foregoing representations untrue;
+
+         (i)      Licensor will warrant the Licensed Product(s), Limited
+                  Product(s) and Licensor Application(s) directly to the
+                  end-user in accordance with the terms and conditions set forth
+                  in Licensor's EULA; and
+
+         (j)      Licensor has agreed to honor all replacement requests received
+                  from Dell or end users under the terms of the EULA pertaining
+                  to defective Licensed Product(s), Limited Product(s) and
+                  Licensor Application(s).
+
+7.2      Dell's exclusive remedy and Licensor's entire liability for any breach
+         of the warranties in Section 7.1 shall be the remedies specified as set
+         forth in Section 8 (Indemnification) of this Agreement.
+
+7.3      The foregoing warranties do not apply, and Licensor shall have no
+         liability for any claims arising out of: (i) Dell's use or distribution
+         of other than a current unaltered release of the Licensed Product(s)
+         and Licensor Application(s); (ii) Dell's use of the Licensed Product(s)
+         and Licensor Application(s) modified or merged with any other programs
+         by Dell or others (excluding software necessary to run the Licensed
+         Product(s) and Licensor Application(s)) without the approval of
+         Licensor; or (iii) Dell's use or distribution of the Licensed
+         Product(s) and Licensor Application(s) in conjunction with equipment
+         other than Dell products and equipment.
+
+7.4      Dell represents and warrants to Licensor that (a) Dell's systems that
+         contain the Licensed Product(s) and Licensor Application(s) shall not
+         infringe any copyright, patent, trade secrets, or other intellectual
+         property or similar rights of any third party; and (b) Dell shall not
+         infringe any of Licensor's copyright, patents, trade secrets, or other
+         intellectual property or similar rights relative to the Licensed
+         Product(s) or Licensor Applications.
+
+7.5      Except as specifically set forth in Section 7.0, neither Party makes
+         any warranties, representations or conditions regarding the Licensed
+         Product(s) and Licensor Application(s) or Dell systems. BOTH PARTIES
+         SPECIFICALLY DISCLAIM ANY AND ALL OTHER WARRANTIES, EXPRESS, IMPLIED,
+         STATUTORY OR ARISING OUT OF A COURSE OF DEALING, SPECIFICALLY INCLUDING
+         ANY WARRANTY AGAINST INFRINGEMENT, AND THE WARRANTIES OR CONDITIONS OF
+         MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+8.0      INDEMNIFICATION
+
+8.1      Licensor shall indemnify, defend or settle, at Licensor's expense, any
+         third party expense, liability or claim ("Claim") brought against Dell
+         to the extent based on a breach of the warranties in Section 7.1 above.
+         Licensor's obligations set forth in this Section are subject to the
+         conditions that Dell: (i) promptly gives notice to Licensor of the
+         Claim, (ii) allows Licensor to control the defense and settlement of
+         such Claim, and (iii) gives Licensor, all necessary information and
+         reasonable assistance with respect to such Claim. Licensor shall pay
+         all amounts paid in settlement and all damages and costs awarded to
+         such third party with respect to a final resolution of such Claim,
+         including reasonable attorney's fee, costs and expenses associated with
+         an action required in an award granted to such third party. If any
+         particular Licensed Product(s) or Licensor Application(s) is subject to
+         a Claim, or Licensor reasonably believes that the Licensed Product(s)
+         or Licensor
+
+<PAGE>
+
+       Application(s) may become subject to a Claim, then Licensor may, at its
+       sole option and expense do one of the following: (i) obtain an
+       appropriate license to allow continued use of the Licensed Product(s) or
+       Licensor Application(s) in question in accordance with this Agreement;
+       (ii) replace such Licensed Product(s) or Licensor Application(s) with
+       non-infringing software of substantially equivalent or better functions
+       and efficiency; or (iii) if Licensor in its sole discretion believes that
+       either of the foregoing options is not practical, terminate Dell's right
+       to use or distribute such Licensed Product(s) or Licensor Application(s),
+       in which case Licensor shall refund the amount Dell previously paid to
+       Licensor for the use by Dell of such Licensed Product(s) or Licensor
+       Application(s), less a portion thereof to account for the period of use,
+       and accept return of the license(s) and associated software and media.
+       The portion shall be a pro-rated portion based on a four year useful life
+       depreciated using a straight-line method.
+
+8.2    The foregoing notwithstanding, Licensor shall have no liability or
+       obligation for the portion of a Claim that it is based on (i) the use or
+       distribution by Dell of any Licensed Product(s) or Licensor
+       Application(s) after Licensor has provided Dell a replacement for such
+       Licensed Product(s) or Licensor Application(s); (ii) the combination of
+       any Licensed Product(s) or Licensor Application(s) with other software,
+       equipment, materials or products not provided by Licensor other than the
+       Dell products; (iii) unrelated intellectual property infringement arising
+       from Dell's distribution of products; (iv) the modification of any of the
+       Licensed Product(s) or Licensor Application(s) by anyone other than
+       Licensor; or (v) the use of the Licensed Product(s) or Licensor
+       Application(s) in a process or manner not contemplated by Licensor's end
+       user documentation or publications for the Licensed Product(s) or
+       Licensor Application(s) provided to Dell.
+
+9.0    TERM AND TERMINATION OF AGREEMENT
+
+9.1    Unless earlier terminated as provided below, the term of this Agreement
+       shall be for three (3) years from the Effective Date and, unless either
+       Party gives thirty (30) days notice of non-renewal prior to the end of
+       the initial term, this Agreement shall automatically renew for successive
+       one (1) year periods.
+
+9.2    Either Party may, at its option and upon written notice to the other
+       Party, terminate this Agreement if: (a) a material breach of this
+       Agreement by the other Party is not remedied within thirty (30) days
+       after the breaching Party's receipt of written notice of the breach; (b)
+       the other Party admits in writing its inability to pay its debts
+       generally as they become due, files a petition for bankruptcy or executes
+       an assignment for the benefit of creditors or similar document; or (c) a
+       receiver, trustee in bankruptcy or similar officer is appointed for the
+       other Party's property. Either Party may terminate this Agreement without
+       cause upon 180 days prior written notice to the other Party. Neither
+       Party will, by reason of the termination, be liable to the other Party
+       for compensation, reimbursement, or damages on account of any loss of
+       prospective profits on anticipated sales, or on account of any
+       expenditures, investments, or other commitments made in connection with
+       the other Party's business or goodwill, or otherwise, provided the
+       termination is properly noticed.
+
+9.3    All licenses and sublicenses granted to end users with respect to the
+       Licensed Product(s) or Licensor Application(s) sold under this Agreement
+       shall continue in effect after expiration or termination of this
+       Agreement. All provisions of Sections 7.0, 8.0, 9.0, 10.0, 11.0, and
+       12.0, shall survive any expiration or termination of this Agreement and
+       shall bind the Parties and their successors, heirs, assigns and legal
+       representatives. In addition, Licensor's obligations under Section 2, 4
+       and 5 with respect to escrow, support and maintenance, shall survive for
+       one (1) year after any expiration or termination of this Agreement solely
+       for Dell to satisfy its then existing contractual obligations to its
+       customers and licensees. The parties will work together to develop a
+       mutually agreeable plan to provide continued service to affected Dell end
+       users after the expiration of Licensor's support obligations pursuant to
+       the foregoing, which may include, without limitation, payment of
+       additional fees to Licensor. Dell shall retain a limited license in
+       accordance with Section 2 to use the Licensed Product(s) and Licensor
+       Application(s) in order to satisfy such
+
+<PAGE>
+
+       existing contractual obligations for one (1) year and to exhaust its
+       inventory of Licensed Product(s) existing at expiration or termination,
+       provided that Dell's right to exhaust any such inventory shall not extend
+       beyond 90 days after expiration or termination of this Agreement, and
+       provided Dell makes any payments required under Section 3. Thereafter,
+       Dell agrees to return or destroy all additional copies of the Licensed
+       Product(s) and Licensor Application(s) in its possession.
+
+10.0   LIMITATION OF LIABILITIES
+
+10.1   EXCEPT FOR CLAIMS OR LIABILITIES OCCURRING UNDER SECTION 7.1(C) LIMITED
+       TO "CLAIMS" (AS THE TERM "CLAIM" IS DEFINED IN SECTION 8.1), AND 7.4
+       ABOVE, NEITHER PARTY SHALL BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
+       PUNITIVE OR CONSEQUENTIAL DAMAGES UNDER ANY PART OF THIS AGREEMENT
+       EVEN IF ADVISED OR AWARE OF THE POSSIBILITY OF SUCH DAMAGES.
+
+10.2   [*]
+
+11.0   CONFIDENTIAL INFORMATION
+
+11.1   The Parties agree that information exchanged under this Agreement that is
+       considered by either Party to be confidential information will be subject
+       to the terms and conditions of the non-disclosure agreement #99042607 in
+       place between the Parties. Licensor shall not provide to Dell any
+       information which is considered confidential information of any third
+       party.
+
+12.0   MISCELLANEOUS
+
+12.1   This Agreement shall in no way preclude either Party from independently
+       developing, having developed or acquiring or marketing any products or
+       services nor shall it in any way preclude either Party from entering into
+       any similar agreement with any other party.
+
+12.2   Dell shall have full freedom and flexibility in its decisions (provided
+       such decisions are consistent with the terms of this Agreement)
+       concerning the distribution and marketing (except as provided in Section
+       6) of the Licensed Product(s), Limited Product(s) and Licensor
+       Application(s) including, without limitation, the decision of whether or
+       not to distribute or discontinue distribution of the Licensed Product(s),
+       Limited Product(s) and Licensor Application(s). Dell does not guarantee
+       that its marketing, if any, of the Licensed Product(s), Limited
+       Product(s) and Licensor Application(s) will be successful.
+
+12.3   This Agreement may not be assigned by either Party, in whole or in part,
+       without the express written permission of the other Party, not to be
+       unreasonably withheld. Notwithstanding the foregoing, either Party may
+       assign this Agreement, in whole or in part, in connection with a merger,
+       stock or asset sale, reorganization or acquisition, without the other
+       Party's written permission. Any attempted assignment in violation of this
+       Section shall be void. If a Party assigns this Agreement without the
+       other Party's written consent, the non-assigning Party will have the
+       option to immediately terminate this Agreement for cause. The assigning
+       Party shall make
+
+
+-----------------------------
+* This provision is the subject of a Confidential Treatment Request.
+
+<PAGE>
+
+       reasonable efforts to provide the non-assigning Party with at least
+       thirty (30) days written notice prior to any assignment of this
+       Agreement, or any part hereof. This Agreement shall be binding upon, and
+       inure to the benefit of the Parties and their respective successors and
+       permitted assigns.
+
+12.4   The Parties are independent contractors, and nothing contained in this
+       Agreement shall be construed to create or imply a joint venture,
+       partnership, principal-agent or employment relationship. Neither Party
+       shall have the right or authority to create or incur any liability or any
+       obligation of any kind, express or implied, against, or in the name of,
+       or on behalf of the other Party.
+
+12.5   [*]
+
+12.6   All publicity concerning the transactions contemplated by this Agreement
+       shall be jointly planned and coordinated by and between the Parties.
+       Neither of the Parties shall act unilaterally in this regard without the
+       prior written approval of the other Party; such approval, however, shall
+       not be unreasonably withheld. Further, neither Party shall disclose the
+       terms and conditions of this Agreement to any third party, including, but
+       not limited to, any financial terms, except as required by law or with
+       the other Party's prior written consent.
+
+12.7   Both Parties shall comply with all applicable governmental laws,
+       statutes, ordinances, administrative orders, rules and regulations
+       including, without limitation, those related to the export of technical
+       materials. Licensor shall provide Dell with prompt written notice of any
+       export restrictions related to the Licensed Product(s).
+
+12.8   Any and all written notices, communications and deliveries between
+       Licensor and Dell with reference to this Agreement shall be deemed made
+       on the date of mailing if sent by registered or certified mail to the
+       respective address of the other Party as follows:
+
+              In the case of Dell:      Dell Products L.P.
+                                        One Dell Way
+                                        BBP, Box 4
+                                        Round Rock, TX 78682
+                                        Attn: Legal Department
+
+              In the case of Licensor:  Altiris, Inc.
+                                        588 West 400 South
+                                        Lindon, UT 84042
+                                        Attn: General Counsel
+
+12.9   This Agreement shall be governed by and interpreted in accordance with
+       the laws of the State of New York, U.S.A. without regards for its rules
+       of conflict of laws, as if this Agreement was executed in and fully
+       performed within the State of New York. Both Parties hereby waive any
+       right to a trial by jury relating to any dispute arising under or in
+       connection with this Agreement.
+
+12.10  Should any provision herein be held by a court of competent jurisdiction
+       to be illegal, invalid or unenforceable, such provision shall be modified
+       to reflect the intentions of the Parties. All other terms and conditions
+       shall remain in full force and effect.
+
+---------------------
+* This provision is the subject of a Confidential Treatment Request.
+
+<PAGE>
+
+12.11  No amendment, modification or waiver of any provision of this Agreement
+       shall be effective unless set forth in a writing executed by an
+       authorized representative of each Party. No failure or delay by either
+       Party in exercising any right, power or remedy will operate as a waiver
+       of any such right, power or remedy. No waiver of any provision of this
+       Agreement shall constitute a continuing waiver or a waiver of any similar
+       provision unless expressly set forth in a writing signed by an authorized
+       representative of each Party.
+
+12.12  Since Dell transacts business with the United States government, Licensor
+       must comply with the applicable federal laws and Federal Acquisition
+       Regulations ("FARs") including the following:
+
+          It is Dell's policy to take affirmative action to provide equal
+          employment opportunity without regard to race, religion, color,
+          national origin, age, sex, disability, veterans status or any other
+          legally protected status. As a condition of doing business, Dell
+          requires Licensor to practice equal opportunity employment and to
+          comply with Executive Order 11246, as amended, Section 503 of the
+          Rehabilitation Act of 1973, and Section 4212 of the Vietnam Era
+          Veteran's Readjustment Assistance Act of 1974, all as amended, and the
+          relevant Regulations and Orders of the U.S. Secretary of Labor.
+          Additionally, to the extent required by applicable law, the following
+          sections of Chapter 60 of Title 41 of the Code of Federal Regulations
+          are incorporated by reference in this Agreement and each Order: 41 CFR
+          60-1.4(a); 41 CFR 60-1.8; 41 CFR 60-741; 41 CFR 60-250; 41 CFR 60-1.7;
+          41 CFR 60-1.40.
+
+12.13  This Agreement sets forth the entire agreement and understanding of the
+       Parties relating to the subject matter contained herein, and merges all
+       prior discussions and agreements, both oral and written, between the
+       Parties. Nothing in any purchase order, invoice, order acknowledgment, or
+       other document of Licensor shall be of any effect whatsoever and may not
+       affect, alter, or modify the terms and conditions of this Agreement. If
+       the terms and conditions of this Agreement conflict with any terms of a
+       Dell purchase order relating to the Licensed Product(s) and Licensor
+       Application(s), the terms and conditions of this Agreement shall govern.
+       The terms and conditions set forth in the Supplement and Exhibits are
+       hereby incorporated into this Software License Agreement by reference. If
+       the terms and conditions of this Software License Agreement conflict with
+       any terms and conditions contained in the Supplement or Exhibits, the
+       terms and conditions of the Supplement and Exhibits shall govern.
+
+12.14  Orders issued by Dell pursuant to this Agreement are placed with the
+       expectation of potential acquisition of credit for current and/or
+       anticipated future offset obligations of Dell, Dell Computer Corporation
+       or Dell Computer Corporation's subsidiaries or affiliates, or their
+       designated assignees to various governments around the world. Supplier
+       agrees to reasonably assist Dell, Dell Computer Corporation or Dell
+       Computer Corporation's subsidiaries or affiliates, or their designated
+       assignees in their efforts to secure offset credit from these governments
+       in an amount equal to the value of the applicable in-country content of
+       the orders placed under this Agreement.
+
+12.15  Dell is committed to utilizing socially responsible suppliers that comply
+       with all applicable laws and regulations, embrace high standards of
+       ethical behavior, and treat their employees fairly, with dignity and
+       respect. Licensor represents to Dell that it complies with the following
+       minimum standards:
+
+          (a) comply with the applicable legal maximum working hours;
+          (b) comply with legal employment age requirements;
+          (c) demonstrate a commitment to the health and safety of their
+              employees, both in working conditions and housing supplied, if
+              applicable;
+          (d) make hiring decisions based on ability to do the job, rather than
+              on the basis of personal beliefs or characteristics;
+          (e) do not utilize forced or indentured labor, or raw materials or
+              finished goods produced by forced labor; and
+
+<PAGE>
+
+          (f) do not employ any type of corporal punishment, or mental or
+              physical coercion.
+
+12.16    For a period of 12 months following the Effective Date of this
+         Agreement, Licensor shall not solicit for employment, any employee of
+         Dell or a Subsidiary of Dell. Notwithstanding the foregoing, contacts
+         with prospective employees resulting from general advertising, or
+         unsolicited contacts that are initiated solely by employees of Dell or
+         one of its Subsidiaries, and the recruitment and employment of such
+         persons following such unsolicited contacts, shall not be deemed to be
+         solicitations prohibited by this Agreement
+
+IN WITNESS WHEREOF, the Parties hereto have duly executed this Software License
+Agreement by their respective duly authorized officers to be effective as of the
+Effective Date as first written above.
+
+DELL PRODUCTS L.P.                            ALTIRIS, INC.
+
+By: Scott Crawley                             By: Robert N. Wellman
+
+
+Signature: /s/ Scott Crawley                  Signature: /s/ Robert N. Wellman
+
+
+Title: Director                               Title: VP Strategic Alliance Sales
+
+
+Date: 4/30/02                                 Date: April 30, 2002
+
+<PAGE>
+
+                                  SUPPLEMENT TO
+
+                          SOFTWARE LICENSING AGREEMENT
+
+THIS SUPPLEMENT is entered into as of this 26th day of April, 2002 by and
+between Dell Products L.P. (hereinafter "Dell") with its principal place of
+business at One Dell Way, Round Rock, Texas 78682, and Altiris, Inc., a Delaware
+corporation having a principal place of business at 588 W. 400 South, Lindon,
+Utah 84042 (hereinafter "Licensor").
+
+This Supplement provides additional terms and conditions to the above referenced
+Software License Agreement. All terms and conditions of the Software License
+Agreement apply to this Supplement and the terms and conditions of this
+Supplement are hereby incorporated by reference into the Software License
+Agreement.
+
+1.0      DESCRIPTION OF LICENSED PRODUCT(S)
+
+         (A) CODE                Dell OpenManage Client Administrator consisting
+                                 of Altiris Client Management Suite version 5.5
+                                 Service Pack 1 customized as identified in
+                                 Exhibit D ("OEM Statement of Work").
+
+         (B) DOCUMENTATION
+
+         -----------------------------------------------------------------------
+         Documentation:
+         -----------------------------------------------------------------------
+             Product Requirements Document - Feature and Function Definitions
+         -----------------------------------------------------------------------
+                 Description of each feature/function
+         -----------------------------------------------------------------------
+                 What part of the product was changed to incorporate this
+                 feature/function
+         -----------------------------------------------------------------------
+                 Release requirements/features
+         -----------------------------------------------------------------------
+             Functional Specs
+         -----------------------------------------------------------------------
+                 Description for requirement implementation
+         -----------------------------------------------------------------------
+                 Definition of how each feature/function is implemented
+         -----------------------------------------------------------------------
+                 Interaction between this feature/function and the other
+                 features/functions
+         -----------------------------------------------------------------------
+             Test Plan
+         -----------------------------------------------------------------------
+                 Test results for each requirement
+         -----------------------------------------------------------------------
+                 Version descriptions of each test tool
+         -----------------------------------------------------------------------
+                 Test tools (tools, cases and environment vendor uses to test
+                 the product)
+         -----------------------------------------------------------------------
+                 Degree of automation defined
+         -----------------------------------------------------------------------
+                 How each feature/function was tested
+         -----------------------------------------------------------------------
+             Technical Support Statistics (when available)
+         -----------------------------------------------------------------------
+                 Call volume
+         -----------------------------------------------------------------------
+                 Types of problems reported
+         -----------------------------------------------------------------------
+                 Supporting statistical data
+         -----------------------------------------------------------------------
+                 Resolution for high call drivers for this product
+         -----------------------------------------------------------------------
+                 Portal into Customer Services Help Desk
+         -----------------------------------------------------------------------
+             Portal into Developer Help Desk
+         -----------------------------------------------------------------------
+             User Documentation
+         -----------------------------------------------------------------------
+                 Installation Guide
+         -----------------------------------------------------------------------
+                 User's Guide
+         -----------------------------------------------------------------------
+
+<PAGE>
+
+         -----------------------------------------------------------------------
+                 On-Line Help
+         -----------------------------------------------------------------------
+             Release Notes (the following may be consolidated within 1 document)
+         -----------------------------------------------------------------------
+                 Change Notification Process
+         -----------------------------------------------------------------------
+                 Known limitations for this release
+         -----------------------------------------------------------------------
+                 What was fixed in this release
+         -----------------------------------------------------------------------
+                 Any installation changes
+         -----------------------------------------------------------------------
+                 List of new features added in this release
+         -----------------------------------------------------------------------
+             Technical Training Materials for Technical Support and Sales (in
+             collaboration with Dell)
+         -----------------------------------------------------------------------
+                 Resource Tool Kit
+         -----------------------------------------------------------------------
+                 Portal to Licensor Demo Web Site
+         -----------------------------------------------------------------------
+
+
+         Dell and Altiris Integration:
+         -----------------------------------------------------------------------
+             Any debugging utilities in the Resource Tool Kit
+
+         -----------------------------------------------------------------------
+             Developer's documentation and Usage Models in the Resource Tool Kit
+         -----------------------------------------------------------------------
+             Engineering Troubleshooting Guide in the Resource Tool Kit, when
+             available or provided in Engineering Training
+         -----------------------------------------------------------------------
+             Other docs/specs/API/utilities that will facilitate the
+             integration, as available in the Resource Tool Kit
+         -----------------------------------------------------------------------
+
+3.0      DELIVERY SCHEDULE / TECHNICAL CONTACTS FOR LICENSED PRODUCTS
+
+         Technical contacts will be identified in Exhibit C. The delivery
+         schedule for the Licensed Product(s) shall be as follows:
+
+         [*]
+
+4.0      DESCRIPTION OF LICENSOR APPLICATION(S)
+
+         (A) CODE             Licensor Applications are as listed in the Dell
+                              Price List attached hereto as Exhibit F.
+
+         (B) DOCUMENTATION    User documentation varies by product offering.
+
+5.0      COMPENSATION FOR LICENSED PRODUCT(S) AND LICENSOR APPLICATION(S)
+
+         The Dell Price List is attached hereto as Exhibit F.
+
+6.0      DELIVERY SCHEDULE FOR LICENSOR APPLICATIONS / TECHNICAL CONTACTS
+
+         Technical contacts will be identified in Exhibit C. Licensor
+         Application(s) shall be made available to Dell upon execution of this
+         Agreement.
+
+7.0      ACCEPTANCE CRITERIA
+
+---------------------
+* This provision is the subject of a Confidential Treatment Request.
+
+<PAGE>
+
+Dell shall accept the Licensed Product(s) and Limited Product(s) when the
+following terms and conditions are fully satisfied and documented:
+
+7.1    [*]
+
+7.2    [*]
+
+7.3    [*]
+
+7.4    [*]
+
+---------------------
+* This provision is the subject of a Confidential Treatment Request.
+
+<PAGE>
+
+7.5      [*]
+
+8.0      NEW PRODUCTS
+
+         During the term of the Software License Agreement, the Parties agree to
+         exercise reasonable efforts to meet no less than once per quarter to
+         discuss their mutual business objectives, which include, but are not
+         limited to, product roadmaps and the possible evaluation of new
+         Licensor products. Licensor shall make commercially reasonable efforts
+         to provide Dell an evaluation copy of new Licensor products (subject to
+         a written evaluation agreement). If Dell wants to license such new
+         product from Licensor, the new product will be added to this Agreement
+         as mutually agreed upon in a written amendment, subject to negotiated
+         pricing and delivery terms and conditions for the specific new product.
+         The parties will agree on a schedule for Dell's introduction of the new
+         product to Dell's customers that will include at a minimum the
+         appointment of business and technical contacts for each party to
+         monitor compatibility issues and other product release issues.
+
+IN WITNESS WHEREOF, the Parties hereto have duly executed this Supplement to the
+above referenced Software License Agreement by their respective duly authorized
+officers.
+
+DELL PRODUCTS L.P.                           ALTIRIS, INC.
+
+By: Scott Crawley                            By: Robert N. Wellman
+
+
+Signature: /s/ Scott Crawley                 Signature: /s/ Robert N. Wellman
+
+
+Title: Director                              Title: VP Strategic Alliance Sales
+
+
+Date: 4/30/02                                Date: April 30, 2002
+
+---------------------
+* This provision is the subject of a Confidential Treatment Request.
+
+<PAGE>
+
+                                   EXHIBIT A
+
+                            Encrypted Software Export
+
+In accordance with the U.S. Export Administration Regulations, certain software
+and items possessing encryption capabilities may require formal export licenses
+before they can be exported and/or re-exported from the United States. Licensor
+agrees to complete the questions on the following Software Questionnaire.
+
+Please contact Allyson Manuel if you have any questions @ (512) 723-6647.
+
+If Licensor's software has not been classified, Licensor may refer to the BXA
+(Bureau of Export Administration) Website at http://www.bxa.doc.gov for
+information regarding classifying software. Under the category of "Getting Help
+and Contacting Us", click on the "General Fact Sheets". Then click on "Obtaining
+a Commodity Classification" to receive information on how to classify software.
+
+Please fax the completed Export Questionnaire to (512)723-4256, or send the form
+via e-mail to allyson_manuel@dell.com.
+
+Licensed Product Not for Export out side the US or Canada.
+If the Licensor has several versions of the Licensed Product(s), such as 128-bit
+level encryption for US customers and 40-bit level for international customers,
+Licensor agrees to conspicuously identify on the Licensed Product(s) media the
+level of encryption of each version of the Licensed Product(s) when the media is
+delivered to Dell.
+
+Licensor also agrees to conspicuously mark the media of the 128-bit level
+encryption version of the Licensed Product(s) with a label stating "NOT FOR
+EXPORT OUTSIDE THE US OR CANADA. CONTAINS ENCRYPTION" prior to delivering the
+Licensed Product(s) media to Dell.
+
+<PAGE>
+
+                             SOFTWARE QUESTIONNAIRE
+
+     Company Name: Altiris
+
+     Please attach additional pages if necessary.
+
+     Product name & version number: Altiris eXpress Client Management Suite
+     5.5 Country of Origin USA
+     Harmonized Tariff Schedule Number (HTS):___________________________________
+     Export Commodity Control Number (ECCN): 5D992
+     License Exception (if applicable):_________________________________________
+
+     If product is 5D002, TSU [GSN], please provide a copy of the BXA
+     classification verification).
+
+1.   What is the functionality of your software (i.e.: word processing,
+     engineering/design, communication, operating system, etc.)? The products
+     are used for remote management of PCs.
+
+2.   What type of equipment is the software used to support (i.e.:
+     telecommunications, manufacturing/test, computers, etc.)? Please be
+     specific. Computers, Laptops, Servers, Handheld devices (PDA's)
+
+3.   Is your software available to the public via sales from stock at retail
+     selling points by means of "over-the-counter" transactions, mail order, or
+     telephone call transactions (Mass Market)? No If yes, please forward a copy
+     of BXA approval.
+
+4.   Is your software designed for installation by the user without further
+     substantial support (substantial support does not include telephone (voice
+     only) help line services for installation or basic operation, or basic
+     operation training provided by the supplier? Yes
+
+5.   Does your software or commodity have encryption capabilities? Yes
+
+     If the answer to question 5 above is "No", you do not need to complete the
+     remaining questions on this form.
+
+6.   What function does the encryption provide (i.e.: password protection, data
+     encryption, etc.? Please be specific. For Altiris eXpress Deployment Server
+     encryption is used for the following functions: Password protection for
+     passwords stored in the registry, passwords being transported across the
+     wire and passwords stored in data files on bootdisks. We also have an
+     option for encrypting the communication between our server and client. For
+     Altiris eXpress Notification Server encryption is used for protection on
+     various passwords: SQL server password stored in the registry of the NS
+     server, and the "Run as" password for software delivery stored in XML in
+     the database on the server, sent to the client and stored as xml on the
+     client. It is also used for protection of the SQL queries for our `out of
+     box' reports.
+
+7.   Does the data encryption algorithm exceed a key space of 56 bits? For
+     Altiris eXpress Deployment Server; Yes, Our symmetrical algorithm support
+     56 bits. Our public key private key algorithm uses 256. For Altiris eXpress
+     Notification Server; No, we are using the MS Crypto API with provider
+     "Microsoft Base Cryptographic Provider v1.0"
+
+8.   What is the specific key length of the encryption algorithm? _ For Altiris
+     eXpress Deployment Server our symmetrical algorithm supports 56 bits. Our
+     public key private key algorithm uses 256. For Altiris eXpress Notification
+     Server it is RC4 with 40 bit key.
+
+<PAGE>
+
+9.   Does your software or commodity allow the alteration of the data encryption
+     mechanism and its associated key spaces by the user? No
+
+10.  Please provide a brief written summary of the encryption technology used in
+     the design of the software or commodity in question. Please be sure to
+     identify the type of algorithm used. Altiris eXpress Deployment Server is a
+     product used for remote management of PCs. The products contain many
+     executables; five of them contain encryption software. All cryptographic
+     software used by these products is contained in an Altiris created library
+     known as CryptoLib. The products use 56-bit RC4 encryption with a 512-bit
+     key exchange mechanism. Based on the criteria listed 742.15(b)(1) and the
+     Commerce Control List, these products continue to be properly classified as
+     ECCN: 5D992. For Notification Server we use MS Crypto API.
+
+11.  Is there an EXPORT version of the software named above? Yes for Altiris
+     eXpress Deployment Server. No for Altiris eXpress Notification Server.
+
+     This form Completed by:
+
+     Name _________________________ Title ____________________
+     Signature:_____________________ Date _______________ Phone#________________
+
+<PAGE>
+
+                                    EXHIBIT B
+
+                                W-9 Form Follows:
+
+<PAGE>
+
+                                    EXHIBIT C
+
+                                      [*]
+
+-----------------------------
+* This provision is the subject of a Confidential Treatment Request.
+
+<PAGE>
+
+                                    EXHIBIT D
+
+
+                                      [*]
+
+
+----------
+       * This provision is the subject of a Confidential Treatment Request.
+
+<PAGE>
+
+                                    EXHIBIT E
+
+                                      [*]
+
+-----------------------------
+* This provision is the subject of a Confidential Treatment Request.
+
+<PAGE>
+
+                                    EXHIBIT F
+
+                                       [*]
+
+---------------------
+* This provision is the subject of a Confidential Treatment Request.
+
+<PAGE>
+
+                                    EXHIBIT G
+
+                   ALTIRIS END USER LICENSE AGREEMENT ("EULA")
+
+Software License Agreement
+
+IMPORTANT - READ CAREFULLY: This Altiris Software License Agreement ("License")
+is a legal agreement between you (either an individual or a single entity) and
+Altiris, Inc. ("Altiris") for the licensing of software products from Altiris.
+
+DO NOT DOWNLOAD, INSTALL, COPY OR USE THIS SOFTWARE UNTIL YOU HAVE READ AND
+ACCEPTED THIS LICENSE. BY DOWNLOADING, INSTALLING, COPYING, OR USING THIS
+SOFTWARE, YOU AGREE TO BE BOUND BY THIS LICENSE. IF YOU DO NOT AGREE WITH ANY
+TERM OR CONDITION OF THIS LICENSE, ALTIRIS IS NOT WILLING TO LICENSE THE
+SOFTWARE TO YOU. IN SUCH EVENT, YOU MAY NOT DOWNLOAD, INSTALL OR USE THE
+SOFTWARE. YOU MAY, HOWEVER, RETURN THE SOFTWARE (INCLUDING ALL ACCOMPANYING
+MEDIA, DOCUMENTATION, PACKAGING AND MATERIALS) IN AN UNDAMAGED CONDITION TO THE
+VENDOR FROM WHOM YOU ACQUIRED IT WITHIN 30 DAYS FOR A REFUND OF THE FEE, IF ANY,
+YOU PAID FOR THE LICENSE.
+
+This License governs seven (7) day and thirty (30) day evaluation licenses as
+well as all other licenses applicable to Altiris products. There is no fee for
+an evaluation license; all other licenses must be purchased from Altiris or its
+authorized resellers. Except as otherwise expressly provided herein, this
+License will also govern any Software updates and upgrades that may be provided
+to Licensee in accordance with Altiris' then-current maintenance and support
+policies, unless such updates and upgrades are provided under separate license
+agreement. Any other software that may be provided with the Software that is
+associated with a separate end-user license agreement is licensed to you under
+the terms of that license agreement.
+
+1.   Licensee. For purposes of this License, the term "Licensee" means the
+person, company or entity that uses the Software under this License. The
+Licensee must accept and agree to this License before downloading, installing or
+using the Software.
+
+2.   Certificate of License. A "Certificate of License" in the form of a product
+or package label or confirmation e-mail will be sent to the Licensee and will
+identify the Software licensed to Licensee under this License and the type of
+license(s) (see Section 7 below) granted to Licensee for each Software product.
+
+3.   Software and Documentation. "Software" means the computer programs of the
+licensed software product(s) in the form and version(s) provided to Licensee,
+together with the associated media and corresponding Documentation.
+"Documentation" means the end user manual and other documentation (including
+print and "online"), if any, provided to Licensee with the Software.
+
+4.   Ownership. All title and intellectual property in and to the Software
+(including all copies of the Software made by Licensee) are owned by Altiris and
+its licensor(s). The Software is also protected by copyright law and
+international treaty provisions. The Software is licensed to Licensee, not sold.
+
+5.   Activation Key. To use the Software, Licensee must first obtain an
+"activation key" from Altiris or its authorized reseller. The activation key may
+be a printable digital key, a non-printable file, or any other mechanism used by
+Altiris for license activation purposes.
+
+6.   Licensed Computers. A "Licensed Computer" is a computer within the
+possession and control of Licensee on which the Software may be run or executed
+pursuant to the type of license granted to Licensee.
+
+<PAGE>
+
+7.   License Type. The type of license purchased by Licensee determines the
+license rights granted to Licensee. The license type will be specified in the
+Certificate of License provided to Licensee and/or will be displayed in an
+"information about" box when the activation key is applied during the install
+process.
+
+a.   Evaluation License - An Evaluation License is a "limited time," "limited
+user" license that provides the Licensee an opportunity to try the Software
+before buying a full license. A temporary Certificate of License and temporary
+activation key will be issued to Licensee for this license. The temporary
+Certificate of License will specify the number of Licensed Computers, the number
+of users, and the evaluation period. The Software may only be used on the
+specified number of Licensed Computers and by no more than the specified number
+of users (i.e., employees of Licensee). The Software may only be used for
+evaluation purposes. The Software is licensed to Licensee only for the specified
+evaluation period, which will begin on the date that the Software is first
+downloaded by or delivered to Licensee.
+
+b.   Not for Resale (NFR) Demo License - An NFR Demo license is a special type
+of "limited user" evaluation license that is provided exclusively to, and for
+use only by, Altiris channel and OEM partners to assist in demonstrating
+Altiris' software to prospective customers. In the event the partner
+relationship with Altiris expires or is terminated, or the Partner no longer
+uses the license as intended, the NFR license will immediately terminate.
+
+c.   Node License - Altiris Vision. This license type and this paragraph are
+applicable only to the Altiris Vision software product. The Altiris Vision
+Software includes a Master Module for use on a primary computer (typically the
+computer of the teacher or instructor) and a User Module for use on the user
+computers (typically the computers of the students or trainees). The user
+computers are the "nodes" on which the User Module runs. For each Node License
+purchased, the Licensee may use the Master Module on one or more primary
+computers and the User Module on only the number of nodes (i.e., user computers)
+specified by the Certificate of License. Use of the Master Module is limited to
+use in connection with the licensed user modules. Use of the User Module is
+limited to use in connection with the Master Module(s) resident on the primary
+computer(s). The Licensee must purchase a sufficient number of nodes under this
+Node License to cover each computer that may, at any time, store, execute or use
+the User Module.
+
+d.   Node License - Other Software. This license type is applicable to all
+Altiris software products other than the Altiris Vision product. Under the terms
+of this Node License, Licensee may use (a) the management infrastructure portion
+of the Software product on as many computers as is reasonably necessary to
+utilize the Software as described in the applicable Documentation (the "managing
+computers"), and (b) the client portion of the Software on only the number of
+nodes specified in the Certificate of License. Except for the Helpdesk, Carbon
+Copy and Web Admin products (see below), a "node" is the computer (including its
+associated hard disk(s) and other storage device(s)) that is managed or is going
+to be managed using Altiris Software. Node licenses may be purchased for use on
+computers (such as servers, desktop computers, notebook computers and PDAs) to
+be managed using Altiris software ("managed computers"). Depending upon the
+particular Software product, the Software on the managing computer is used (i)
+to gather inventory from, or to send or receive alerts to or from, the managed
+computer, or (ii) to configure or change a setting of, or to migrate settings to
+or from, the managed computer, or (iii) to deploy, install, erase, or remove any
+application, program, file or image to, on or from a hard disk or other storage
+device of the managed computer, or (iv) to place a self-extracting application,
+program, file or image on a hard disk or other storage device of the managed
+computer. (In the case of RapidInstall Software, the self-extracting application
+or program is known as a RapidInstall Package or "RIP.")
+
+For any one Software product, only one node is "consumed" for each managed
+computer. One node is consumed by a Software product when that product is used
+once or multiple times to perform or deliver any of the services described in
+clauses (i), (ii), (iii) or (iv) above, on or to a managed computer. If two or
+more Software products are used on a managed computer, then two or more nodes
+(one for each Software product) will be consumed for that managed computer. Node
+Licenses purchased for desktop, notebook and PDAs are not transferable for use
+on managing servers. Licensee must purchase a sufficient number of nodes under
+the terms of this Node License to cover all nodes consumed by a Software product
+for the applicable managed computer type. The number and type of Node Licenses
+purchased will be specified on the Certificate of License. Additional nodes may
+be purchased at Altiris' then-current fees. Under a Node License, each managing
+and managed computer is a Licensed Computer.
+
+<PAGE>
+
+(i)    Helpdesk. In the case of Helpdesk Software, a "node" is a managed
+computer or any other object that populates the database, such as a printer,
+copier, etc. (each, a "managed object"). Under this Node License, Licensee may
+use the Software to import into the database and manage any number of managed
+objects not to exceed at any one time the total number of licenses purchased
+(e.g., if Licensee has purchased 1,000 licenses for Helpdesk, Licensee may
+maintain up to, but no more than, 1,000 managed objects in the database at any
+one time).
+
+(ii)   Carbon Copy Solution (excluding Carbon Copy consumer version). The Carbon
+Copy Software provided to Licensee includes both a web-based and Windows utility
+of the product. The purchase of a node entitles Licensee to select and install
+only one version of the product for each computer used by Licensee as described
+below. If Licensee desires to install both versions, Licensee must purchase an
+additional node for each version installed on each computer. Installation and
+use by Licensee of both versions of the product without purchasing additional
+nodes to cover the use of both versions is a violation of the License.
+
+(A)    In the case of Carbon Copy web-based solution Software, a "node" is the
+same as described in section 7 .d. (Node License - Other Software) above. (B) In
+the case of Carbon Copy Software, a "node" is the computer on which the console
+component or the client component of the Software is installed. Under this Node
+License, Licensee may install and use the console and client components of the
+Software in any combination on multiple computers as long as Licensee's
+concurrent use of such Software components does not exceed (in the aggregate)
+the total number of nodes for which Licensee has purchased licenses (e.g., if
+Licensee has purchased 1000 licenses, Licensee may install and use up to, but no
+more than, a combined total of 1000 console and client components on multiple
+computers at any one time).
+
+(iii)  Web Admin for SMS (Microsoft Systems Management Server). In the case of
+Web Admin Software, a "node" is a computer or any other object that populates
+the SMS database, such as a printer, copier, etc. (each, an "object"). Under
+this Node License, Licensee may use the Software to manage any number of objects
+in the SMS database not to exceed at any one time the total number of nodes for
+which licenses have been purchased (e.g., if Licensee has purchased 1,000
+licenses, Licensee may manage up to, but no more than, 1000 objects in the SMS
+database at any one time).
+
+e.     Technician and Consultant Licenses. Technician and Consultant Licenses
+are sold on a "per-individual" basis. The Certificate of License will generally
+indicate the name of the individual who may use the Software. Each such license
+is restricted to a single individual (the "technician" or "consultant") who is
+an employee or independent contractor of Licensee, and may not be transferred to
+or shared with any other individual. Licensee guarantees the technician's
+compliance with this License. Use of the Software is limited to use by the
+technician (if an employee) within his/her scope of employment with Licensee, or
+use by the technician (if an independent contractor) within the scope of his/her
+services for Licensee. Any limit on the number of nodes consumed by the
+technician's use of a Software product will be specified in the Certificate of
+License. For each such license, the number of managed computers that can be
+imaged concurrently using the Multicast feature is limited to the number of
+computers specified in the Certificate of License (this only applies to Software
+products having the Multicast feature). One Technician or Consultant License
+must be purchased for each technician involved in setting up, installing,
+imaging or configuring any managed computers. The computers on which the
+licensed technician uses the Software are Licensed Computers. Technician and
+Consultant Licenses do not allow any element of the software to be "left behind"
+on the Licensed Computers once the configuration tasks have been completed.
+
+f.     Site License - Site Licenses are sold on a "per site" basis. Each Site
+License allows the Licensee to use the Software on computers at a single,
+contiguous, physical location (the "Licensed Site"), but not on any other
+computers or at any other site. A separate Site License is required for each
+site. The Licensed Site will be designated in the Certificate of License and/or
+information about box. Any number of nodes can be consumed under a Site License,
+provided that all such nodes (i.e., managed computers) remain at the Licensed
+Site. With respect to Altiris Vision Software, the Site License consists of a
+Classroom License for each of the classrooms located at the Licensed Site.
+
+g.     Classroom License - Altiris Vision. A Classroom License for the Altiris
+Vision Software product allows the Licensee to use the Altiris Vision Software
+in one physical non-subdivided classroom (the "Licensed Classroom") and is not
+transferable to any other classroom. The Master Module may be used on one or
+more
+
+<PAGE>
+
+primary computers physically located in the Licensed Classroom. The User Module
+may be used on as many computers in the Licensed Classroom as is necessary,
+taking into account physical limitations inherent within the Software. There may
+be a physical limitation of the Master Module to communicate with and control a
+specified number of computers (see the product documentation and the Certificate
+of License). A Classroom License does not allow the Software to be used in
+multiple classrooms even if the Software is not used in more than one classroom
+at a time. The Certificate of License and/or information about box will indicate
+the number of Classroom Licenses.
+
+h.    Campus Site License - A Campus Site License allows the Licensee to use the
+Software at one campus at a single physical, contiguous location (the "Licensed
+Campus"). The Software may only be used by the Licensee at that Licensed Campus
+unless additional licenses are purchased. A college or university with multiple
+campuses must purchase a Campus Site License for each campus at which any
+Software is used. With respect to Altiris Vision Software, the Campus Site
+License consists of a Classroom License for each of the classrooms located at
+the Licensed Campus, but not for any other classrooms. The Certificate of
+License and/or information about box will identify the Licensed Campus. Altiris
+reserves the right to request proof of the purchasing organization's (i.e., the
+Licensee's) accreditation.
+
+i.    District License - A District License allows the Licensee to use the
+Software in the schools within a school district, provided the schools are under
+the direct management, control and supervision of the district office (the
+"Licensed District"). The Software may not be used by the Licensee outside of
+the Licensed District unless additional licenses are purchased. With respect to
+Altiris Vision Software, the District License consists of a Classroom License
+for each of the classrooms located within the Licensed District, but not for any
+other classrooms. The Certificate of License and/or information about box will
+identify the Licensed District. Altiris reserves the right to request proof of
+the purchasing organization's (i.e., the Licensee's) accreditation.
+
+j.    School Site License - A School Site License allows the Licensee to use the
+Software at one school at a single, contiguous, physical location (the "Licensed
+School"). The Software may not be used by the Licensee outside of the Licensed
+School unless additional licenses are purchased. With respect to Altiris Vision
+Software, the School Site License consists of a Classroom License for each of
+the classrooms located within the Licensed School, but not for any other
+classrooms. The Certificate of License and/or information about box will
+identify the Licensed School. Altiris reserves the right to request proof of the
+purchasing organization's (i.e., the Licensee's) accreditation.
+
+k.    Enterprise License - An Enterprise License allows the use of the Software
+on all computers within the licensed enterprise (the "Licensed Enterprise")
+without any limit on the number of physical sites or locations within the
+Licensed Enterprise. An Enterprise License is limited to use of the Software
+within the Licensed Enterprise. Licensee must report the number of all computers
+within the Licensed Enterprise at the time of purchase of the Enterprise
+License, even if the Software is not used on all of the reported computers. Each
+time the total number of computers within the Licensed Enterprise exceeds the
+previously reported number by more than 10%, Licensee must promptly report the
+new number of computers to Altiris, and Altiris, in its sole discretion, may
+increase the license fee to reflect the increase in the number of computers.
+With respect to Altiris Vision Software, the Enterprise License consists of a
+Classroom License for each of the classrooms located within the Licensed
+Enterprise.
+
+8.    License. Subject to the terms and conditions of this License, Altiris
+grants to Licensee a nonexclusive, nontransferable license to use the Software
+in accordance with the applicable license type as described above. Except for an
+Evaluation License, the applicable license type depends on the license purchased
+by Licensee and specified in the Certificate of License and/or "information
+about" box. Licenses apply separately to each Software product. Only those
+Software products specified in a Certificate of License issued to Licensee are
+licensed to Licensee.
+
+9.    Copies. Licensee may make copies of the Software provided that any such
+copy: (i) is created as an essential step in the utilization of the Software on
+a Licensed Computer and is used in no other manner and on no computer which is
+not a Licensed Computer for that Software, or (ii) is only for archival purposes
+to back-up a Licensed Computer. All trademark, copyright and proprietary rights
+notices must be faithfully reproduced and included by Licensee on such copies.
+Licensee may not make any other copies of the Software. If obtained for
+evaluation purposes, at the end of the evaluation period, Licensee must erase
+all copies of the Software unless a license is purchased as provided above.
+
+<PAGE>
+
+10.   Restrictions. Altiris reserves all rights not expressly granted to the
+Licensee. Without limiting the generality of the foregoing, Licensee shall not:
+(i) disassemble, de-compile or otherwise reverse engineer the Software, or (ii)
+create derivative works based upon the Software, or (iii) rent, lease,
+sublicense, distribute, transfer, translate, modify or reprogram the Software,
+or (iv) timeshare the Software, make the Software available to others on the
+Internet, any BBS or any on-line service, or allow others to copy, access or use
+the Software.
+
+11.   Limited Warranty. If (a) the Software does not substantially conform to
+its specifications in the Documentation, or if the physical media accompanying
+the Software is defective, or if Licensee is dissatisfied with the Software for
+any reason, and (b) if the Software (including all accompanying media,
+Documentation, packaging and materials) is returned by Licensee within 30 days
+of first receipt, then the payment made by Licensee to purchase the license
+shall be refunded to Licensee. Upon return, the License shall terminate and
+Licensee must immediately cease all use of the Software and remove and erase all
+copies of any Software from all computers and storage media and devices within
+the possession or control of Licensee. At Altiris' request, Licensee will
+certify in writing to Altiris that Licensee has complied with section. In the
+event that the Software is licensed under an Evaluation License, there shall be
+no refund because an Evaluation License is free. In the event that Licensee
+purchases a Software license during or after evaluation of the Software under an
+Evaluation License, then there shall be no obligation to refund the payment made
+by Licensee to purchase the Software license (i.e., the 30 day evaluation period
+was Licensee's 30 day limited warranty period). THIS LIMITED WARRANTY SHALL NOT
+APPLY TO SOFTWARE UPDATES AND UPGRADES. ALL UPDATES AND UPGRADES ARE LICENSED
+"AS IS," WITHOUT WARRANTY OF ANY KIND.
+
+12.   Disclaimer of Warranties. ALTIRIS MAKES NO WARRANTY NOT EXPRESSLY SET
+FORTH IN THIS LICENSE. EXCEPT AS EXPRESSLY WARRANTED ABOVE, THE SOFTWARE IS
+PROVIDED "AS IS," WITHOUT WARRANTY OF ANY KIND. ALTIRIS DISCLAIMS AND EXCLUDES
+ALL IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. ANY
+EXPRESS WARRANTY MADE OUTSIDE OF THIS LICENSE IS EXCLUDED AND SUPERCEDED.
+ALTIRIS DOES NOT WARRANT THAT THE SOFTWARE WILL SATISFY LICENSEE'S REQUIREMENTS
+OR THAT IT IS WITHOUT DEFECT OR ERROR OR THAT THE OPERATION THEREOF WILL BE
+UNINTERRUPTED OR ERROR FREE. Some jurisdictions do not allow certain disclaimers
+and limitation of warranties, so some of these may not apply.
+
+13.   Limitation On Liability. THE AGGREGATE LIABILITY OF ALTIRIS ARISING FROM
+OR RELATING TO THIS LICENSE OR USE OF THE SOFTWARE (REGARDLESS OF THE FORM OF
+ACTION OR CLAIM, SUCH AS CONTRACT, WARRANTY, TORT, STRICT LIABILITY,
+MALPRACTICE, AND/OR OTHERWISE) SHALL NOT EXCEED THE AMOUNT OF ALL LICENSE FEES
+PAID BY LICENSEE FOR THE SOFTWARE LICENSE(S) GRANTED HEREUNDER. ALTIRIS SHALL
+NOT IN ANY CASE BE LIABLE FOR ANY INCIDENTAL, CONSEQUENTIAL, INDIRECT OR
+PUNITIVE DAMAGES, OR FOR ANY LOSS OF PROFITS OR REVENUES, OR FOR LOSS OF
+COMPUTER PROGRAMS OR DATA, REGARDLESS OF THE FORM OF ACTION AND EVEN IF ALTIRIS
+HAS BEEN ADVISED OF THE POSSIBILITY THEREOF. Because some jurisdictions do not
+allow certain exclusions or limitations of liability, the above limitation may
+not apply.
+
+14.   Notice.  THE SOFTWARE IS NOT INTENDED OR LICENSED FOR USE IN ANY HAZARDOUS
+OR HIGH RISK ACTIVITY OR FOR ANY PERSONAL, FAMILY OR HOUSEHOLD PURPOSES.
+
+15.   Sole Remedy and Allocation of Risk.  LICENSEE'S SOLE AND EXCLUSIVE REMEDY
+AND ALTIRIS' SOLE AND EXCLUSIVE LIABILITY ARE SET FORTH IN THIS LICENSE. This
+License defines a mutually agreed-upon allocation of risk.
+
+16.   No Support.  Except as expressly required by applicable law, nothing in
+this License entitles Licensee to any support, maintenance or new versions of
+the Software. Licensee may contact Altiris to determine the availability of
+support, maintenance and new versions of the Software, and the fees, terms and
+conditions that would apply.
+
+<PAGE>
+
+17.   Taxes. In the event that any withholding, sales or use taxes or other
+taxes or government fees, assessments or charges are payable because of this
+License or any license or because of any payment by Licensee, then Licensee
+shall pay such taxes, fees, assessments and charges in addition to all other
+payments.
+
+18.   Governing Law. This License shall be governed by the laws of the state of
+Utah and the United States of America without giving effect to conflict or
+choice of law principles. The parties agree to exclude application of the
+"United Nations Convention on Contracts for the International Sale of Goods" to
+this License. The parties agree that any litigation between the parties shall be
+conducted exclusively in Utah state courts or the federal district courts within
+Utah.
+
+19.   Severability. If any provision in this License is invalid or unenforceable
+or contrary to applicable law, such provision shall be construed, limited, or
+altered, as necessary, to eliminate the invalidity or unenforceability or the
+conflict with applicable law, and all other provisions of this License shall
+remain in effect.
+
+20.   Termination. The Evaluation License and NFR Demo License shall
+automatically terminate at the end of the evaluation period (if a full license
+is purchased, a new Certificate of License and new activation key will be issued
+to Licensee). Any other license granted hereunder shall automatically terminate
+if Licensee materially breaches this License. Upon expiration or termination of
+any License, Licensee shall immediately cease all use of the Software and shall
+erase or destroy all copies of the Software within the possession or control of
+Licensee and shall return the original Software media and Documentation to
+Altiris. This shall not limit or affect any remedy available to Altiris for
+Licensee's breach.
+
+21.   U.S. Government End Users.  The Software is provided with RESTRICTED
+RIGHTS. Use, duplication, or disclosure by the United States Government is
+subject to restrictions as set forth in the Federal Acquisition Regulations
+(FAR)(S)52.227-14 (Jun 1987) Alternate III (June 1987), FAR(S)52.227-19 (June
+1987), or DFARS(S)252.227-7013 (b)(3) (Nov 1995) or applicable successor
+provisions, as applicable. Manufacturer is Altiris, Inc., 387 South 520 West,
+Lindon, UT 84042.
+
+22.   Export Laws. Regardless of any disclosure made by Licensee to Altiris of
+an ultimate destination of the Software, Licensee shall not export, re-export or
+disclose (directly or indirectly) any Software, or any portion thereof, to any
+country in violation of U.S. export laws or regulations or any other law,
+regulation or government order. It is Licensee's responsibility to comply with
+the United States government requirements as they may be amended from time to
+time.
+
+23.   Construction.  In the construction and interpretation of this License, no
+rule of strict construction shall apply against or in favor of either Party.
+
+24.   Entire Agreement. This License sets forth the entire understanding and
+agreement between the parties relating to its subject matter and may be amended
+only in a writing signed by both parties. ANY TERMS AND CONDITIONS OF ANY
+PURCHASE ORDER OR OTHER DOCUMENT SUBMITTED BY LICENSEE IN CONNECTION WITH THE
+LICENSED SOFTWARE THAT ARE IN ADDITION TO, DIFFERENT FROM OR INCONSISTENT WITH
+THE TERMS AND CONDITIONS OF THIS AGREEMENT ARE NOT BINDING ON ALTIRIS AND ARE
+INEFFECTIVE. NO VENDOR, DISTRIBUTOR, DEALER, RETAILER, SALES PERSON OR OTHER
+PERSON IS AUTHORIZED BY ALTIRIS TO MODIFY THIS LICENSE OR TO MAKE ANY WARRANTY,
+REPRESENTATION OR PROMISE WHICH IS DIFFERENT THAN, OR IN ADDITION TO, THE
+WARRANTIES, REPRESENTATIONS OR PROMISES EXPRESSLY SET FORTH IN THIS LICENSE.
+
+Copyright (c) 1998 - 2001 Altiris, Inc. All rights reserved.
+
+Altiris, Altiris Vision, Web Administrator, Helpdesk and RapidInstall are
+trademarks of Altiris, Inc. in the U.S. and other countries. Carbon Copy is a
+registered trademark licensed to Altiris, Inc. in the U.S. and a trademark of
+Altiris, Inc. in other countries. Other company and product names used herein
+are trademarks of their respective owners.
+
+<PAGE>
+
+                                    EXHIBIT H
+
+                        MASTER PREFERRED ESCROW AGREEMENT
+
+<PAGE>
+
+                                    EXHIBIT I
+
+                                       [*]
+
+-------------------
+* This provision is the subject of a Confidential Treatment Request.
+
+<PAGE>
+
+                        MASTER PREFERRED ESCROW AGREEMENT
+
+                              Master Number 0112132
+
+     This agreement "Agreement" is effective April 26, 2001 among DSI Technology
+Escrow Services, Inc. ("DSI"), Altiris, Inc. ("Depositor") and. any additional
+party signing the Acceptance Form attached to this Agreement ("Preferred
+Beneficiary"), who collectively may be referred to in this Agreement as the
+parties ("Parties").
+
+     A.  Depositor and Preferred Beneficiary have entered or will enter into a
+license agreement, development agreement, and/or other agreement regarding
+certain proprietary technology of Depositor (referred to in this Agreement as
+"the License Agreement").
+
+     B.  Depositor desires to avoid disclosure of its proprietary technology
+except under certain limited Circumstances.
+
+     C,  The availability of the proprietary technology of Depositor is critical
+to Preferred Beneficiary in the conduct of its business and, therefore,
+Preferred Beneficiary needs access to the proprietary technology under certain
+limited circumstances.
+
+     D   Depositor and Preferred Beneficiary desire to establish an escrow with
+DSI to provide for the retention, administration and controlled access of
+certain proprietary technology materials of Depositor.
+
+     E.  The parties desire this Agreement to be supplementary to the License
+Agreement pursuant to 11 United States [Bankruptcy] Code, Section 365(n).
+
+                                   ARTICLE I
+
+                                    DEPOSITS
+
+     1.1 Obligation to Make Deposit. Upon the signing of this Agreement by the
+parties, including the signing of the Acceptance Form, and Exhibit D naming the
+Deposit Account, Depositor shall deliver to DSI the proprietary technology and
+other materials ("Deposit Materials") required to be deposited by the License
+Agreement or, if the License Agreement does not identify the materials to be
+deposited with DSI, then such materials will be identified on Exhibit A. If
+Exhibit A is applicable, it is to be prepared and signed by Depositor and
+Preferred D81 shall have no obligation with respect to the preparation, signing
+or delivery of Exhibit A.
+
+     1.2 Identification of Tangible Media. Prior to the delivery of the Deposit
+Materials to DSI, Depositor shall conspicuously label for identification each
+document, magnetic tape, disk, or other tangible media upon which the Deposit
+Materials are written or stored. Additionally, Depositor shall complete Exhibit
+B to this Agreement by listing, each such tangible media by the item label
+description, the type or media and be quantity. Exhibit B shall be signed by
+Depositor and delivered to DSI with the Deposit Materials. Unless and until
+Depositor makes the initial deposit with DSI,
+
+<PAGE>
+
+DSI shall have no obligation with respect to this Agreement, except the
+obligation to notify the parties regarding the status of the account as required
+in Section 2.2 below.
+
+     1.3  Escrow Account, Name Identification. Subject to this Article 1, and at
+the time Depositor makes the initial deposit with DSI in accordance with Section
+1.2 above, Depositor shall complete and sign Exhibit D earning the initial
+deposit/account. Any new deposits referencing new account names made subsequent
+to the signing of this Agreement, intended by the Depositor to he held in a
+separate account and .maintained separately from the initial account, but made a
+part of this Agreement, shall be provided for by the Depositor on Exhibit E, and
+Exhibit E; shall be signed by the Depositor and DSI.
+
+     1.4  Deposit Inspection. When DSI receives the Deposit Materials and
+Exhibit B, DSI will conduct a deposit inspection by visually matching the
+labeling of the tangible media containing the Deposit Materials to the item
+descriptions and quantity listed on Exhibit I3. In addition to the deposit
+inspection, Preferred Beneficiary may elect to cause a verification of the
+Deposit Materials in accordance with Section 1.7 below.
+
+     1.5  Acceptance of Deposit. At completion of the deposit inspection, if DSI
+determines that the labeling; of the tangible media matches the item
+descriptions and quantity on Exhibit B, DSI will date and sign Exhibit B and
+maul a copy thereof to Depositor and Preferred Beneficiary. If DSI determines
+that the labeling does not match the item descriptions or quantity on Exhibit B,
+DSI will (a) note the discrepancies in writing on Exhibit B; (b) date and sign
+Exhibit B with the exceptions noted; and (e) mail a copy of Exhibit 13 to
+Depositor and Preferred Beneficiary. DSI's acceptance of the deposit occurs upon
+the signing of Exhibit B by DSI. Delivery of the signed Exhibit B to Preferred
+Beneficiary is Preferred Beneficiary's notice that the Deposit Materials have
+been received and accepted by DSI.
+
+     1.6  Depositor's Representations. Depositor represents to DSI as follows:
+
+          (a)  Depositor lawfully possesses all of the Deposit Materials
+deposited with DSI;
+
+          (b)  With respect to all of the Deposit Materials, Depositor has the
+right and authority to grant to DSI and Preferred Beneficiary the rights as
+provided in this Agreement;
+
+          (c)  The Deposit Materials are not subject to any lien or other
+encumbrance;
+
+          (d)  The Deposit Materials consist of the proprietary technology and
+other materials identified tether in the License Agreement or Exhibit A, as the
+case may be; and
+
+          (e)  The Deposit Materials are readable and useable in their current
+form or, if any portion of the Deposit Materials is encrypted, the decryption
+tools and decryption keys have also been deposited.
+
+     1.7  Verification. Preferred Beneficiary shall have the right, at Preferred
+Beneficiary's expense, to cause a verification of any Deposit Materials that
+have been delivered by Depositor to DSI pursuant to this Agreement. Preferred
+Beneficiary shall notify Depositor and DSI in writing of Preferred Beneficiary's
+request for verification. Depositor shall have the right to be present at the
+
+<PAGE>
+
+verification. A verification determines, in different levels of detail, the
+accuracy, completeness, sufficiency and quality of the Deposit Materials. Only
+DSI may perform the verification.
+
+     1.8  Deposit Updates. Unless otherwise provided by the License Agreement,
+Depositor shall update tile Deposit Materials within 60 days of each release of
+a new version of the product Which is subject 1.0 the License Agreement. Such
+updates will be added to the existing deposit, All deposit updates shall be
+listed on a new Exhibit B and the new Exhibit B shall be signed by Depositor.
+Each Exhibit B will be held and maintained separately within the escrow account.
+An independent record will be created which will document the activity for each
+Exhibit B. The processing of all deposit updates shall be in, accordance with
+Sections 1.2 through 1.5 above. All references in this Agreement to the Deposit
+Materials shall include the initial Deposit Materials and any updates.
+
+     1.9  Removal of Deposit Materials. The Deposit Materials may be removed
+and/or exchanged only on written instructions signed by Depositor and Preferred
+Beneficiary, or as otherwise provided in this Agreement.
+
+                                   ARTICLE II
+
+                       CONFIDENTIALITY AND RECORD KEEPING
+
+     2.1  Confidentiality. DSI shall maintain the Deposit Materials in a secure,
+environmentally safe, locked facility -which is accessible only to authorized
+representatives of DSI and shall protect the confidentiality of the Deposit
+Materials. Except as expressly provided in this Agreement, DSI shall. not
+disclose, transfer, make available, or use the Deposit Materials, DST shrill not
+disclose the content of this Agreement to any third party. If DSI receives a
+subpoena or any other order From a court or other judicial tribunal pertaining
+to the disclosure or release of the Deposit Materials, DSI will immediately
+notify the parties to this Agreement unless prohibited by law. It shall be the
+responsibility of Depositor and/or Preferred Beneficiary to challenge any such
+order; however, DSI does not waive its rights to present its position with
+respect to any such order. DSI will not be required. to disobey any order from a
+court or other judicial tribunal. (See Section 1.5 below for notices of
+requested orders.)
+
+     2.2  Status Reports. DSI will, at no additional charge, issue to Depositor
+and Preferred Beneficiary a report profiling the account history at least
+semi-annually. DSI may provide copies of the account history pertaining to this
+Agreement upon the request of any party to this Agreement.
+
+     2.3  Audit Rights. During tile; term or this Agreement, Depositor and
+Preferred Beneficiary shall each. have the right to inspect the written records
+of DSI pertaining to this Agreement. Any inspection shall be held during normal
+business hours and following reasonable prior notice.
+
+<PAGE>
+
+                                  ARTICLE III
+
+                             GRANT OT RIGHTS TO DSI
+
+     3.1  Title to Media. Depositor hereby transfers to DST the title to the
+media upon which the proprietary technology and materials are written or stored;
+however, the use o(pound) such media is strictly governed by this Agreement.
+Further, Depositor does not transfer any ownership of any other tangible or
+intangible property, including, without limitation, the proprietary technology
+and materials contained on the media and any copyright, trade secret, patent or
+other intellectual property rights associated with such technology and
+materials. DST acknowledges that any such copyrights, trade secrets, patent
+rights and other intellectual property in or to such proprietary technology and
+materials are and -will remain the exclusive property of Depositor and/or
+Depositor's licensor(s), if any.
+
+     3.2  Right to Make Copies. DSI shall have the right to make copies of the
+Deposit Materials as reasonably necessary to perform this Agreement. DSI shall
+accurately copy all copyright, nondisclosure, and other proprietary notices and
+titles contained on the Deposit Materials onto any copies made by DSI. With all
+Deposit Materials submitted to DSI, Depositor shall provide any and all
+instructions as may be necessary to duplicate the Deposit Materials including
+but not limited to the hardware and/or software needed.
+
+     3.3  Right to Transfer Upon Release. Upon Release, Depositor hereby grants
+to DSI the right to transfer Deposit Materials to Preferred Beneficiary only
+upon the occurrence of a Release Condition (as defined in Section 4.1) and the
+complete satisfaction of ,III other release terms and conditions set forth in
+Sections 4.2, 4.3 and 4.4. Upon such release, Preferred Beneficiary may use the
+Deposit Materials only as permitted in accordance with Section 4.5. Except upon
+such a release, DSI shall not transfer the Deposit Materials. Notwithstanding
+anything in this Agreement to the contrary, Preferred Beneficiary is not
+entitled to receive any Deposit Materials that correspond to versions of
+Depositor's software products that are not licensed or provided by Depositor to
+Preferred Beneficiary under the License Agreement (e.g. if the Deposit Materials
+correspond to versions 1.0 and 2.0 of a software product, but only version 1.0
+was licensed to the Preferred Beneficiary under the License Agreement, then
+Preferred Beneficiary is only entitled to a release of the Deposit Materials
+that corresponds to version 1.0). Preferred Beneficiary shall include in its
+notice under Section 4.2 below a statement specifically identifying the Deposit
+Materials (including the specific version(s) of software) to which it is
+entitled.
+
+                                   ARTICLE IV
+
+                               RELEASE OF DEPOSIT
+
+     4.1  Release Conditions. As used in this Agreement, "Release Condition"
+shall mean the following:
+
+          (a) Depositor's failure to carry out obligations imposed on it
+pursuant to the License Agreement, which failure entitles Preferred Beneficiary
+to the Deposit Materials tinder the express terms or the License Agreement.
+
+<PAGE>
+
+     Filing for Release. If Preferred Beneficiary believes in good faith that a
+Release Condition has occurred, Preferred Beneficiary may provide to DSI written
+notice of the occurrence of the Release Condition and a request for the release
+of the Deposit Materials by Exhibit B number. (The Exhibit B number is found on
+the bottom right-hand corner of the Ex. B). Upon receipt of such notice, DSI
+shall provide a copy of the notice to Depositor by commercial express Mail.
+
+     4.2  Contrary Instructions. From the date DSI mails the notice requesting
+release of the Deposit Materials, Depositor shall have 15 business days to
+deliver to DSI contrary instructions ("Contrary Instructions"). Contrary
+Instructions shall mean the written representation by Depositor that a Release
+Condition has not occurred or has been cured, or that Preferred Beneficiary's
+request for release by Exhibit B number is otherwise not accurate. Upon receipt
+of Contrary instructions, DSI shall send a copy to Preferred Beneficiary by
+commercial express mail. Additionally, DSI shall notify both Depositor and
+Preferred Beneficiary that there is a dispute to be resolved pursuant to the
+Section 7.3. Subject to Section 5.2 of this Agreement, DSI will continue to
+store the Deposit Materials without release pending (a) joint instructions from
+Depositor and Preferred Beneficiary; (b) dispute resolution pursuant to Section
+7.3; or (c) order of a court.
+
+     4.3  Release of Deposit. If DSI does not receive Contrary Instructions from
+the Depositor without the above-referenced 15 business clay period, DSI is
+authorized (subject to Section 3.3 above) to release the Deposit Materials to
+the Preferred Beneficiary, However, DSI is entitled to receive any fees duo DSI
+before making the release. Any copying expense in excess of $300 will be
+chargeable to Preferred Beneficiary. Upon any such release, the escrow
+arrangement will terminate as it relates to the Depositor and Preferred
+Beneficiary involved in the release.
+
+     4.4  Right to Use Following Release. Unless otherwise provided in the
+License Agreement, upon release of the Deposit Materials in accordance with this
+Article 4, Preferred Beneficiary shall have the. right to use the Deposit
+Materials solely in the manner and for the sole purpose specified in the License
+Agreement, or if not so specified, Preferred Beneficiary will have the right to
+use the Deposit Materials only to the extent necessary to continue exercising
+its rights under the terms and subject to the conditions expressly set forth in
+the License Agreement. Preferred Beneficiary shall be obligated in any event to
+strictly maintain the confidentiality of the released Deposit Materials, which
+obligation will survive expiration or termination of this Agreement and the
+License Agreement.
+
+                                   ARTICLE V
+
+                              TERM AND TERMINATION
+
+     5.1  Term of Agreement. The initial term of this Agreement is for a period
+of one year. Thereafter, this Agreement shall automatically renew from
+year-to-year unless (a) Depositor and Preferred Beneficiary jointly instruct DSI
+in writing that the Agreement is terminated; (b) Preferred Beneficiary instructs
+DST is writing; that the Agreement is terminated as it relates to Preferred
+Beneficiary; or (c) DSI instructs Depositor and Preferred Beneficiary in writing
+that the Agreement is terminated for nonpayment in accordance with Section 5.2
+or by resignation in accordance with Section 5.3. If the Acceptance Form has
+been signed at a date later than this Agreement, the initial terms of the
+Acceptance Form will be for one year with subsequent terms to be adjusted to
+match the
+
+<PAGE>
+
+anniversary date of this Agreement. If the deposit materials are subject to
+another escrow agreement with DSI, DSI reserves the right, after the initial one
+year term, to adjust the anniversary date of this Agreement to match the then
+prevailing anniversary date of such other escrow arrangements.
+
+     5.2   Termination for Nonpayment. In the event of the nonpayment of fees
+owed to DSI, DST shall provide written notice of delinquency to the parties to
+this Agreement affected by such delinquency. Any such party shall have the right
+to make the payment to DSI to cure the default. If(degree) the past due: payment
+is not received in full by DST within one month of the date of such notice, then
+at any time thereafter DST shall have the right to terminate this Agreement to
+the extent it relates to the delinquent party by sending written notice of
+termination to such affected parties. DSI shall have no obligation to take any
+action under this Agreement so long as any payment due to DSI remains unpaid.
+
+     5.3   Termination by Resignation. DSI reserves the right to terminate this
+Agreement, for any reason, by providing Depositor and Preferred Beneficiary with
+60-days' written notice of its intent to terminate this Agreement. Within the
+60-day period, the Depositor and Preferred Beneficiary may provide DSI with
+joint written instructions authorizing DST to forward the Deposit Materials to
+another escrow company and/or agent or other designated recipient. If DSI does
+not receive said joint written instructions within 60 days of the date of DSI's
+written termination notice, then DSI shall destroy, return or otherwise deliver
+the Deposit Materials in accordance with Section 5.4.
+
+     5.4   Disposition of Deposit Materials Upon Termination. Subject to the
+foregoing termination provisions, and upon termination of this Agreement, DST
+shall destroy, return, or otherwise deliver the Deposit Materials in accordance
+with Depositor's instructions. If there are no instructions, DSI may, at its
+sole discretion, destroy the Deposit Materials or return them to Depositor. DSI
+shall have no obligation to destroy or return the Deposit Materials if the
+Deposit Materials are subject to another escrow agreement with DSI or have been
+released to the Preferred Beneficiary in accordance with Section 4.4. Upon
+Depositor's request, DST agrees, in the event it destroys the materials as
+permitted herein, to certify such destruction in writing.
+
+     5.5   Survival of Terms Following Termination. Upon termination of this
+Agreement, the following provisions of this Agreement shall survive:
+
+           (a)   Depositor's Representations (Section 1.6);
+
+           (b)   The obligations of confidentiality with respect to the Deposit
+Materials;
+
+           (c)   The rights granted in the sections entitled Right to Transfer
+Upon Release (Section 3.3) and Right to Use Following Release (Section 4.5), if
+a release of the Deposit Materials has occurred prior to termination;
+
+           (d)   The obligation to pay DSI any fees and expenses due;
+
+           (e)   The provisions of Article 7; and
+
+<PAGE>
+
+           (f)  Any provisions in this Agreement which specifically state they
+survive the termination of this Agreement.
+
+                                   ARTICLE VI
+
+                                   DSI'S FEES
+
+     6.1   Fee Schedule. DSI is entitled to be paid its standard fees and
+expenses applicable to the services provided. DST shall notify the party
+responsible for payment of DST's fees at least 60 days prior to any increase in
+fees. For any service not listed on DSI's standard fee schedule, DSI will
+provide a quote prior to rendering the service, if requested.
+
+     6.2   Payment Terms. DSI shall not be required to perform any service
+unless the payment for such service and. arty outstanding balances owed to DSI
+are paid in full. Fees are due upon receipt of a signed contract or receipt of
+the Deposit Materials whichever is earliest. If invoiced fees are not paid, DSI
+may terminate this Agreement in accordance with Section 5.2.
+
+                                  ARTICLE VII
+
+                             LIABILITY AND DISPUTES
+
+     7.1   Right to Rely on Instructions. DST may act in reliance upon any
+instruction, instrument, or signature reasonably believed by DSI to be genuine.
+DSI may assume that any employee of a party, to this Agreement who gives any
+written notice, request, or instruction has the authority to do so. DSI will not
+be required to inquire into the truth or evaluate the merit of any statement or
+representation contained in any notice or document. DSI shall not be responsible
+for failure to act as a result of causes beyond the reasonable control of DSI.
+
+     7.2   Indemnification. Depositor and Preferred Beneficiary each agree to
+indemnify, defend and hold harmless DSI from any and all claims, actions,
+damages, arbitration fees and expenses, costs, reasonable attorney's fees and
+other liabilities ("Liabilities") incurred by DSI relating in any way to this
+escrow arrangement unless such Liabilities were caused solely by the negligence
+or willful misconduct of DSI.
+
+     Notwithstanding the foregoing, as a condition to such indemnity, Depositor
+or Preferred Beneficiary, as the case may be (in either case, the "indemnifying
+party"), shall (i) receive from DSI prompt written notice of any claim for
+indemnity hereunder and copies of all documents and other information related to
+such claim, (ii) receive the reasonable assistance and cooperation of DSI in the
+defense of the claim, and (iii) have sole control over such defense, provided
+that the indemnifying party prosecute the defense of such claim with all
+reasonable diligence and keep DSI and its designated counsel, if any, apprised
+of the status of the case. The indemnifying party shall not have access to any
+of DST's confidential or privileged information at any stage in the defense of
+any action without DST's prior written consent. No such claim shall be settled
+by an indemnifying party without DSI's consent to the terms of any such
+settlement, which consent shall not be unreasonably withheld. Nothing herein
+will be construed to prohibit DSI from retaining and paying for its own legal
+counsel.
+
+<PAGE>
+
+     7.3   Dispute Resolution. Any dispute relating to or arising from this
+Agreement shall be resolved by arbitration tinder the Commercial Rules of the
+American Arbitration Association. Three arbitrators shall be selected. The
+Depositor and Preferred Beneficiary shall each select one arbitrator and the two
+chosen arbitrators shall select the third arbitrator, or failing agreement on
+the selection of the third arbitrator, the American Arbitration Association
+shall select the third arbitrator. However, if DSI is a party to the
+arbitration, DSI shall select the third arbitrator. Unless otherwise a agreed by
+Depositor and Preferred Beneficiary, arbitration will take place in San Diego,
+California, USA. Any court having jurisdiction over the matter may enter
+judgment on the award of the arbitrator(s). Service of a petition to confirm the
+arbitration award may be made by First Class mail or by commercial express mail,
+to the attorney for the party or, if unrepresented, to the party at the last
+known business address. 7.4 Controlling Law. This Agreement is to be governed
+and construed in accordance with the haws of the Suite of California, without
+regard to its conflict of law provisions.
+
+     7.5   Notice of Requested Order. If any party intends to obtain an order
+from the arbitrator or any court of competent jurisdiction which may direct DSI
+to take, or refrain from taking any action. that party shall;
+
+           (a)  Give DSI at least two business days' prior notice of the
+hearing;
+
+           (b)  Include in any such order that, as a precondition to DST's
+obligation, DSI be paid in full for any past due fees acid be paid for the
+reasonable value of the services to be rendered pursuant to such order; and
+
+           (c)  Ensure that DSI not be required to deliver the original (as
+opposed to a copy) of the Deposit Materials if DSI may need to retain the
+original in its possession to fulfill any of its other escrow duties,
+
+                                  ARTICLE VIII
+
+                               GENERAL PROVISIONS
+
+     8.1   Entire Agreement. This Agreement, which includes the Acceptance Form
+and Exhibits A, B, C, D and E described herein, embodies the entire
+understanding among all of the parties with respect to its subject matter and
+supersedes all previous communications, representations or understandings,
+either oral or written. DSI is not a party to the License Agreement between
+Depositor and Preferred Beneficiary and has no knowledge of any of the terms or
+provisions of any such License Agreement. DST's only obligations to Depositor or
+Preferred Beneficiary are as set forth in this Agreement. No amendment or
+modification of this Agreement shall be valid- or binding unless signed by ,ill
+the parties hereto, except that Exhibit A need not be signed by DSI, Exhibit B
+need not be signed by Preferred Beneficiary, Exhibit C need not be signed by any
+party, Exhibit D need not be signed by Preferred Beneficiary or DSI and the
+Acceptance Form need only be signed by the parties identified therein.
+
+<PAGE>
+
+     8.2   Notices. All notices, invoices, payments, deposits and other
+documents and communications shall be given to the parties at the addresses
+specified in the attached Exhibit C and Acceptance Form, It shall be the
+responsibility of the parties to notify each other as provided in this Section
+in the event of a change of address. The parties shall have the right to rely on
+the last known address of the other parties. Unless otherwise provided in this
+Agreement, all documents and communications may be delivered by First Class
+mail.
+
+     8.3   Severability. In the event any provision of this Agreement is found
+to be invalid, voidable or unenforceable, the parties agree that unless it
+materially affects the entire intent and purpose of this Agreement, such
+invalidity, voidability or unenforceability shall affect neither the validity of
+this Agreement not the remaining provisions herein, and the provision in
+question shall be deemed to be replaced with a valid and enforceable provision
+most closely reflecting the intent and purpose of the original provision.
+
+     8.4   Successors. Agreement shall be binding upon and shall inure to the
+benefit of the successors and assigns of the parties. However, DSI shall have no
+obligation in performing this Agreement to recognize any successor or assign of
+Depositor or Preferred Beneficiary unless DSI receives clear, authoritative and
+conclusive written evidence of the change of parties.
+
+     8.5   Regulations. Depositor and Preferred Beneficiary are responsible for
+and warrant compliance with all applicable laws, rules and regulations,
+including but not limited to customs laws, import, export, and re-export laws
+and government regulations of any country from or to which the Deposit Materials
+may be delivered in accordance with the provisions of this Agreement.
+
+
+
+Depositor: Altiris, Inc.                    DSI Technology Escrow Services, Inc.
+
+
+
+By: /s/ Craig H. Christensen                By: /s/ Audrey Griffith
+   ------------------------------------        ---------------------------------
+Name: Craig H. Christensen                  Name: Audrey Griffith
+     ----------------------------------          -------------------------------
+Title: VP & General Counsel                 Title: Contract Administrator
+       --------------------------------           ------------------------------
+Date: 4/20/2001                             Date: 04/26/01
+      ---------------------------------           ------------------------------
+
+<PAGE>
+
+                                                                       EXHIBIT A
+
+                            MATERIALS TO BE DEPOSITED
+
+                             Account Number 0112162
+
+     Depositor represents to Preferred Beneficiary that Deposit Materials
+delivered to DSI shall consist of the -Following):
+
+
+
+
+
+
+
+
+
+
+_________________________________           _________________________________
+Depositor                                   Preferred Beneficiary
+
+By: _____________________________           By: _____________________________
+
+Name: ___________________________           Name: ___________________________
+
+Title: __________________________           Title: __________________________
+
+Date: ___________________________           Date: ___________________________
+
+<PAGE>
+
+                                                                       EXHIBIT B
+
+                        DESCRIPTION OF DEPOSIT MATERIALS
+
+Depositor Company Name _________________________________________________________
+
+Account Number _________________________________________________________________
+
+Product Name ___________________________________________Version ________________
+
+(Product Name will appear as Exhibit B Name on Account History report)
+
+DEPOSIT MATERIAL DESCRIPTION:
+Quantity      Media Type & Size       Label Description of Each Separate Item
+--------  ------------------------- -------------------------------------------
+______     Disk 3.5" or _____
+______     DAT tape _____ mm
+______     CD-ROM
+______     Data cartridge tape ____
+______     TK 70 or _____ tape
+______     Magnetic tape _____
+______     Documentation
+______     Other ________________
+
+PRODUCT DESCRIPTION:
+Environment ____________________________________________________________________
+
+DEPOSIT MATERIAL INFORMATION:
+Is the media or are any of the files encrypted? [_]Yes [_]No. If yes, please
+include any passwords and the decryption tools.
+Encryption tool name ___________________________________Version ________________
+Hardware required ______________________________________________________________
+Software required ______________________________________________________________
+Other required information _____________________________________________________
+
+I certify for Depositor that the above  DSI has inspected and accepted the above
+described Deposit Materials have been   materials (any exceptions are noted
+transmitted to DSI                      above):
+
+
+
+Signature: __________________________   Signature: _____________________________
+
+Print Name: _________________________   Print Name: ____________________________
+
+Date: _______________________________   Date Accepted: _________________________
+
+                                        Exhibit B#: ____________________________
+
+Send materials to: DSI, 9265 Sky Park Court, Suite 202, San Diego, CA 92123
+(858) 499-1600
+
+<PAGE>
+
+                                                                       EXHIBIT C
+
+                               DESIGNATED CONTACT
+
+                              Master Number 0112162
+
+
+
+Notices and communications
+should be addressed to:                    Invoices should be addressed to:
+
+Company Name: Altiris, Inc.                Altiris, Inc.
+Address: 355 South 520 West                355 South 520 West
+         Lindon, UT 84042                  Lindon, UT 84042
+         U.S.A.                            U.S.A.
+Designated Contact: Craig H. Christensen   Contract: Joel Johnson, Controller
+Telephone: (801) 805-2734                  _____________________________________
+Facsimile: (801) 226-8506                  P.O.#, if required: _________________
+E-Mail:  cchristensen@altiris.com
+
+Verification Contact: same as Designated Contact
+
+     Requests to Change the designated contact should be given in writing by the
+designated contact or an authorized employee.
+
+Contracts, Deposit Materials and notices   Invoice inquiries and fee remittances
+to DSI should be addressed to:             to DSI should be addressed to:
+
+DSI Technology Escrow Services, Inc.       DSI Technology Escrow Services, Inc.
+Contract Administration                    PO Box 45156
+9265 Sky Park Court, Suite 202             San Francisco, CA 94145-0156
+San Diego, CA 92123
+
+Telephone: (858) 499-1600                  (858) 499-1636
+Facsimile: (858) 694-1919                  (858) 499-1637
+E-Mail: ca@dsiescrow.com
+Date: ____________________________
+
+<PAGE>
+
+                                                                       EXHIBIT D
+
+                             NAME OF INITIAL ACCOUNT
+
+                             Account Number 0112162
+
+     Altiris, Inc. ("Depositor") has entered into a Master Preferred Escrow
+Agreement with DSI Technology Escrow Services, Inc. ("DSI"). Pursuant to that
+Agreement, Depositor may deposit certain Deposit Materials with DSI.
+
+     The initial account will be referenced by the following name:
+
+          Altiris Programs
+
+
+
+
+
+
+Depositor, Altiris, Inc.
+
+By:  /s/ Craig H. Christensen
+    ------------------------------------
+Name:  Craig H. Christensen
+      ----------------------------------
+Title:  VP & General Counsel
+       ---------------------------------
+Date:  4/20/2001
+      ----------------------------------
+
+<PAGE>
+
+                                                                       EXHIBIT E
+
+                            ADDITIONAL ESCROW ACCOUNT
+
+                      TO MASTER PREFERRED ESCROW AGREEMENT
+
+                              Master Number 0112162
+
+                       New Account Number _______________
+
+     _________________________ ("Depositor") has entered into a Master Preferred
+Escrow Agreement with DSI Technology Escrow Services, Inc. ("DSI"). Pursuant to
+that Agreement, Depositor may deposit certain Deposit Materials with DSI.
+
+     Depositor desires that new Deposit Materials be held in a separate account
+and be maintained separately from the initial account. By execution of this
+Exhibit E, DSI will establish a separate account for the new Deposit Materials.
+The new account will be referenced by the following name:
+_________________________.
+
+     Depositor hereby agrees that all terms and conditions of the existing
+Master Preferred Escrow Agreement previously entered into by Depositor and DSI
+will govern this account. The termination or expiration of any other account of
+Depositor will not affect this account.
+
+______________________________________    DSI Technology Escrow Services, Inc.
+Depositor
+
+By:___________________________________    By:__________________________________
+
+Name:_________________________________    Name:________________________________
+
+Title:________________________________    Title:_______________________________
+
+Date:_________________________________    Date:________________________________
+
+<PAGE>
+
+                              PREFERRED BENEFICIARY
+                                 ACCEPTANCE FORM
+
+                             Account Number 0112162
+
+     Depositor, Preferred Beneficiary and DSI Technology Escrow Services, Inc.
+("DSI"), hereby acknowledge that _________________________ is the Preferred
+Beneficiary referred to in the Master Preferred Escrow Agreement effective,
+__________, 20___ with DST as the escrow agent and _________________________ as
+the Depositor. Preferred Beneficiary hereby agrees to be bound by all provisions
+of such Agreement.
+
+     Depositor hereby enrolls Preferred Beneficiary to the following account(s):
+
+Account Name                                  Account Number
+------------                                  --------------
+
+_________________________________________     __________________________________
+
+_________________________________________     __________________________________
+
+_________________________________________     __________________________________
+
+Notices and communications
+should be addressed to:                       Invoices should be addressed to:
+
+Company Name: Altiris, Inc.                   Altiris, Inc.
+Address: 355 South 520 West                   355 South 520 West
+         Lindon, UT 84042                     Lindon, UT 84042
+         U.S.A.                               U.S.A.
+Designated Contact: Craig H. Christensen      Contract: Joel Johnson, Controller
+Telephone: (801) 805-2734                     __________________________________
+Facsimile: (801) 226-8506                     P.O.#, if required:_______________
+E-Mail: cchristensen@altiris.com
+        -------------------------
+
+
+__________________________________________    __________________________________
+Depositor                                     Preferred Beneficiary
+
+
+By:_______________________________________    By:_______________________________
+
+Name:_____________________________________    Name:_____________________________
+
+Title:____________________________________    Title:____________________________
+
+Date:_____________________________________    Date:_____________________________
+
+
+DSI Technology Services, Inc.
+----------------------------
+
+
+
+By:_______________________________________
+
+Name:_____________________________________
+
+Title:____________________________________
+
+Date:_____________________________________
+
+</TEXT>
+</DOCUMENT>

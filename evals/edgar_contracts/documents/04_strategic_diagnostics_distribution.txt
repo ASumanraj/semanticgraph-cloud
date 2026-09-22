@@ -1,0 +1,1265 @@
+<DOCUMENT>
+<TYPE>EX-10
+<SEQUENCE>4
+<FILENAME>ex10-1.txt
+<DESCRIPTION>EXHIBIT 10.1
+<TEXT>
+<PAGE>
+                   EXCLUSIVE DISTRIBUTION AND SUPPLY AGREEMENT
+                   -------------------------------------------
+
+         This Exclusive Distribution and Supply Agreement (this "Agreement") is
+made and entered into as of May 4, 2005 (the "Effective Date"), by and between
+Strategic Diagnostics Inc., a Delaware corporation having its offices at 111
+Pencader Drive, Newark, Delaware 19702-3322 (hereinafter referred to as "SDI" or
+"Manufacturer") and the DuPont Qualicon division of E.I. du Pont de Nemours and
+Company, a Delaware corporation having its offices at Experimental Station,
+Building 400, P.O. Box 80400, Route 141 and Henry Clay Road, Wilmington,
+Delaware 19880-0400 (hereinafter referred to as "DuPont Qualicon"). Each of SDI
+and DuPont Qualicon is referred to herein as a "Party" and SDI and DuPont
+Qualicon are collectively referred to herein as the "Parties."
+
+         WHEREAS, SDI manufactures immunoassay-based microorganism detection
+devices for use in food and environmental testing under the trademark
+RapidChek(R);
+
+         WHEREAS DuPont Qualicon wishes to purchase and sell DuPont
+Qualicon-branded immunoassay-based microorganism detection devices developed and
+manufactured by SDI for sale in the Territory through its established
+distribution channels, and
+
+         WHEREAS, SDI wishes to grant, and DuPont Qualicon accepts, the
+exclusive distribution right in the Territory for DuPont Qualicon-branded
+immunoassay-based microorganism detection devices manufactured by SDI pursuant
+to the terms and conditions of this Agreement.
+
+         NOW, THEREFORE, in consideration of the premises and the mutual
+covenants hereinafter set forth, the Parties agree as follows:
+
+                                    AGREEMENT
+
+1. DEFINITIONS
+
+         In addition to any other term defined elsewhere in this Agreement, the
+following terms shall have the meanings set forth below.
+
+a.     "Affiliates" shall mean all Persons controlled by, under common control
+       with or controlling either Party to this Agreement, with control being
+       interpreted broadly.
+
+b.     "Business Plan" means a document supplied by DuPont Qualicon and agreed
+       to by SDI concerning the goals, commitments (including forecasts) for
+       commercialization and roll-out timing of Products in the Territory.
+
+c.     "Contract Year" means a calendar year commencing on January 1 and ending
+       on December 31; provided, however, that the first Contract Year shall
+       commence on the Effective Date and end on December 31, 2005.
+
+d.     "Global Customer" means Person(s) that purchases Product(s) on behalf of
+       Multinational Companies with substantial operations within the Territory
+       and the United States. For purposes of this Agreement, a Multinational
+       Company with more than twenty-five (25%) percent of its Product volume
+       outside the United States is a "Global Customer." If there is any
+       disagreement between the parties as to whether a current or prospective
+       customer is a Global Customer, then the parties will discuss in good
+       faith.
+
+                                       1
+<PAGE>
+
+e.     "Media" means the any microorganism growth media sold by DuPont Qualicon
+       for use with the Product(s).
+
+f.     "Person" shall mean any natural person, corporation, partnership, limited
+       liability company, proprietorship, association, trust, or other legal
+       entity.
+
+g.     "Product(s)" means: (1) the SDI manufactured immunoassay-based
+       microorganism lateral flow detection devices or strips (which on the
+       Effective Date are sold by SDI under the RapidChek(R) screening system);
+       (2) associated Media for use with a SDI manufactured immunoassay-based
+       microorganism flow detection device or strips for use in testing food and
+       environmental testing branded as DuPont Qualicon and (3) each of which is
+       branded with the DuPont Qualicon brand, trademark and trade dress and as
+       further identified on Exhibit A, as the Parties may amend from time to
+       time. For avoidance of doubt, a lateral flow device that is used to
+       detect material other than microorganisms, as for example, the detection
+       of toxins or specific proteins, is excluded from this definition.
+
+h.     "Product Order" means the order form detailing the Product to be
+       provided, the applicable Specifications, delivery dates, and all other
+       relevant details, executed by the Parties whenever DuPont Qualicon wishes
+       to place an order for a Product. Each Product Order shall be in the form
+       attached hereto as Exhibit B.
+
+i.     "Specifications" shall have the meaning set forth in Section 5.1.
+
+j.     "Territory" shall mean the world, excluding the United States of America
+       (including its territories and protectorates).
+
+
+2. APPOINTMENT AND SCOPE
+
+         2.1 Appointment. Subject to the terms and conditions of this Agreement,
+SDI hereby appoints DuPont Qualicon during the Term as (a) its exclusive
+(including as to SDI and its Affiliates) distributor of the Products in the
+Territory and (b) its nonexclusive distributor of the Products to Global
+Customer locations in the United States (including its territories and
+protectorates). SDI shall not appoint any other distributor of the Products in
+or for the Territory during the Term. DuPont Qualicon is an operational division
+of E.I. du Pont de Nemours and Company. The other divisions of E.I. du Pont de
+Nemours and Company and any and all Affiliates of E.I. du Pont de Nemours and
+Company are not parties to this Agreement, shall have no obligations or duties
+under this Agreement and shall be treated as unrelated third parties for all
+purposes. The Parties acknowledge that Product distribution in the Territory
+will be through the established distribution channels of the DuPont Qualicon
+business and that DuPont Qualicon shall not be obligated to utilize other DuPont
+Company or its Affiliate's businesses' distribution channel(s); to add
+distributors or to change its distribution channel; or to cover all countries in
+the Territory. Similarly, DuPont Qualicon will not be obligated to require all
+DuPont Qualicon distributors to offer the Product(s) for sale in their
+respective regions or countries.
+
+          2.2 Solicitation and Sales Outside Territory. Except with the prior
+written consent of SDI, DuPont Qualicon shall not (i) solicit orders for sales
+of Products to any existing or prospective customer outside the Territory, (ii)
+deliver or tender (or cause to be delivered or tendered) any Product outside of
+the Territory, or (iii) sell any Products to, nor solicit any sales from, a
+customer if DuPont Qualicon knows or has reason to know that such customer
+
+
+                                       2
+<PAGE>
+
+
+intends to resell the Products outside of the Territory. Notwithstanding the
+foregoing, DuPont Qualicon may solicit orders for sales of Products and deliver
+or tender Products to Global Customers for use by them, their subsidiaries and
+their Affiliates, whether or not such entities are located in the Territory.
+
+         2.3 Existing Customers in Territory. DuPont Qualicon acknowledges that
+SDI has existing, non-exclusive agreements with certain other distributors for
+the distribution of Products in the Territory. SDI shall use commercially
+reasonable efforts to promptly terminate such existing agreements (as such
+agreements pertain to the distribution of Products) with such other distributors
+and wind down its relationship with such distributors. DuPont Qualicon
+acknowledges that such other distributors are entitled to sell their remaining
+Product stock in the Territory, regardless of the termination of their
+agreements with SDI. To the extent SDI is permitted to do so under its
+agreements with such other distributors, SDI shall use commercially reasonable
+efforts to promptly transfer any customers of such other distributors to DuPont
+Qualicon at the time that DuPont Qualicon assumes distribution responsibility
+for such customer's region or country.
+
+         2.4 Independent Contractors. With respect to DuPont Qualicon's
+activities as a distributor of the Products, DuPont Qualicon is an independent
+purchaser and reseller of the Products. Neither Party is, nor will be deemed to
+be, an agent, legal representative, joint venturer, partner, or employee of the
+other Party for any purpose and shall in all respects act as an independent
+contractor. Neither Party will be entitled to (i) enter into any contracts in
+the name of or on behalf of the other Party, (ii) pledge the credit of the other
+Party in any way or hold itself out as having authority to do so, or (iii)
+except for the transfer of Product warranties, make commitments or incur any
+charges or expenses for or in the name of the other Party. Each Party shall be
+solely responsible for payment of all compensation owed to its personnel (and
+all tax withholding with respect thereto), including payment, if any, of
+employment-related taxes and worker's compensation insurance premiums.
+
+
+3. MANAGEMENT OF RELATIONSHIP
+
+         3.1 Steering Committee. SDI and DuPont Qualicon shall establish a
+steering committee (the "Steering Committee") to act as the primary means of
+discussions between the Parties with respect to the discussion and negotiation
+of matters arising under this Agreement. The Steering Committee shall meet from
+time to time to discuss recent market events, trends, modified or new Products
+(whether in planning stage or ready for commercial release), and new or
+developing technologies relating to the market for the Products (including such
+technologies as may supplant the Products on a prospective basis) in the
+Territory. Each Party shall bear its expenses, including travel and living
+expenses, in connection with its participation in the Quarterly Meetings.
+
+         3.2 Adverse Events. Each Party shall advise the other Party of any
+adverse events or occurrences that may affect materially the performance of
+either of the Parties under this Agreement, the areas of such Party's
+performance affected thereby, and the efforts to be made by such Party to remedy
+such effects.
+
+
+                                       3
+<PAGE>
+
+4. TERMS & CONDITIONS OF SALE
+
+         4.1 Obligation to Purchase and Sell.
+
+                  4.1.0 During the Term, DuPont Qualicon agrees to purchase from
+SDI, and SDI agrees to sell to DuPont Qualicon, in accordance with the terms and
+conditions set forth herein. DuPont Qualicon shall not purchase or otherwise
+obtain any Products from any person or source other than SDI in the Territory.
+
+                  4.1.1 DuPont Qualicon shall purchase from SDI Products
+totaling at least the minimum dollar volumes for each Contract Year set forth on
+Exhibit C (the "Minimum Yearly Purchase Amounts"). Purchases made prior to
+execution of this Agreement from SDI or any of its Affiliates are included in
+the 2005 Minimum Yearly Purchase Amount.
+
+                  4.1.2 In the event that DuPont Qualicon fails to meet the
+Minimum Yearly Purchase Amount requirement for any Contract Year during the
+Term, DuPont Qualicon shall have the option (the "Make-Up Option") to make a
+payment to SDI in the amount of 50% of the difference between Products ordered
+by DuPont Qualicon during such Contract Year and the applicable Minimum Yearly
+Purchase Amount. The Make-Up Option shall be exercised by delivery by DuPont
+Qualicon to SDI of notice of exercise and by making the required payment within
+30 days after the end of such Contract Year. If DuPont Qualicon validly
+exercises the Make-Up Option, DuPont Qualicon shall be deemed to have met the
+Minimum Yearly Purchase Amount requirement for that Contract Year. If DuPont
+Qualicon fails to validly exercise the Make-Up Option, SDI shall have the right,
+at its option and as its sole remedy with respect to a failure by DuPont
+Qualicon to meet the applicable Minimum Yearly Purchase Amount requirement, to
+(a) discontinue the exclusivity of this Agreement with respect to the Territory.
+In addition, if DuPont Qualicon has failed to meet the Minimum Yearly Purchase
+Amount requirement for any two (2) consecutive Contract Years during the Term,
+SDI shall have the right at its option and as its sole remedy with respect to a
+failure by DuPont Qualicon to meet the applicable Minimum Yearly Purchase Amount
+requirements to terminate this Agreement immediately. The Parties acknowledge
+that the Minimum Yearly Purchase Amount requirement set forth in this Section
+4.1.3 is an essential element of this Agreement between the Parties and that the
+Parties would not have entered into this Agreement without such Minimum Yearly
+Purchase Amount requirement.
+
+                  4.1.3 [The confidential material contained herein has been
+omitted and has been separately filed with the Commission.]
+
+                  4.1.4 Should SDI, its Affiliate(s) or their distributor(s)
+sell or offer to sell to a third party in the Territory a product comparable or
+superior to the Product at lower price(s) or at better terms than the price(s)
+and terms set forth in this Agreement, SDI shall first offer the Product to
+DuPont Qualicon and if the Parties do not agree to add the product as a Product,
+SDI shall adjust the Product price to meet the lower price(s) and better terms
+for as long a time as the other product is available to the third party (this
+will not apply if DuPont has allowed the contract to move to a non-exclusive
+status as described in Section 4.1.3).
+
+                                       4
+
+
+<PAGE>
+
+         4.2 Reports
+
+                  4.2.0 Forecasts. Within seven business days of the Effective
+Date and at the beginning of each quarter of each Contract Year, DuPont Qualicon
+shall provide to SDI a non-binding, rolling forecast (each, a "Forecast") of its
+expected orders of Products by model during the succeeding 12 months. Each
+Forecast shall include (i) a summary of executed Product Orders under which any
+activities remain to be completed and (ii) a summary of any Product Orders
+DuPont Qualicon expects to submit to SDI during the period covered by the
+Forecast. Each Forecast shall be in the form attached hereto as Exhibit E. The
+first ninety (90) days of each forecast shall be binding.
+
+         4.3 Manufacture of Products. Upon agreement of the Parties on a Product
+Order, SDI shall promptly begin the manufacture of the Products covered by the
+applicable Product Order. SDI shall manufacture the Products such that they
+conform to their applicable Specifications. SDI undertakes to use commercially
+reasonable endeavors to meet DuPont Qualicon's delivery schedule for all Product
+purchase orders to the extent that the orders do not exceed the forecast by 20%
+for each Product type. SDI shall keep DuPont Qualicon apprised of the status of
+the manufacturing of ordered Products and shall immediately notify DuPont
+Qualicon in writing if for any reason SDI reasonably believes it will be unable
+to complete the manufacture of the Products or will be unable to deliver the
+Product(s) on the agreed upon date, however such Products shall nevertheless be
+counted towards the Yearly Minimum Purchase Amount. A standard lead time of
+fifteen (15) days will be assigned to orders form the DuPont Qualicon that are
+consistent with forecasted quantities supplied by the DuPont Qualicon.
+
+         4.4 Inspection of Finished Products. SDI shall perform the initial
+inspection of completed Products before shipment and based on the requirements
+set forth in the applicable Product Order. SDI shall not ship any Products
+unless it believes that it conforms in all respects with the requirements of the
+applicable Product Order (including, without limitation, the applicable
+Specifications). Upon delivery of any Product to DuPont Qualicon's Wilmington,
+Delaware location, DuPont Qualicon shall promptly and thoroughly inspect such
+Products to determine whether the Products conform to their corresponding
+Specifications. If DuPont Qualicon believes that any Product does not conform to
+its corresponding Specifications, DuPont Qualicon shall provide SDI with prompt
+notice thereof. SDI shall, at its sole cost and expense, promptly repair or
+replace any non-conforming Product such that it does conform to its applicable
+Specifications.
+
+         4.5 Shipment of Products.
+
+                  4.5.1 Ready Date, Expense, Delivery Date. All Products shall
+be ready for shipment from SDI's Newark, Delaware location on the "Ready Date"
+as set forth in the applicable Product Order. Unless otherwise agreed in the
+applicable Product Order or as provided herein, the Products shall be shipped at
+DuPont Qualicon's expense so as to be deliverable on the "Delivery Date" as set
+forth in the applicable Product Order.
+
+                  4.5.2 Method of Shipment. Unless otherwise agreed in the
+applicable Product Order, DuPont Qualicon shall either arrange for the shipping
+or reimburse SDI its actual cost of Product shipping to the DuPont Qualicon's
+Wilmington, Delaware location. Shipment from DuPont Qualicon's Wilmington,
+Delaware location to DuPont Qualicon's customers' locations shall be the
+responsibility of DuPont Qualicon.
+
+
+                  4.5.3 Packaging. Unless DuPont Qualicon requests otherwise,
+all Products ordered by DuPont Qualicon shall be packed for shipment and storage
+
+
+                                       5
+<PAGE>
+
+in accordance with reasonable commercial practices to preserve Product
+integrity. DuPont Qualicon shall notify SDI of any special packaging
+requirements.
+
+                  4.5.4 Shipping; Risk of Loss; Title. All shipments of Products
+by SDI to DuPont Qualicon under this Agreement shall be F.O.B. SDI's facility,
+Newark Delaware. Risk of loss, delay or damage shall pass, along with title,
+from SDI to DuPont Qualicon at the time of delivery of each shipment of the
+Products at the F.O.B. point.
+
+                  4.5.5 SDI acknowledges that in the future DuPont Qualicon may
+prefer that DuPont Qualicon global Affiliates or its distributors order Products
+directly from SDI. In such event the Parties agree to review this Agreement and
+make modifications reasonably required to enable such sales
+
+         4.6 Product Pricing & Payment Terms.
+
+                  4.6.0 Product Pricing. The pricing for each Product shall be
+the pricing set forth in Exhibit A (the "Product Pricing"). The Product Pricing
+does not include shipping or other such costs, including duties, incurred to
+transport the Products from DuPont Qualicon's Wilmington, Delaware location to
+DuPont Qualicon's customers' locations, all of which shall be the responsibility
+of DuPont Qualicon. Product price is fixed for the Initial Term. SDI shall pass
+through any reductions in its cost of manufacturing (attributable to DuPont
+Qualicon improvements, buying power or adopted innovations to reduce the Product
+Price. Product price may be increased as a direct pass through of the
+proportionate increase in the cost of raw materials price as supported by SDI
+documentation. In the event DuPont Qualicon reasonably considers such price
+rises to be excessive in the circumstances, DuPont Qualicon shall have the right
+at its discretion to discontinue the affected Product or to terminate the
+Agreement on 60 days written notice to SDI.
+
+                  4.6.1 Payment Terms.
+
+All payments are due sixty (60) days after DuPont Qualicon receives an invoice
+for the Products.
+
+                           4.6.1.0 All amounts payable to SDI under this
+Agreement shall be paid in U.S. Dollars by wire transfer or by automatic deposit
+of immediately available funds to a bank designated by SDI, or by such other
+means as the Parties may agree.
+
+
+5. SPECIFICATIONS & NEW PRODUCTS
+
+         5.1 Initial Specifications. The initial set of Specifications for the
+Products as available as of the Effective Date shall be provided by SDI and,
+subject to approval thereof by DuPont Qualicon such not to be unreasonably
+withheld or delayed, attached to this Agreement as Exhibit E no later than 30
+days after the Effective Date (the "Specifications," as the same may be modified
+or supplemented in accordance with the provisions of this Agreement). SDI may
+only modify the Specifications upon 180 days' prior written notice to DuPont
+Qualicon; provided, however, that SDI may not modify the Specifications
+applicable to any New Product (as defined herein, below) without DuPont
+Qualicon's prior written consent, provided that SDI may substitute components of
+equal or greater performance at same or lower cost, and that SDI shall make no
+changes which affect fit, form, function or end use of Products.
+
+
+                                       6
+<PAGE>
+
+
+         5.2 New Products. Either Party may from time to time propose that SDI
+modify certain Products or create new Products (each, a "New Product"). Upon any
+such request, the Steering Committee shall convene to discuss (i) whether such
+modification or creation is technically feasible, (ii) whether there is a market
+for the New Product sufficient to warrant its development, manufacture, and
+distribution, (iii) the time frame for the development, manufacture, and
+distribution of the New Product, and (iv) how, if at all, the Parties will share
+the costs related to the New Product. If the Parties agree to proceed with the
+development, manufacture, and distribution of a new Product, the Parties shall
+execute a written addendum to this Agreement setting forth in appropriate detail
+their plans with respect to the New Product. It is understood and agreed that
+SDI shall have no obligation to proceed with any of development, manufacture or
+distribution of a new Product, in its sole discretion. Each New Product
+designated in any such addendum shall be deemed a "Product" hereunder.
+
+
+6. ADDITIONAL OBLIGATIONS OF DUPONT QUALICON
+
+         6.1 Sales Promotion.
+
+                  6.1.0 Within thirty (30) days of the Effective Date, Qualicon
+will provide SDI with a Business Plan identifying roll-out dates and other
+commercialization strategies for the current Contract Year. Thereafter, prior to
+the end of each Contract Year, DuPont Qualicon shall provide SDI with a Business
+Plan identifying roll-out dates and other commercialization strategies for the
+following Contract Year.
+
+                  6.1.1 In promoting the Products and soliciting orders for them
+from end users, DuPont Qualicon shall not, unless permitted under this
+Agreement, make or extend any promise, representation, or warranty on behalf of
+SDI to such end users regarding the Products that is different from the
+Manufacturer's Product warranty.
+
+         6.2 Import Licenses, Exchange Controls and Other Governmental
+Approvals; Compliance. (a) Each Party shall assist the other Party in obtaining
+import licenses, export licenses, currency exchange approvals, and other
+governmental approvals in or outside of the Territory that may be necessary to
+permit the transactions contemplated hereunder. DuPont Qualicon shall comply, at
+its own expense, with any and all governmental laws, regulations, and orders
+which may be applicable to it by reason of its execution and performance of this
+Agreement, including any requirement to be registered as SDI's DuPont Qualicon
+with any governmental authority, and including, without limitation, any and all
+laws, regulations, or orders which govern or affect the ordering, export,
+shipment, import, sale (including government procurement), delivery, and
+redelivery of Products in the Territory. SDI shall comply, at its own expense,
+with any and all governmental laws, regulations, and orders which may be
+applicable to it by reason of its execution and performance of this Agreement,
+including, without limitation, any and all laws, regulations, or orders which
+govern or affect the ordering, export, shipment, import, sale (including
+government procurement), delivery, and redelivery of Products in the Territory.
+Each Party shall, upon request of the other Party, furnish the other Party with
+such documentation as may be necessary to confirm compliance with this Section
+6.3.
+
+(b) SDI will at its cost and in a timely manner provide DuPont Qualicon
+certificate of origins; basic MSDS information; compositional information (by
+chemical name and CAS number) and other information as reasonably requested by
+DuPont Qualicon for registration with government authorities or with
+certification bodies (as for example only, AOAC) or for Product distribution or
+sale in the Territory. Information supplied by SDI shall be the latest
+information known to SDI. SDI certifies that Product components (including
+
+
+
+                                       7
+<PAGE>
+
+
+substances which SDI does not make) are correctly listed on the chemical
+substances inventories of the countries in the Territory (as for example, the
+U.S. Toxic Substances Control Act, 15 USC 2601 et seq and regulations
+thereunder), or else comply with an exemption to inventory listing. SDI shall
+inform DuPont Qualicon in advance of any regulatory restrictions known to it
+governing the use or disposal of the Products. SDI agrees to provide DuPont
+Qualicon all existing marketing and confirmatory testing data (for example but
+not limited to in-house and third party validation studies and data) in support
+of the Product claims, methods for use and any government or third party Product
+accreditations and to reimburse DuPont Qualicon for any costs of Product
+registration and third party certification or accreditation (as for example
+only, AOAC certification) where required by law or where the Steering Committee
+agrees, or on a fee for service basis where such agreement is not made.
+
+
+7. ADDITIONAL OBLIGATIONS OF SDI
+
+         7.1 Training. During the first Contract Year, and periodically
+thereafter as requested by DuPont Qualicon, SDI shall provide, at its expense,
+technical sales support and training to DuPont Qualicon for Products in the form
+of "train the trainer" meetings and eight-hour/day help desk functions at such
+times and place as the Parties agree. SDI shall provide qualified people to
+support DuPont Qualicon on a fee for service basis.
+
+         7.2 Documentation. SDI shall provide DuPont Qualicon with each Product
+detailed package inserts and directions for use, Product warranties and any end
+user terms and conditions in the English language for DuPont Qualicon's use in
+distributing the Product in the Territory.
+
+         7.3 Noncompetition. During the Term, and for so long as DuPont Qualicon
+is an exclusive distributor:
+
+              (a) SDI shall not, without the prior written consent of DuPont
+                  Qualicon, sell, offer for sale, deliver, or otherwise
+                  distribute any immunoassay-based microorganism lateral flow
+                  detection devices or associated Media for use with such
+                  lateral flow detection device for use in testing food and
+                  environmental testing, directly or indirectly, in the
+                  Territory except pursuant to this Agreement. If SDI receives
+                  an inquiry regarding the purchase or use of the Products in
+                  the Territory, SDI shall immediately refer such inquiry to
+                  DuPont Qualicon.
+
+              (b) DuPont Qualicon shall not, without the prior written consent
+                  of SDI, sell, offer for sale, deliver, or otherwise distribute
+                  any competitive immunoassay-based microorganism lateral flow
+                  detection device for use in testing food and environmental
+                  testing, directly or indirectly, in the Territory except
+                  pursuant to this Agreement.
+
+              (c) For avoidance of doubt, a lateral flow device that is used to
+                  detect material other than microorganisms, as for example, the
+                  detection of toxins or specific proteins, is excluded from
+                  this paragraph.
+
+                                       8
+<PAGE>
+
+         7.4 Quality of Products. SDI shall maintain a quality system,
+consistent with the requirements outlined by the ISO 9001-2000 standard. DuPont
+Qualicon shall have the right to audit this system annually as long as this
+Agreement is in effect.
+
+
+8. CONFIDENTIALITY; PACKAGING AND TRADEMARKS
+
+         8.1      Confidentiality. The Parties agree to be bound by the terms
+                  and conditions set forth in Exhibit F "Confidentiality
+                  Provisions" regarding the disclosure of Confidential
+                  Information hereunder/
+
+         8.2      Packaging and Trademarks.
+
+                  8.2.1 SDI shall package Products (including directions for
+         use, package inserts and product warranty) with DuPont Qualicon
+         trademarks, tradenames, service marks and logos in a manner approved by
+         DuPont Qualicon. Should DuPont Qualicon require Product packaging that
+         is different than SDI's standard manner, SDI shall provide DuPont
+         Qualicon with the estimated cost of moving to the different packaging
+         and DuPont Qualicon shall reimburse SDI for all costs involved in
+         effecting such transfer.
+
+                  8.2.2 SDI acknowledges that DuPont Qualicon has exclusive
+         right, title and interest in and to the DuPont Qualicon trademarks,
+         tradenames, service marks and logos, whether or not registered, and SDI
+         shall not at any time do or cause to be done any act, direct or
+         indirect, which shall in any way impair or tend to impair any part of
+         DuPont Qualicon's right, title or interest in such trademarks,
+         tradenames, service marks or logos.
+
+
+9. TERM AND TERMINATION
+
+         9.1 Term. This Agreement shall commence on the Effective Date and
+continue until December 31, 2007 (the "Initial Term"). Thereafter, this
+Agreement shall renew for five (5) additional periods of one (1) Calendar Year
+each (each, a "Renewal Term"; together with the Initial Term, the "Term") unless
+DuPont Qualicon shall have provided SDI with written notice that it does not
+wish to renew the Agreement at least 180 days prior to the end of the Initial
+Term or the then-current Renewal Term.
+
+         9.2 Termination. This Agreement may be terminated immediately by
+written notice at any time during the Term (subject to any applicable cure
+period) as follows:
+
+                  9.2.0 By either Party, if a court of competent jurisdiction or
+governmental authority, regulatory or administrative agency or commission shall
+have enacted any law, statute, rule, or regulation or issued any final and
+non-appealable order or decree that permanently restrains, enjoins, or otherwise
+prohibits either Party from substantially performing under this Agreement;
+
+                  9.2.1 By either Party if the other Party becomes insolvent, is
+unable to pay its debts as they become due, makes an assignment for the benefit
+of creditors, permits or procures the appointment of a receiver or trustee for
+its assets or becomes the subject or any bankruptcy, insolvency or similar
+proceeding;
+
+
+                                       9
+<PAGE>
+
+
+                  9.2.2 By either Party if the other Party shall have breached
+or failed to comply with any material term, condition, or covenant required to
+be performed or complied with by such other Party, and such breach or failure is
+not cured within 60 days after written notice thereof by the terminating Party;
+
+                  9.2.3 By SDI upon 12 months prior written notice if SDI
+intends to no longer make or distribute, or have made or distributed, the
+Products in the Territory; or
+
+                  9.2.4 By either Party if the other Party dissolves, sells,
+assigns, transfers, mortgages, encumber, pledges, or otherwise disposes of
+either substantially all of its assets used to provide a Product or over twenty
+(20%) percent of its ownership or controlling interest (whether in the form of
+stock or otherwise); or if an order is made or a resolution is passed for the
+winding up of the other Party; or if an order is made for the appointment of an
+administrator to manage the affairs, business and property of the other Party or
+if a receiver is appointed of any of the other Party's assets or undertaking or
+if circumstances arise which entitle the court or a creditor to appoint a
+receiver or manager or which entitle the court to make a winding-up order or if
+the other Party takes or suffers any similar or analogous action in consequence
+of debt;
+
+                  9.2.5 By either Party if (a) the other Party consolidates with
+or merges into another corporation or permits one or more other corporations to
+consolidate or merge into it; or (b) there is a direct or indirect change of
+control of a Party (including but not limited to a transfer of the Party's
+material assets to an Affiliate or to a third party); provided that under such
+circumstances this Agreement may only be terminated by the Party that has not
+undergone the change in control.
+
+         9.3 By DuPont Qualicon if any institutional investor holder and/or any
+mutual fund holder of SDI stock or any SDI shareholder owning greater than 5% of
+the shares of SDI transfers or sells its SDI shares to the following companies
+or their Affiliates: BioMerieux SA; Neogen Corp.; BioControl; Tecra
+International Pty Ltd.
+
+         9.4 Effect of Termination.
+
+                  9.4.0 In the event of any termination and in order to
+transition the distribution of Products from DuPont Qualicon to another
+distributor, DuPont Qualicon may, at its option, continue to distribute Products
+on a non-exclusive manner and without any Minimum Yearly Purchase Amount for
+such period of time as mutually agreed to by the Parties, such period not to
+exceed 12 months from the effective date of such termination.
+
+                  9.4.1 In the event of any termination, SDI may, at its option,
+elect to repurchase from DuPont Qualicon any unsold Product stock in DuPont
+Qualicon's or its distributors possession in the Territory. If SDI elects not to
+repurchase the unsold Product stock DuPont Qualicon shall be permitted, but not
+obligated, to sell any remaining Product stock within the Territory.
+
+                  9.4.2 In no event shall any termination of this Agreement
+excuse DuPont Qualicon from making any payment due under this Agreement or
+entitle DuPont Qualicon to a refund of any amounts paid for Products hereunder,
+except for amounts paid for Product which will not be delivered by virtue of
+order cancellation arising from termination.
+
+
+                                       10
+<PAGE>
+
+
+         9.5 Statutory Rights. DuPont Qualicon acknowledges that it is cognizant
+of certain state statutes that impose on a Manufacturer, wholesaler, assembler
+or importer specific duties and obligations with regard to the termination of a
+distribution agreement. Notwithstanding the rights conferred under those
+statutes to a distributor, to the extent permitted by such applicable law,
+DuPont Qualicon hereby waives its rights thereunder with respect to a valid
+termination pursuant to a right under this Agreement and in consideration of its
+appointment hereunder covenants not to sue SDI in the event of the valid
+termination of this Agreement except for the purpose of enforcing DuPont
+Qualicon's rights under this Agreement. This Section 9.4 in no way affects the
+enforcement rights of DuPont Qualicon to recover amounts and/or any indemnity
+earned pursuant to this Agreement.
+
+         9.6 Survival. In no event shall any termination of this Agreement
+excuse either Party from any breach or violation of this Agreement and full
+legal and equitable remedies shall remain available therefor. Sections 2.4 and
+8.1 and Articles 9 through 14 shall survive the expiration or earlier
+termination of this Agreement. In addition, the terms and conditions of this
+Agreement shall remain in effect with respect to any Product Orders that have
+been agreed to by the Parties on or prior to the effective date of any
+expiration or termination, unless the Parties shall have agreed in writing to
+cancel any such Product Orders.
+
+
+10. REPRESENTATIONS AND WARRANTIES
+
+         10.1 By Both Parties. Each Party represents and warrants to the other
+that:
+
+                  10.1.0 It has the requisite corporate right, power, and
+authority to enter into and perform under this Agreement; and
+
+                  10.1.1 The execution, delivery, and performance of this
+Agreement by it will not (a) result in the breach of, constitute a default
+under, or interfere with any contract or other instrument or obligation, whether
+written or oral, to which it is currently bound, or (b) violate any writ, order,
+injunction, decree, or any law, statute, rule, or regulation applicable to it,
+and (c) it shall, to its knowledge following reasonable inquiry, comply in all
+material respects with all applicable laws, rules, regulations, and other
+governmental requirements relating to or affecting its performance under this
+Agreement, and shall obtain and maintain all governmental permits, licenses, and
+consents required in connection therewith.
+
+         10.2 By SDI. SDI additionally represents and warrants to DuPont
+Qualicon (and through DuPont Qualicon to any Person that purchases Products from
+DuPont Qualicon or its distributors) that: (i) all services performed by or on
+behalf of SDI under this Agreement shall be performed in a professional and
+workmanlike manner consistent with industry standards by trained and fully
+qualified personnel; (ii) it owns or has sufficient rights to manufacture and
+sell the Products supplied to DuPont Qualicon hereunder; (iii) the Product and
+that the use of the Product and the process by which the Product is made, does
+not infringe or misappropriate any patent, copyright, trademark, trade secret or
+other third party proprietary right, (iv) title to all Products supplied to
+DuPont Qualicon hereunder will be conveyed free and clear of any liens or
+encumbrances, (v) the Product meets Specifications as of the date of sale, are
+fit for its intended use and complies with all laws and regulations applicable
+to their manufacture, sale, packaging and labeling.
+
+
+
+
+                                       11
+
+<PAGE>
+
+         10.3 Disclaimer of Additional Warranties. EXCEPT FOR THE EXPRESS
+WARRANTIES CONTAINED IN THIS ARTICLE 10, NEITHER PARTY MAKES ANY REPRESENTATIONS
+OR WARRANTIES TO THE OTHER OR TO ANY OTHER PERSON. ALL OTHER WARRANTIES, EXPRESS
+OR IMPLIED, INCLUDING, WITHOUT LIMITATION, IMPLIED WARRANTIES OF TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, ARE
+HEREBY DISCLAIMED.
+
+
+11. LIMITATIONS OF LIABILITY
+
+          11.1 Limitation on Certain Damages. IN NO EVENT SHALL EITHER PARTY BE
+LIABLE TO THE OTHER PARTY FOR ANY SPECIAL, INDIRECT, PUNITIVE, OR CONSEQUENTIAL
+DAMAGES OF ANY KIND (INCLUDING, WITHOUT LIMITATION, LOST PROFITS, BUSINESS, OR
+GOODWILL) IN CONNECTION WITH ANY PRODUCTS SUPPLIED OR TO BE SUPPLIED HEREUNDER,
+OR ANY OTHER MATTER COVERED BY THIS AGREEMENT, REGARDLESS OF WHETHER SUCH
+LIABILITY IS BASED ON BREACH OF CONTRACT, TORT, STRICT LIABILITY, BREACH OF
+WARRANTY, OR ANY OTHER THEORY, EVEN IF SUCH PARTY HAS BEEN ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGES. THE PRECEDING SENTENCE DOES NOT APPLY TO CLAIMS
+AGAINST ONE PARTY BY THE OTHER FOR INDEMNITY AGAINST (I) FINES AND CIVIL
+PENALTIES; AND (II) COSTS AND LIABILITY ARISING FROM PERSONAL INJURY OR PROPERTY
+DAMAGE TO THIRD PERSONS TO THE EXTENT (I) AND (II) ARE CAUSED BY THE FIRST
+PARTY'S NEGLIGENCE, WILLFUL MISCONDUCT OR, IN THE CASE OF MANUFACTURER, BREACH
+OF THE WARRANTIES
+
+         11.2 Limitation on Actions. No action, suit, or proceeding arising out
+of this Agreement may be brought more than two (2) years after knowledge of the
+first event giving rise thereto.
+
+
+12. INDEMNIFICATION
+
+         12.1 Mutual Indemnity. Subject to the provisions of Section 10.3, each
+Party shall defend and/or settle any third party claim or action brought against
+the other Party, its Affiliates, and/or their respective officers, directors,
+members, licensors, employees, agents, distributors and representatives, to the
+extent such claim or action arises solely from any breach, or alleged breach by
+either Party of any of (1) its representations or warranties; (2) fines and
+civil penalties; (2) costs and liability arising from personal injury or
+property damage to third persons to the extent caused by the first party's
+negligence, willful misconduct.
+
+         12.2 In addition, the indemnifying Party shall indemnify and hold
+harmless the indemnified Party from and against any damages, fees, and expenses
+(including reasonable attorneys' fees) payable by any of them to third parties
+in connection with any such claim or action.
+
+         12.3 Additional Indemnity of SDI. SDI shall defend and/or settle, and
+indemnify and hold harmless each DuPont Qualicon Indemnified Person (as defined
+below) from and against, any third-party claim or action brought against DuPont
+Qualicon, its Affiliates or distributors, its customers that purchase Products,
+and/or their respective officers, directors, members, licensors, employees,
+agents and representatives (each, a "DuPont Qualicon Indemnified Person"), and
+
+
+                                       12
+<PAGE>
+
+
+all damages, losses, liabilities, and expenses (including reasonable attorneys'
+fees) suffered, incurred, or awarded or imposed against any DuPont Qualicon
+Indemnified Person in connection with any such claim or action:
+
+       (1)   to the extent such claim or action concerns an allegation that any
+             of the Products, or any portion thereof, infringe any intellectual
+             property or other proprietary right of a third party. If such a
+             claim results in a judgment of infringement, SDI may (i) provide
+             DuPont Qualicon with non-infringing Products; (ii) obtain for
+             DuPont Qualicon the rights to distribute such Products, or (iii)
+             accept a return of such Products and credit DuPont Qualicon with
+             the price paid less an allowance for use. The foregoing shall be
+             DuPont Qualicon's sole remedy with respect to such infringement and
+       (2)   to the extent arising from SDI termination of its existing
+             distributors in the Territory under Article 2.
+
+         12.4 Indemnification Procedures. With respect to any claim or action
+for which indemnity may be sought from the other Party under this Article 1, the
+person seeking indemnification (the "Claimant") shall promptly notify the
+indemnifying Party in writing, specifying the nature of the claim or action and
+the total monetary amount sought or other such relief as is sought therein. The
+Claimant shall cooperate with the indemnifying Party at the indemnifying Party's
+expense in all reasonable respects in connection with the defense and/or
+settlement of the claim or action. The indemnifying Party shall have the right
+to undertake the control and conduct of all proceedings or negotiations in
+connection therewith and to assume and control the defense thereof. The Claimant
+shall have the right to employ separate counsel to provide input into the
+defense, at Claimant's own cost. The indemnifying Party shall keep the Claimant
+reasonably informed of the progress of its defense and settlement of the claim
+or action. The indemnifying Party shall not settle the claim or action on the
+Claimant's behalf without first obtaining the written approval of the Claimant,
+which approval will not be unreasonably withheld or unreasonably delayed;
+provided, however, that if Claimant unreasonably withholds or unreasonably
+delays approval of indemnifying Party's settlement offer, the Claimant shall
+defend that claim or action at its own expense and the Claimant hereby waives
+any right to indemnity hereunder from the indemnifying Party in excess of the
+settlement offer amount. Notwithstanding the foregoing sentence, if a settlement
+offer contains conditions other than money payments, the Indemnifying Party may
+not settle such claim or action without Claimant's approval of such conditions,
+such approval to be given in Claimant's sole discretion, and not subject to a
+reasonableness standard. The Claimant may settle any claim or action hereunder,
+but the indemnifying Party will not be responsible for any such settlement
+unless it shall have approved the settlement, in writing and in advance, which
+approval will not be unreasonably withheld or delayed. Each Party agrees not to
+publicize any settlement without first obtaining the other Party's written
+permission, which permission will not be unreasonably withheld.
+
+13. DISPUTE RESOLUTION; ARBITRATION
+
+         13.1 In the event of any dispute or claim between the Parties regarding
+or arising from this Agreement that cannot be resolved through normal channels
+of discussion (a "Dispute"), such Dispute shall be resolved solely in accordance
+with these procedures.
+
+         13.2 Either Party to a Dispute may request a meeting of the Steering
+Committee who shall meet promptly, but in any event within 15 days of the
+request. The Party requesting the meeting may send a Notice of Dispute which
+shall state the action or failure to act to which such Party objects, and
+
+                                       13
+<PAGE>
+
+
+whether the Party contends that the action or failure to act constitutes a
+material breach. At the meeting, these persons will review the circumstances of
+the Dispute.
+
+         13.3 If the Steering Committee is unable to resolve the Dispute within
+15 days, either Party may request in writing that the Dispute be referred to the
+applicable Parties' executives who have authority to settle the Dispute and who
+are at a higher level of management than the persons with direct responsibility
+for administration of this Agreement.
+
+         13.4 In the event the executives are unable to reach a mutually
+acceptable resolution of the Dispute within 15 days, the Parties will submit the
+matter to binding arbitration. The arbitration shall be conducted in English and
+in accordance with the Commercial Rules of the American Arbitration Association
+which shall administer the arbitration and act as appointing authority. The
+arbitration, including the rendering of the award, shall take place in
+Wilmington, Delaware, U.S.A., and shall be the exclusive forum for resolving
+such dispute, controversy or claim. Discovery will be limited to no more than
+ten (10) interrogatories (including subparts or compound requests); no more than
+ten (10) requests for production (including subparts or compound requests) and
+no more than three (3) depositions each for SDI and DuPont Qualicon, each
+deposition shall last no more than two hours. All discovery shall be concluded
+within ninety (90) days of service of the notice of arbitration each Party shall
+pay for its own costs and the costs of the mediation, including the fee of the
+mediator, shall be shared equally by the Parties. The arbitrators are not
+empowered to award damages in excess of actual damages, specifically neither
+Party shall be entitled to consequential or punitive damages unless such damages
+are awarded to a third party as a result of a liability claim for damages
+against Distributor and Manufacturer and for which DuPont Qualicon and SDI, as
+the case may be, has an obligation to indemnify the other Party as provided for
+in this Agreement. The decision of the arbitrators shall be binding upon the
+Parties hereto, and the expense of the arbitration (including without limitation
+the award of attorneys' fees to the prevailing Party) shall be paid as the
+arbitrators determine. The decision of the arbitrators shall be final, and
+judgment thereon may be entered by any court of competent jurisdiction. In the
+event any such dispute, controversy or claim involves a claim of damages in
+excess of one million U.S. Dollars (USD $1,000,000), the arbitration shall be
+conducted by three (3) independent arbitrators; otherwise by one (1) independent
+arbitrator.
+
+         13.5 Notwithstanding anything contained in this Article 13 to the
+contrary, each Party shall have the right to institute judicial proceedings
+against the other Party or anyone acting by, through or under such other Party
+in order to enforce the instituting Party's rights hereunder through specific
+performance, injunction or similar equitable relief.
+
+
+14. GENERAL PROVISIONS
+
+         14.1 Press Release. Within 30 days after the Effective Date, both
+Parties shall have the right to issue a press release announcing SDI's
+appointment of DuPont Qualicon as an exclusive distributor of the Products in
+the Territory. Such press release shall be subject to review and approval by the
+other Party. Any subsequent press releases regarding the subject matter of this
+Agreement or the relationship between the Parties shall be issued only jointly
+upon the mutual agreement of the Parties.
+
+         14.2 Further Assurances. Upon the request of each Party, the other
+Party shall execute and deliver any and all additional instruments and documents
+
+
+                                       14
+<PAGE>
+
+and take such other future actions as may be necessary or reasonably requested
+by a Party to carry out its performance under this Agreement.
+
+         14.3 Headings. The Section and Article headings contained in this
+Agreement are for reference purposes only and shall not control or affect the
+construction of this Agreement or the interpretation thereof in any respect.
+
+         14.4 Force Majeure. Neither Party shall be considered in default of its
+performance of any obligation hereunder to the extent that performance of such
+obligation is prevented or delayed by any act of God or other cause beyond such
+Party's reasonable control, including, without limitation, any act, failure to
+act, or delay in acting on the part of any governmental authority, governmental
+priorities, strikes or other labor difficulties, accidents or disruptions such
+as fire, explosion, flood, epidemics, civil disturbance, or act of war or
+terrorism (each, a "Force Majeure Event"). If any Force Majeure Event does
+arise, occur, or result, the Party subject thereto shall use commercially
+reasonable efforts to minimize the consequences of such event and to overcome
+such event as soon as reasonably possible. A Party desiring to rely upon any
+Force Majeure Event as an excuse for failure, default, or delay in performance
+shall provide the other Party with prompt written notice of the facts giving
+rise to said event when it arises and of the cessation of said event when it
+ceases to exist.
+
+         14.5 Assignment. Neither Party may assign this Agreement, or delegate
+any of its obligations hereunder, without the prior written consent of the other
+Party. Subject to the foregoing, all of the terms and conditions of this
+Agreement shall be binding upon and shall inure to the benefit of the Parties
+and their respective permitted successors and assigns.
+
+         14.6 Nonsolicitation. During the Term of this Agreement and for twelve
+(12) months after the termination of this Agreement, neither Party shall solicit
+or hire, directly or indirectly, on its own behalf or on behalf of others, any
+employees or contractors of the other Party without the other Party's written
+consent.
+
+         14.7 Compliance With Laws. Each of DuPont Qualicon and SDI covenants
+that all of its activities under or pursuant to this Agreement shall comply with
+all applicable laws, rules and regulations. In particular, but without
+limitation, DuPont Qualicon shall be responsible for obtaining all licenses,
+permits and approvals which are necessary or advisable for sales of the Products
+in the Territory and for the performance of its duties hereunder.
+
+         14.8 Choice of Law. This Agreement and its subject matter shall be
+governed by and interpreted in accordance with the Federal laws of the United
+States of America with respect to patent, copyright, and trademark matters, and
+by the laws of the State of Delaware in all other respects, in each case without
+reference to any principles governing conflicts of law that might cause the laws
+of any other jurisdiction to apply. Both Parties consent and submit to the
+exclusive personal jurisdiction of the United States and the state courts of the
+State of Delaware. The Parties agree that the provisions of the United Nations
+Convention on Contracts for the International Sale of Goods shall not apply to
+this contract.
+
+         14.9 Taxes and Expenses. Except as otherwise expressly provided herein,
+each Party shall pay all taxes and legal, accounting, and other expenses
+incurred by such Party in connection with its negotiation, execution, and
+performance of this Agreement.
+
+
+                                       15
+<PAGE>
+
+         14.10 No Rights by Implication. No rights or licenses with respect to
+the Products or the Trademarks are granted or deemed granted hereunder or in
+connection herewith, other than those rights expressly granted in this
+Agreement.
+
+         14.11 No Rights In Third Parties. Except as expressly stated herein,
+nothing in this Agreement shall confer any rights upon any person other than the
+Parties and their respective permitted successors and assigns.
+
+         14.12 Parties to Agreement. The Parties to this Agreement are DuPont
+Qualicon and SDI, and no other persons or entities. DuPont Qualicon is a
+division of E.I. du Pont de Nemours and Company. The other divisions or
+businesses of E.I. du Pont de Nemours and Company and any and all Affiliates of
+E.I. du Pont de Nemours and Company are not parties to this Agreement, shall
+have no obligations or duties under this Agreement and shall be treated as
+unrelated third parties for all purposes.
+
+         14.13 Notices. All notices and correspondences provided for or
+permitted under this Agreement shall be deemed effective upon receipt, shall be
+in writing in the English language, and shall be (i) delivered personally, (ii)
+sent by certified or registered mail, postage prepaid and return receipt
+requested, (iii) sent by facsimile with concurrent delivery by certified or
+registered mail as provided above, or (iv) in the case of any reports or
+forecasts required to be submitted by DuPont Qualicon under Article 4, sent
+electronically, in each case to the Party to be notified, at the address(es) for
+such Party set forth below (or, in the case of reports or forecasts covered by
+(iv) above, to an e-mail address or other internet address designated by SDI),
+or at such other address(es) of which such Party has provided notice in
+accordance with the provisions of this Section 20.14:
+
+
+              To SDI:                       Strategic Diagnostics Inc.
+                                            111 Pencader Drive
+                                            Newark, Delaware 19702-3322
+                                            Attn: President
+
+
+              To DuPont Qualicon:           DuPont Qualicon
+                                            E.I. du Pont de Nemours and Company
+                                            Experimental Station, Building 400
+                                            P.O. Box 80400
+                                            Route 141& Henry Clay Road
+                                            Wilmington, Delaware 19880-0400
+                                            Attn: President
+
+              With a copy to:               E.I. du Pont de Nemours and Company
+                                            DuPont Qualicon Legal
+                                            Barley Mill Plaza, P25-1366
+                                            P.O. Box 80025
+                                            4417 Lancaster Pike
+                                            Wilmington, Delaware 19880-0025
+                                            Attn: General Counsel
+
+
+                                       16
+<PAGE>
+
+
+         14.14 Entire Agreement. This Agreement, together with any Exhibits
+hereto, sets forth the entire understanding of the Parties with respect to its
+subject matter. All prior and contemporaneous agreements and understandings
+between the Parties, whether oral or written, are hereby superseded in their
+entirety by this Agreement. This Agreement may be amended, modified, or
+supplemented only by a written instrument duly executed by each of the Parties.
+
+         14.15 No Waivers. The failure of either Party to assert a right
+hereunder or to insist upon compliance with any term or condition herein will
+not constitute a waiver of that right or excuse any subsequent nonperformance of
+any such term or condition, or of any other term or condition, by the other
+Party.
+
+         14.16 Severability. If any provision of this Agreement is held invalid,
+illegal or unenforceable, such provision shall be modified to reflect the
+fullest legal and enforceable expression of the intent of the Parties or, if not
+possible, severed, and the remainder of this Agreement will not be affected
+thereby. Notwithstanding the foregoing, the Minimum Yearly Purchase Amounts in
+Section 4.1.3, the Disclaimers in Section 10.4 and the Limitations of Liability
+in Article 11 are considered by the Parties to be integral to this Agreement and
+may not be modified or severed from this Agreement.
+
+         14.17 Language. This Agreement is in the English language only, which
+language shall be controlling in all respects, and all versions hereof in any
+other language shall be for accommodation purposes only and shall not be binding
+upon the Parties.
+
+         14.18 Currency. Except as expressly set forth herein, all amounts
+listed or referred to in this Agreement shall be in United States dollars.
+
+         14.19 Counterparts. This Agreement may be executed in two or more
+counterparts, each of which shall be binding as of the Effective Date, and all
+of which shall constitute one and the same instrument. Each such copy shall be
+deemed an original, and it shall not be necessary in making proof of this
+Agreement to produce or account for more than one such counterpart.
+
+         14.20 [The confidential material contained herein has been omitted and
+has been separately filed with the Commission.]
+
+
+
+                                       17
+<PAGE>
+
+
+
+
+
+         14.21 Execution and Delivery. This Agreement shall be deemed executed
+by the Parties when any one or more counterparts hereof, individually or taken
+together, bears the signatures of each of the Parties hereto. This Agreement,
+once executed by a Party, may be delivered to the other Party by facsimile
+transmission of a copy thereof that bears the signature of the Party so
+delivering it.
+
+         IN WITNESS WHEREOF, the Parties, by their duly appointed officers, have
+entered into this Agreement on the Effective Date.
+
+
+
+STRATEGIC DIAGNOSTICS INC.                 E.I. DU PONT DE NEMOURS  AND COMPANY
+                                           through its DuPont Qualicon business
+
+
+
+By:  /s/ Matthew H. Knight                 By:  /s/ Kevin Huttman
+     ---------------------------                -------------------------
+Printed Name:  Matthew H. Knight           Printed Name: Kevin Huttman
+Title:  President                          Title: Business Manager
+
+
+                                       18
+<PAGE>
+
+
+
+                                    EXHIBIT A
+                               PRODUCTS AND PRICE
+
+[The confidential material contained herein has been omitted and has been
+separately filed with the Commission.]
+
+
+
+
+                                       1
+<PAGE>
+
+
+
+                                    EXHIBIT B
+                              FORM OF PRODUCT ORDER
+
+TO INCLUDE THE FOLLOWING ELEMENTS
+
+         (1)  the DuPont Qualicon Purchase Order number;
+         (2)  SDI's complete name and remit to address;
+         (3)  "bill to" stating applicable DuPont Qualicon entity set forth on
+              the Purchase Order;
+         (4)  Product purchased;
+         (5)  price and billing units consistent with Schedule B of this
+              Agreement;
+         (6)  quantity;
+         (7)  SDI's invoice number;
+         (8)  invoice date;
+         (9)  total monetary amount;
+         (10) terms of payment, including any applicable discount calculations;
+         (11) dates of shipment, invoice, and bill of lading consistent with the
+              price and payment terms hereof;
+         (12) tax amount/rate information; and
+         (13) bill of lading number or packing list number as appropriate.
+
+
+
+                                       2
+<PAGE>
+
+
+
+                                    EXHIBIT C
+
+                         MINIMUM YEARLY PURCHASE AMOUNTS
+
+
+[The confidential material contained herein has been omitted and has been
+separately filed with the Commission.]
+
+
+
+                                       3
+<PAGE>
+
+
+
+                                    EXHIBIT D
+
+                                FORM OF FORECAST
+
+
+
+
+                                       4
+<PAGE>
+
+
+
+                                    EXHIBIT E
+                                 SPECIFICATIONS
+
+[The confidential material contained herein has been omitted and has been
+separately filed with the Commission.]
+
+
+
+                                       5
+<PAGE>
+
+
+
+                                    EXHIBIT F
+
+                           CONFIDENTIALITY PROVISIONS
+
+1) "Confidential Information" means all data and information whether in written,
+machine readable or other tangible form, obtained by the receiving Party through
+observation or examination of such information and material, or disclosed orally
+or visually, that is of value to the disclosing Party, and is not generally
+known to competitors of the disclosing Party and which is indicated as
+Confidential or Proprietary when communicated to the receiving Party and reduced
+to and identified as confidential in writing within 20 days of such oral
+disclosure. Each Party represents and warrants that it has the legal right to
+disclose its Confidential Information to the receiving Party.
+
+2) The receiving Party will treat and safeguard Confidential Information of the
+other Party with the same standard of care (but at least a reasonable standard
+of care) that the receiving Party employs for its own Confidential Information
+and shall not, without the prior written approval of the disclosing Party, (a)
+disclose any Confidential Information to a third party, (b) use Confidential
+Information in any way for the benefit of any third parties, and/or (c) use
+Confidential Information other than in connection with this Agreement. The
+receiving Party will limit access to Confidential Information to those employees
+and consultants who have a need to know of such Confidential Information and who
+are aware of and have agreed to abide by the relevant provisions of this
+Agreement. The receiving Party shall have no liability for inadvertent or
+accidental disclosure, provided it has exercised the degree of care required, as
+described herein.
+
+3) However, Confidential Information does not include, and no obligation is
+imposed on, information which:
+
+         i.   Is already in or subsequently enters the public domain through no
+              fault of the receiving Party;
+
+         ii.  Is supplied by the disclosing Party to another party without a
+              duty of confidentiality to the disclosing Party;
+
+         iii. Is known to the receiving Party or is in its possession (as shown
+              by tangible evidence) prior to receipt from the disclosing Party;
+
+         iv.  Is developed independently by the receiving Party (as shown by
+              tangible evidence) by persons who have not had, either directly or
+              indirectly, access to or knowledge of Confidential Information of
+              the disclosing Party;
+
+         v.   Is lawfully received by the receiving Party from another party
+              without a duty of confidentiality to the disclosing Party; or
+
+         vi.  Is disclosed pursuant to the order or requirements of a
+              governmental administrative agency or other governmental body
+              provided that such disclosure is pursuant to a protective order
+              and the disclosing Party has been notified of such a disclosure
+              request in advance.
+
+4) All Confidential Information, unless otherwise specified in writing, shall
+remain the property of the disclosing Party, and shall be promptly returned to
+the disclosing Party at its request or destroyed after the receiving Party's
+need for it has expired, and in any event, upon termination of this Agreement.
+
+5) This Agreement shall last until and cover information received by a receiving
+Party until the termination of the Agreement. Nonetheless, all duties of
+confidentiality and non-use shall extend for a period of not less than three
+years subsequent to such date.
+
+6) Nothing in these terms and conditions of Exhibit F shall be construed as
+granting either Party any license, or obligating either Party to take any
+license, under any invention, trade secret, patent, copyright, trademark, mask
+work or other intellectual property right of the other Party. The receiving
+Party may not reverse-engineer, decompile, or disassemble any product or
+software disclosed to the receiving Party hereunder. The terms of this Agreement
+shall not be construed to limit in any way a receiving Party's right to
+independently develop products without use of the Confidential Information.
+
+
+                                       6
+<PAGE>
+
+
+8) Each Party acknowledges that the disclosing Party makes no express or implied
+representation or warranty as to the accuracy or completeness of the
+Confidential Information disclosed, except as set forth in the Agreement or as
+may be otherwise agreed in writing between the Parties. Except as set forth in
+the Agreement or as may be otherwise agreed in writing between the Parties, the
+disclosing Party shall have no liability to the receiving Party or any other
+person, relating to or arising from the use of the Confidential Information, or
+for any errors therein or omissions therefrom, and each Party assumes full
+responsibility for all conclusions such Party derives from the Confidential
+Information. Except as set forth in the Agreement or as may be otherwise agreed
+in writing between the Parties, nothing in this Agreement shall be construed as
+obligating a Party to provide, or to continue to provide, any information to any
+person.
+
+9) The receiving Party shall be fully responsible for any breach of this
+Agreement by its employees, agents or any third parties.
+
+10) Any breach of this Agreement by the receiving Party could cause the
+disclosing Party immediate and irreparable injury for which monetary damages may
+be inadequate and impossible to ascertain. Accordingly, upon breach or
+threatened breach of the provisions of this Exhibit F, the disclosing Party
+shall have the right to seek temporary relief in addition to monetary damages.
+The receiving Party agrees that no serious harm will result to receiving Party
+from such equitable relief, and therefore, receiving Party waives any bond that
+might be required.
+
+
+                                       7
+</TEXT>
+</DOCUMENT>

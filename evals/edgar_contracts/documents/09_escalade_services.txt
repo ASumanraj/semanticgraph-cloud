@@ -1,0 +1,433 @@
+<DOCUMENT>
+<TYPE>EX-10.7
+<SEQUENCE>9
+<FILENAME>l03724aexv10w7.txt
+<DESCRIPTION>EX-10.7
+<TEXT>
+<PAGE>
+
+                                  EXHIBIT 10.7
+
+                               SERVICES AGREEMENT
+
+                  This SERVICES AGREEMENT (as amended, supplemented or otherwise
+modified from time to time and at any time, this "Services Agreement"), is
+entered into as of September 5, 2003, between INDIAN-MARTIN, INC., a Nevada
+corporation ("IM, Inc."), and MARTIN YALE INDUSTRIES INC. ("Seller" or in its
+capacity as servicer, the "Servicer"), a corporation incorporated under the laws
+of Indiana.
+
+                                   DEFINITIONS
+
+                  Unless otherwise defined herein or the context otherwise
+requires, certain terms that are used throughout this Services Agreement are
+defined in Exhibit 1 to the Receivables Purchase Agreement, dated as of even
+date herewith, between IM, Inc. and Seller, which definitions set forth on said
+Exhibit 1 are incorporated herein by this reference.
+
+                             PRELIMINARY STATEMENTS
+
+                  As of the Effective Date, IM, Inc. is purchasing Receivables
+and Related Rights from Seller, pursuant to one or more of the Receivables
+Purchase Agreements between IM, Inc. and Seller and others, together with
+Receivables and Related Rights currently owned by Indian-Martin AG, a Swiss
+corporation (the "Swiss Subsidiary"), which were previously sold to the Swiss
+Subsidiary by Seller and others.
+
+                  IM, Inc. desires to appoint Seller as the Servicer to collect
+Assigned Receivables and Related Rights as IM, Inc. is and will be purchasing
+from Seller and the Swiss Subsidiary (the "Swiss Receivables") arising from
+prior transactions with Seller commencing as of the Effective Date and may from
+time to time thereafter purchase from Seller.
+
+                  Seller is willing to undertake to act as the Servicer for IM,
+Inc.
+
+                  NOW THEREFORE, in consideration of the mutual promises and
+provisions herein contained, the parties agree as follows:
+
+ARTICLE 1         COLLECTION SERVICES
+
+                  Section 1.01. Appointment of Servicer. IM, Inc. hereby
+appoints Seller to perform the duties and obligations of the Servicer.
+
+                  Section 1.02. Duties of Servicer.
+
+                  (a)      The Servicer shall take or cause to be taken all such
+actions as may be necessary or advisable to collect each Assigned Receivable and
+each Swiss Receivables from time to time, all in accordance with this Services
+Agreement and all applicable laws, rules and regulations, with reasonable care
+and diligence, and in accordance with the Credit and Collection Policy.
+
+<PAGE>
+
+                  (b)      The Servicer shall set aside for the account of IM,
+Inc. the amount of the Collections to which IM, Inc. is entitled in accordance
+with the Receivables Purchase Agreement and shall deposit for the account and
+benefit of IM, Inc. the amount of such Collections as IM, Inc. shall direct the
+Servicer. The Servicer, if instructed by IM, Inc. or its lender, will instruct
+all Obligors to cause all Collections to be sent to a Lock-Box Account. In the
+event that Seller receives Collections directly from any Obligor, Seller shall
+deposit such Collections into a Lock-Box Account by the end of the then current
+four week accounting period of Seller.
+
+                  (c)      The Servicer, at the direction of IM, Inc. or its
+lender, shall commence or settle any legal action to enforce collection of any
+Assigned Receivable or to foreclose upon or repossess any Related Property.
+
+                  (d)      The Servicer shall perform such other acts and
+provide such other services as IM, Inc. or its lender may from time to time
+reasonably request and the Servicer may agree to perform or provide.
+
+                  (e)      The Servicer will maintain and implement
+administrative and operating procedures (including, without limitation, an
+ability to recreate records evidencing Assigned Receivables in the event of the
+destruction of the originals thereof), and keep and maintain all documents,
+books, records and other information reasonably necessary or advisable for the
+collection of all Assigned Receivables (including, without limitation, records
+adequate to permit the daily identification of each new Assigned Receivable and
+all Collections of and adjustments to each existing Assigned Receivable), but
+only for a period of at least forty-eight (48) months from the date of the
+origination thereof.
+
+                  (f)      The Servicer shall permit IM, Inc. or its lender on
+reasonable notice at any time during normal business hours to inspect, audit,
+check and make abstracts from accounts, records, correspondence and other papers
+pertaining to the Assigned Receivables. IM, Inc. shall deliver to the Servicer
+and the Servicer shall hold for the benefit of IM, Inc., all records and
+documents (including without limitation computer tapes or disks) with respect to
+each Assigned Receivable.
+
+ARTICLE 2         CONSIDERATION FOR PERFORMANCE OF SERVICER'S ACTIVITIES
+
+                  Section 2.01. Compensation for Performance of Servicer's
+Activities. In consideration for the performance of the Servicer's collection
+and servicing activities set forth in Article 1 of this Services Agreement (the
+"Servicing Activities"), commencing as of the Effective Date, IM, Inc. shall
+compensate the Servicer in an amount equal to the Operating Costs incurred by
+the Servicer plus the Percentage Fee. The term "Operating Costs" shall mean the
+costs of those Services as set out in Annex 1 to this Services Agreement. The
+term "Percentage Fee" shall equal the percentage of Operating Costs as
+determined pursuant to an economic transfer pricing study as calculated by an
+independent third party acceptable to both IM, Inc. and the Servicer. IM, Inc.
+and the Servicer agree that until otherwise agreed the initial Percentage Fee
+shall equal 2.23% of Operating Costs based upon the economic transfer pricing
+study that has been previously agreed to by IM, Inc. and Servicer.
+
+                                        2
+<PAGE>
+
+                  Section 2.02. Reports. The Servicer shall provide reports to
+IM, Inc. listing the Servicing Activities that the Servicer has provided for IM,
+Inc. during each fiscal quarter of the Servicer. Each Report shall be submitted
+no later than fifteen (15) days following the end of each quarter of the
+calendar year, and shall be in the form of Annex 2 to this Services Agreement.
+
+                  Section 2.03. Payment by IM, Inc. IM, Inc. shall pay the
+amount stated in a Report to the Servicer within thirty (30) days following
+receipt of such Report.
+
+                  Section 2.04. Currency. All financial obligations originating
+from the terms and conditions of this Article 2 shall be denominated in U.S.
+dollars.
+
+ARTICLE 3         INDEPENDENT CONTRACTOR
+
+                  Section 3.01. Independent Contractor. The Servicer is, and
+shall remain, an independent contractor, and not an employee or partner of IM,
+Inc. The Servicer shall be solely liable for any loss or damage caused by it or
+its employees or agents.
+
+                  Section 3.02. Servicer Not an Agent. IM, Inc. does not appoint
+the Servicer as its agent or authorize the Servicer to hold itself out as agent
+of IM, Inc., nor does IM, Inc. authorize the Servicer to pledge the credit of,
+or enter into any contract on behalf of, IM, Inc.
+
+                  Section 3.03. Contracts. The Servicer shall not have the right
+to assume or create any obligation of any kind, either express or implied, on
+behalf of IM, Inc., except as expressly provided for in this Services Agreement.
+No agreement or commitment made on behalf of IM, Inc. is binding on IM, Inc.
+without a confirmation by cable, facsimile, or other writing by a person duly
+authorized to act on IM, Inc.'s behalf.
+
+ARTICLE 4         INDEMNIFICATION
+
+                  The Servicer agrees to indemnify IM, Inc. and each of its
+permitted assigns, officers, directors, employees, agents, lenders or secured
+creditors (each of the foregoing Persons being individually called an
+"Indemnified Party") against, and hold IM, Inc. and each Indemnified Party
+harmless from, any and all claims asserted against IM, Inc. or any Indemnified
+Party by any third party arising out of any wrongful or negligent act or
+omission of the Servicer in performing any of the activities that the Servicer
+shall perform or furnish for IM, Inc. pursuant to the provisions of this
+Services Agreement; provided however, that IM, Inc. shall promptly notify the
+Servicer in writing of each such claim made or suit thereon instituted against
+IM, Inc. or any Indemnified Party and the details thereof, and shall not pay or
+compromise any such claim or suit without the written approval of the Servicer,
+and the Servicer shall be permitted to assume and direct the defense of any such
+suit by counsel of its own choosing.
+
+ARTICLE 5         COMPLIANCE WITH LAW
+
+                  The Servicer agrees that it shall not violate any applicable
+law or regulation of any country or political subdivision in performing or
+purporting to perform its obligations arising out of, or in connection with,
+this Services Agreement. The Servicer agrees to maintain any
+
+                                        3
+<PAGE>
+
+records required by applicable laws and regulations and to provide all written
+assurances required by IM, Inc. or its lender in connection with compliance with
+this Article 5.
+
+ARTICLE 6         PAYMENTS AND COMPUTATIONS
+
+                  Section 6.01. Amounts Paid by Servicer and IM, Inc. All
+amounts to be paid or deposited by the Servicer and IM, Inc. hereunder shall be
+paid or deposited no later than 2:00 p.m. (Central time) on the day when due in
+same day funds. All amounts received after 2:00 p.m. (Central time) will be
+deemed to have been received on the immediately succeeding Business Day.
+
+                  Section 6.02. Business Day. Whenever any payment or deposit to
+be made hereunder shall be due on a day other than a Business Day, such payment
+or deposit shall be made on the next succeeding Business Day.
+
+ARTICLE 7         TERM AND TERMINATION
+
+                  Section 7.01. Term. This Services Agreement may be terminated
+by either party at any time by giving the other party thirty (30) days' prior
+written notice of the effective date of termination.
+
+                  Section 7.02. Rights on Termination. On termination of this
+Services Agreement:
+
+                  (a)      All rights and obligations of the parties shall cease
+and terminate except that the obligations of both parties under this Services
+Agreement otherwise shall continue in effect after the date of termination with
+respect to all Assigned Obligations owned by IM, Inc. on the date of termination
+or previously acquired by IM, Inc. (including obligations of accounting and
+rights of indemnification provided for herein).
+
+                  (b)      The Servicer shall turn over to IM, Inc. records and
+documents in the Servicer's files relating to Assigned Receivables (including
+without limitation computer tapes or disks with respect to each Assigned
+Receivable). All such records and information shall be treated as confidential
+and shall not be disclosed by the Servicer to any other Person either during or
+after the term of this Services Agreement without the prior written consent of
+IM, Inc.
+
+ARTICLE 8         MISCELLANEOUS
+
+                  Section 8.01. Notices. All notices and other communications
+provided for hereunder shall, unless otherwise expressly stated herein, be in
+writing (which shall include facsimile communication) and shall be personally
+delivered or sent by certified mail, postage prepaid, or by facsimile, to the
+intended party at the address or facsimile number of such party set forth under
+its name below or at such other address or facsimile number as shall be
+designated by such party in a written notice to the other party hereto. All such
+notices and communications shall be effective, (a) if personally delivered, when
+received, (b) if sent by certified mail, three (3) Business Days after having
+been deposited in the mail, postage prepaid, (c) if sent by overnight courier,
+one (1) Business Day after having been given to such courier,
+
+                                        4
+<PAGE>
+
+and (d) if transmitted by facsimile, when sent, receipt confirmed by telephone
+or electronic means.
+
+                           The Servicer:     Martin Yale Industries Inc.
+                                             251 Wedcor Drive
+                                             Wabash, IN  46992
+                                             Attn:  Mr. Terry Frandsen
+                                             Telephone: (260) 569-7208
+                                             Facsimile: (260) 563-4575
+
+                           IM, Inc.:         Indian-Martin, Inc.
+                                             2325-B Renaissance Drive, Suite 10
+                                             Las Vegas, NV  89119
+                                             Attention: President
+                                             Telephone: (702) 740-4244
+                                             Facsimile: (702) 966-4247
+
+                  Section 8.02. Force Majeure. If the performance of any part of
+this Services Agreement by either party, or of any obligation under this
+Services Agreement, is prevented, restricted, interfered with, or delayed by
+reason of any cause beyond the reasonable control of the party liable to
+perform, unless conclusive evidence to the contrary is provided, the party so
+affected shall, on giving written notice to the other party, be excused from
+such performance to the extent of such prevention, restriction, interference or
+delay, provided that the affected party shall use its reasonable best efforts to
+avoid or remove such causes of nonperformance and shall continue performance
+with the utmost dispatch whenever such causes are removed. When such
+circumstances arise, the parties shall discuss in good faith what, if any,
+modification of the terms of this Services Agreement may be required in order to
+arrive at an equitable solution.
+
+                  Section 8.03. Successors and Assigns. This Services Agreement
+shall be binding on and shall inure to the benefit of the parties, Affiliates,
+their respective successors, successors in title, and assigns, and each party
+agrees, on behalf of it, its Affiliates, successors, successors in title, and
+assigns, to execute any instruments that may be necessary or appropriate to
+carry out and execute the purposes and intentions of this Services Agreement and
+hereby authorizes and directs its Affiliates, successors, successors in title,
+and assigns to execute any and all such instruments. Each and every successor in
+interest to any party or Affiliate, whether such successor acquires such
+interest by way of gift, devise, assignment, purchase, conveyance, pledge,
+hypothecation, foreclosure, or by any other method, shall hold such interest
+subject to all of the terms and provisions of this Services Agreement. The
+rights of the parties, Affiliates, and their successors in interest, as among
+themselves and shall be governed by the terms of this Services Agreement, and
+the right of any party, Affiliate or successor in interest to assign, sell or
+otherwise transfer or deal with its interests under this Services Agreement
+shall be subject to the limitations and restrictions of this Services Agreement.
+
+                  Section 8.04. Amendment. No change, modification, or amendment
+of this Services Agreement shall be valid or binding on the parties unless such
+change or modification shall be in writing signed by the party or parties
+against whom the same is sought to be enforced
+
+                                        5
+<PAGE>
+
+and any lender of IM, Inc. to which IM, Inc. shall have granted a Lien in, or
+assigned to, any of the Assigned Receivables.
+
+                  Section 8.05. Remedies Cumulative. The remedies of the parties
+under this Services Agreement are cumulative and shall not exclude any other
+remedies to which either party may be lawfully entitled.
+
+                  Section 8.06. Further Assurances. Each party hereby covenants
+and agrees that it shall execute and deliver such further documents and take
+such further actions as may be required to implement any of the provisions of
+this Services Agreement.
+
+                  Section 8.07. No Waiver. The failure of either party to insist
+on strict performance of a covenant hereunder or of any obligation hereunder
+shall not be a waiver of such party's right to demand strict compliance
+therewith in the future, nor shall the same be construed as a novation of this
+Services Agreement.
+
+                  Section 8.08. Entire Agreement. This Services Agreement
+embodies the entire agreement and understandings of the parties hereto, and
+supersedes all prior or contemporaneous agreements and understandings of such
+Person, verbal or written, relating to the subject matter hereof and thereof.
+The Annexes to this Services Agreement shall be deemed incorporated by reference
+into this Services Agreement as if set forth herein.
+
+                  Section 8.09. Headings. The captions and heading of this
+Services Agreement and in any Annex hereto are for convenience of reference and
+shall not affect the interpretation hereof or thereof.
+
+                  Section 8.10. Counterparts. This Services Agreement may be
+executed in any number of counterparts each of which when so executed shall be
+deemed to be an original and all of which when taken together shall constitute
+one and the same agreement.
+
+                  Section 8.11. Applicable Law. This Services Agreement shall be
+governed by, and construed in accordance with, the substantive laws of the State
+of Indiana without reference to the conflicts of laws rules or principles of any
+jurisdiction.
+
+                  Section 8.12. Severability. In the event any provision,
+clause, sentence, phrase, or word hereof, or the application thereof in any
+circumstances, is held to be invalid or unenforceable, such invalidity or
+unenforceability shall not affect the validity or enforceability of the
+remainder hereof, or of the application of any such provision, sentence, clause,
+phrase, or word in any other circumstances.
+
+                                        6
+<PAGE>
+
+                  IN WITNESS WHEREOF, the parties have caused this Services
+Agreement to be executed and delivered by their respective duly authorized
+officers, as of the date first above written.
+
+                                     MARTIN YALE INDUSTRIES INC.
+
+                                     By: _______________________________________
+                                     ___________________________________________
+                                              (Printed Name and Title)
+
+                                     INDIAN - MARTIN, INC., a Nevada corporation
+
+                                     By: _______________________________________
+                                     ___________________________________________
+                                              (Printed Name and Title)
+
+                                        7
+<PAGE>
+
+                                                                         ANNEX 1
+
+                          DEFINITION OF OPERATING COSTS
+
+Operating Costs shall include the following categories:
+
+A.       Direct costs ("Direct Costs") of the Servicing Activities:
+
+         -        Costs or deductions for compensation, bonuses, and travel
+         expenses attributable to employees directly engaged in performing the
+         servicing
+
+         -        Materials and supplies directly consumed in rendering the
+         servicing
+
+         -        Other costs in connection with the servicing
+
+B.       Indirect costs that relate to the Direct Costs ("Indirect Costs")
+         attributable to the Servicing Activities:
+
+         -        Including utilities, occupancy, supervisory and clerical
+         compensation, and other overhead burden of the department incurring the
+         Direct Costs. Indirect Costs also include an appropriate share of the
+         costs relating to supporting department and other applicable general
+         and administrative expense to the extent reasonably allocable to the
+         Servicing Activities.
+
+         -        Excluded costs include interest expense and expenses of
+         compliance with regulations or policies imposed upon the Servicer that
+         are not directly related to the Servicing Activities.
+
+<PAGE>
+
+                                                                         Annex 2
+
+                   REPORT OF SERVICING ACTIVITIES PROVIDED BY
+               SERVICER TO IM, INC. PURSUANT TO SERVICES AGREEMENT
+
+To:   [Name and Address]
+From: [Name and Address]
+Date: [Date]
+
+                  You are receiving this Report pursuant to Section 2 of the
+Services Agreement (the "Services Agreement"), dated as of September 5, 2003,
+between Indian-Martin, Inc. and ________________ (the "Servicer"). Unless
+defined herein, capitalized terms that are used throughout this Report are
+defined in the Services Agreement.
+
+                  During the period from [Date] to [Date] (the "Period"), the
+Servicer performed to following described Servicing Activities: ________________
+________________________________________________________________________________
+________________________________________________________________________________
+________________________________________________________________________________
+_______________________________________________________________________________.
+During the Period, the Servicer incurred Operating Costs in the following
+categories:
+
+                         [List of Operating Categories]
+
+                           [Total of Operating Costs]
+
+                  Pursuant to the Services Agreement, the compensation due the
+Servicer for the Period is the total of Operating Costs and the Percentage Fee.
+Accordingly, the compensation due for this Period is $_______________ [Total of
+Operating Costs + Percentage Fee].
+
+                  All supporting information with respect to the Operating Costs
+is in the Servicer's files. Please advise if you have any questions or comments
+about these matters.
+
+</TEXT>
+</DOCUMENT>
