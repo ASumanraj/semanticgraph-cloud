@@ -250,3 +250,62 @@ async def test_no_document_text_in_logs_or_errors(sample_chunk, sample_ontology,
     assert sample_chunk.text not in caplog.text
     # API key must never appear anywhere in captured log text
     assert "mock-key" not in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_extraction_records_non_zero_usage_cost_with_ledger(sample_chunk, sample_ontology):
+    """T-215 Review: Gemini usage events must record non-zero cost
+    matching calculate_cost_millicents.
+    """
+    from semanticgraph.control.usage.models import calculate_cost_millicents
+
+    tenant_id = TenantId(uuid4())
+    mock_client = MagicMock()
+
+    mock_response = MagicMock()
+    mock_response.text = '{"entities": [], "edges": []}'
+    # 5000 in / 800 out on gemini-2.5-flash
+    mock_response.usage_metadata = types.GenerateContentResponseUsageMetadata(
+        prompt_token_count=5000,
+        candidates_token_count=800,
+        cached_content_token_count=0,
+        thoughts_token_count=0,
+    )
+    mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+
+    recorded_events = []
+    fake_ledger = MagicMock()
+
+    async def _record(t_id, evt):
+        recorded_events.append(evt)
+
+    fake_ledger.record_event = AsyncMock(side_effect=_record)
+
+    config = GeminiConfig(
+        api_key="mock-key",
+        tier=GeminiTier.PAID,
+        model_id="gemini-2.5-flash",
+        price_version="2026-Q4",
+    )
+    gateway = GeminiLLMGateway(
+        config=config,
+        client=mock_client,
+        profile="postgres",
+        usage_ledger=fake_ledger,
+    )
+
+    await gateway.extract_entities_and_edges(tenant_id, sample_chunk, sample_ontology)
+
+    assert len(recorded_events) == 1
+    event = recorded_events[0]
+    expected_cost = calculate_cost_millicents(
+        model_id=config.model_id,
+        price_version=config.price_version,
+        input_tokens=5000,
+        output_tokens=800,
+        cache_read_tokens=0,
+        cache_write_tokens=0,
+        occurred_at=event.occurred_at,
+    )
+    assert expected_cost > 0
+    assert event.cost_millicents == expected_cost
