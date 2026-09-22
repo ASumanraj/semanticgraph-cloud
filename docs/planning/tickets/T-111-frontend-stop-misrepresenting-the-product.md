@@ -1,6 +1,6 @@
 # T-111 · Make the frontend stop misrepresenting the product
 
-**Stage** 1 · **Type** work · **Status** open · **Owner** — · **Branch** `t-111-frontend-honesty`
+**Stage** 1 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-111-frontend-honesty`
 
 **Scope**
 - `frontend/**`
