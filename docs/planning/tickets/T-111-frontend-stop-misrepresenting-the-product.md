@@ -28,15 +28,15 @@ a screen waits until the API behaviour behind it exists (T-110 is the first of t
 
 ## Acceptance
 
-- [ ] `GraphExplorer` reads its base URL from `NEXT_PUBLIC_API_URL` and sends no fabricated tenant header; with nothing to show it renders a truthful empty state
-- [ ] `AuthGuard` is removed, or fails closed until real auth exists — it never grants a role it was not given
-- [ ] The landing page no longer names Celery, and the "100% Mathematically Proven" claim is gone
-- [ ] Every dashboard number and feed entry is real or replaced with an honest empty state; nothing names a provider the system does not call
-- [ ] One sidebar remains and every link resolves
-- [ ] `chat` and `connectors`, which appear in none of the eleven consoles T-902 compared, are removed unless the owner says otherwise
-- [ ] `DocumentUpload` posts to the API's real route, `POST /api/v1/documents/ingest`, with the JSON body the API expects (`filename`, base64 `content`) and a tenant header it accepts. Today it posts to `/upload`, which does not exist
-- [ ] The Playwright upload journey runs against the **running API** with no `page.route` stub, and asserts the document the API reports afterwards — this is the criterion T-104 ticked and did not meet
-- [ ] `npm run lint` and `npm run build` are clean
+- [x] `GraphExplorer` reads its base URL from `NEXT_PUBLIC_API_URL` and sends no fabricated tenant header; with nothing to show it renders a truthful empty state
+- [x] `AuthGuard` is removed, or fails closed until real auth exists — it never grants a role it was not given
+- [x] The landing page no longer names Celery, and the "100% Mathematically Proven" claim is gone
+- [x] Every dashboard number and feed entry is real or replaced with an honest empty state; nothing names a provider the system does not call
+- [x] One sidebar remains and every link resolves
+- [x] `chat` and `connectors`, which appear in none of the eleven consoles T-902 compared, are removed unless the owner says otherwise
+- [x] `DocumentUpload` posts to the API's real route, `POST /api/v1/documents/ingest`, with the JSON body the API expects (`filename`, base64 `content`) and a tenant header it accepts. Today it posts to `/upload`, which does not exist
+- [x] The Playwright upload journey runs against the **running API** with no `page.route` stub, and asserts the document the API reports afterwards — this is the criterion T-104 ticked and did not meet
+- [x] `npm run lint` and `npm run build` are clean
 
 ## Notes
 

@@ -1,34 +1,60 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { UploadCloud, File as FileIcon, X, CheckCircle2 } from "lucide-react";
+import { UploadCloud, File as FileIcon, X, CheckCircle2, AlertCircle } from "lucide-react";
 
 export function DocumentUpload() {
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const getBase64 = (fileToEncode: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.includes(",") ? result.split(",")[1] : result;
+        resolve(base64);
+      };
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(fileToEncode);
+    });
+  };
 
   const uploadDocument = async () => {
     if (!file) return;
     setIsUploading(true);
     setUploadComplete(false);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
+    setErrorMessage(null);
 
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8003";
-      const response = await fetch(`${apiBase}/upload`, {
+    try {
+      const base64Content = await getBase64(file);
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+      const url = apiBase ? `${apiBase}/api/v1/documents/ingest` : "/api/v1/documents/ingest";
+      const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "00000000-0000-0000-0000-000000000001";
+
+      const response = await fetch(url, {
         method: "POST",
         headers: {
-          "tenant_id": "tenant-123"
+          "Content-Type": "application/json",
+          "X-Tenant-ID": tenantId,
         },
-        body: formData
+        body: JSON.stringify({
+          filename: file.name,
+          content: base64Content,
+          ontology_name: "default",
+          allowed_entity_types: ["Organization", "Person", "Product"],
+          allowed_edge_types: ["RELATED_TO", "WORKS_AT", "ACQUIRED"],
+        }),
       });
 
       if (!response.ok) {
-        throw new Error("Upload failed");
+        const errorData = await response.json().catch(() => ({}));
+        const message = errorData?.detail?.error?.message || errorData?.error?.message || "Document ingestion failed";
+        throw new Error(message);
       }
       
       setUploadComplete(true);
@@ -37,7 +63,8 @@ export function DocumentUpload() {
         setUploadComplete(false);
       }, 3000);
     } catch (error) {
-      console.error(error);
+      console.error("Document ingestion error:", error);
+      setErrorMessage(error instanceof Error ? error.message : "Document ingestion failed");
     } finally {
       setIsUploading(false);
     }
@@ -58,12 +85,14 @@ export function DocumentUpload() {
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       setFile(e.dataTransfer.files[0]);
+      setErrorMessage(null);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
+      setErrorMessage(null);
     }
   };
 
@@ -109,9 +138,13 @@ export function DocumentUpload() {
             </div>
             {!isUploading && !uploadComplete && (
               <button
-                onClick={() => setFile(null)}
+                onClick={() => {
+                  setFile(null);
+                  setErrorMessage(null);
+                }}
                 className="p-2 text-zinc-400 hover:text-red-400 transition-colors rounded-full hover:bg-white/10"
                 disabled={isUploading}
+                aria-label="Remove selected file"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -120,6 +153,13 @@ export function DocumentUpload() {
               <CheckCircle2 className="w-6 h-6 text-emerald-400" />
             )}
           </div>
+
+          {errorMessage && (
+            <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
           
           <button
             onClick={uploadDocument}

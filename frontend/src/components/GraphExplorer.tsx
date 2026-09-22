@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import ReactFlow, { Background, Controls, Node, Edge, BackgroundVariant, useNodesState, useEdgesState } from "reactflow";
+import { Network } from "lucide-react";
 import "reactflow/dist/style.css";
 
 export function GraphExplorer() {
@@ -12,15 +13,11 @@ export function GraphExplorer() {
   useEffect(() => {
     const fetchGraph = async () => {
       try {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8003";
-        const response = await fetch(`${apiBase}/graph`, {
-          headers: {
-            "tenant_id": "tenant-123"
-          }
-        });
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+        const url = apiBase ? `${apiBase}/api/v1/graph` : "/api/v1/graph";
+        const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();
-          // Apply premium dark/glassmorphic styling to nodes
           const styledNodes = (data.nodes || []).map((node: Node) => ({
             ...node,
             style: {
@@ -35,7 +32,6 @@ export function GraphExplorer() {
             }
           }));
           
-          // Apply neon styling to edges
           const styledEdges = (data.edges || []).map((edge: Edge) => ({
             ...edge,
             animated: true,
@@ -51,13 +47,13 @@ export function GraphExplorer() {
           setEdges(styledEdges);
         }
       } catch (error) {
-        console.error("Failed to fetch graph", error);
+        console.debug("No graph data retrieved from API endpoint", error);
       }
     };
     fetchGraph();
   }, [setNodes, setEdges]);
 
-  const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNode(node);
   }, []);
 
@@ -71,7 +67,7 @@ export function GraphExplorer() {
       <div className="w-full md:w-72 bg-[#050810] border-b md:border-b-0 md:border-r border-gray-800 p-6 flex flex-col gap-6 text-gray-200 z-10 shadow-lg shrink-0">
         <div>
           <h3 className="text-xl font-bold text-teal-400 mb-1">Graph Controls</h3>
-          <p className="text-xs text-gray-500 uppercase tracking-wider">Premium Dashboard</p>
+          <p className="text-xs text-gray-500 uppercase tracking-wider">Subgraph Inspection</p>
         </div>
         <div className="space-y-5">
           <div className="bg-gray-800/40 p-4 rounded-xl border border-gray-700/50 backdrop-blur">
@@ -99,20 +95,30 @@ export function GraphExplorer() {
         </div>
       </div>
 
-      {/* Main Canvas */}
-      <div className="flex-1 relative bg-[#02040a]">
-        <ReactFlow 
-          nodes={nodes} 
-          edges={edges} 
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onNodeClick={onNodeClick}
-          onPaneClick={onPaneClick}
-          fitView
-        >
-          <Background color="#1f2937" variant={BackgroundVariant.Dots} gap={20} size={1.5} />
-          <Controls className="bg-gray-800 border-gray-700 shadow-lg fill-gray-300" />
-        </ReactFlow>
+      {/* Main Canvas or Truthful Empty State */}
+      <div className="flex-1 relative bg-[#02040a] flex flex-col">
+        {nodes.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#02040a]">
+            <Network className="w-16 h-16 text-gray-600 mb-4 opacity-50" />
+            <h3 className="text-lg font-semibold text-gray-200 mb-2">No graph data available</h3>
+            <p className="text-sm text-gray-400 max-w-md leading-relaxed">
+              Ingest documents above to construct subgraphs and explore extracted knowledge.
+            </p>
+          </div>
+        ) : (
+          <ReactFlow 
+            nodes={nodes} 
+            edges={edges} 
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onNodeClick={onNodeClick}
+            onPaneClick={onPaneClick}
+            fitView
+          >
+            <Background color="#1f2937" variant={BackgroundVariant.Dots} gap={20} size={1.5} />
+            <Controls className="bg-gray-800 border-gray-700 shadow-lg fill-gray-300" />
+          </ReactFlow>
+        )}
       </div>
 
       {/* Right Sidebar - Properties Panel */}
@@ -141,30 +147,10 @@ export function GraphExplorer() {
                   <span className="text-sm text-purple-300 capitalize">{selectedNode.type || 'default'}</span>
                 </div>
               </div>
-
-              <div className="bg-gray-800/40 p-4 rounded-xl border border-gray-700/50 backdrop-blur">
-                <h4 className="text-sm font-semibold mb-3 text-gray-300">Mock Metadata</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between border-b border-gray-700/50 pb-1">
-                    <span className="text-gray-400">Confidence</span>
-                    <span className="text-green-400">98.5%</span>
-                  </div>
-                  <div className="flex justify-between border-b border-gray-700/50 pb-1">
-                    <span className="text-gray-400">Source</span>
-                    <span className="text-blue-400">Document_A.pdf</span>
-                  </div>
-                  <div className="flex justify-between pb-1">
-                    <span className="text-gray-400">Extracted</span>
-                    <span className="text-gray-200">2 mins ago</span>
-                  </div>
-                </div>
-              </div>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 space-y-3 opacity-60">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-              </svg>
+              <Network className="h-10 w-10 text-gray-600" />
               <p className="text-sm">Select a node in the graph to view its properties and metadata.</p>
             </div>
           )}

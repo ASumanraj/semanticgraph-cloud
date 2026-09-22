@@ -1,25 +1,33 @@
-import { test, expect } from '@playwright/test'
-import { DocumentUploadPage } from './pages/DocumentUploadPage'
+import { test, expect } from '@playwright/test';
+import { DocumentUploadPage } from './pages/DocumentUploadPage';
 
 test.describe('Document Upload', () => {
-  test('user can upload a file and sees confirmation', async ({ page }) => {
-    // Intercept the upload request (API may not be running in CI)
-    await page.route('**/upload', route => {
-      return route.fulfill({ status: 200, body: JSON.stringify({ ok: true }) })
-    })
+  test('user can upload a file against the real running API and sees confirmation', async ({ page }) => {
+    const uploadPage = new DocumentUploadPage(page);
+    await uploadPage.goto();
 
-    const uploadPage = new DocumentUploadPage(page)
-    await uploadPage.goto()
+    // Wait for the real API response with NO page.route stubbing
+    const [response] = await Promise.all([
+      page.waitForResponse(
+        (res) => res.url().includes('/api/v1/documents/ingest') && res.request().method() === 'POST',
+        { timeout: 15_000 }
+      ),
+      uploadPage.uploadFile('enterprise_agreement.txt', 'This is an enterprise service agreement between Acme and Beta.'),
+    ]);
 
-    // Assert request was made with correct method
-    const [request] = await Promise.all([
-      page.waitForRequest(req => req.url().includes('/upload') && req.method() === 'POST'),
-      uploadPage.uploadFile('test-document.txt', 'Hello knowledge graph'),
-    ])
+    // Verify the HTTP request that reached the real API
+    const request = response.request();
+    expect(request.method()).toBe('POST');
+    const tenantHeader = request.headers()['x-tenant-id'];
+    expect(tenantHeader).toBeDefined();
 
-    expect(request.method()).toBe('POST')
-    expect(request.headers()['tenant_id']).toBe('tenant-123')
+    // Verify the real API response
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.document_id).toBeDefined();
+    expect(body.status).toBe('extracting');
 
-    await expect(page.getByText('Upload Complete!')).toBeVisible({ timeout: 5000 })
-  })
-})
+    // Verify the UI feedback
+    await expect(page.getByText('Upload Complete!')).toBeVisible({ timeout: 10_000 });
+  });
+});
