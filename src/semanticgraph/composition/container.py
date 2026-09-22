@@ -37,6 +37,7 @@ from semanticgraph.application.use_cases.ingest_document import IngestDocumentUs
 from semanticgraph.application.use_cases.search_subgraph import SearchEngine
 from semanticgraph.application.use_cases.upload_document import UploadDocumentUseCase
 from semanticgraph.composition.model_routing import DEFAULT_MODEL_ROUTING, ModelRouting
+from semanticgraph.observability.instrumentation import InstrumentedLLMGateway
 
 ADAPTER_PROFILE_ENV = "SEMANTICGRAPH_ADAPTERS"
 DEFAULT_ADAPTER_PROFILE = "inmemory"
@@ -103,7 +104,7 @@ class Container:
             ),
             entity_store=InMemoryEntityStore(),
             subgraph_reader=InMemorySubgraphReader(),
-            llm_gateway=DeterministicLLMGateway(routing=model_routing),
+            llm_gateway=InstrumentedLLMGateway(DeterministicLLMGateway(routing=model_routing)),
             task_publisher=InMemoryTaskPublisher(),
             object_storage=InMemoryObjectStorage(),
             model_routing=model_routing,
@@ -160,7 +161,7 @@ class Container:
             deletion_repo=PostgresDeletionRepository(session_factory=session_factory),
             entity_store=InMemoryEntityStore(),
             subgraph_reader=InMemorySubgraphReader(),
-            llm_gateway=DeterministicLLMGateway(routing=model_routing),
+            llm_gateway=InstrumentedLLMGateway(DeterministicLLMGateway(routing=model_routing)),
             task_publisher=InMemoryTaskPublisher(),
             object_storage=InMemoryObjectStorage(),
             model_routing=model_routing,

@@ -26,7 +26,9 @@ async def lifespan(app: FastAPI):
     """Build the container once, from configuration, and hang it on app.state."""
     from semanticgraph.composition.container import adapter_profile, default_container
     from semanticgraph.control.usage.models import verify_routable_models_priced
+    from semanticgraph.observability.logging import configure_logging
 
+    configure_logging()
     container = getattr(app.state, "container", None) or default_container()
     app.state.container = container
     verify_routable_models_priced(container.model_routing)
@@ -45,6 +47,24 @@ def create_app() -> FastAPI:
         version="0.1.0",
         lifespan=lifespan,
     )
+
+    @app.middleware("http")
+    async def tenant_context_middleware(request: Request, call_next):
+        from uuid import UUID
+
+        from semanticgraph.domain.models.entities import TenantId
+        from semanticgraph.observability.context import with_tenant
+
+        tenant_header = request.headers.get("x-tenant-id")
+        tenant_id = None
+        if tenant_header:
+            try:
+                tenant_id = TenantId(value=UUID(tenant_header))
+            except (ValueError, TypeError):
+                tenant_id = None
+
+        with with_tenant(tenant_id):
+            return await call_next(request)
 
     # --- Global Exception Handlers (error-handling skill) ---
 

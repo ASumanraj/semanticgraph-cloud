@@ -15,6 +15,7 @@ from semanticgraph.adapters.inbound.workers.celery_app import celery_app
 from semanticgraph.application.use_cases.ingest_document import IngestDocumentCommand
 from semanticgraph.composition.container import default_container
 from semanticgraph.domain.models.entities import DocumentStatus, Ontology, TenantId
+from semanticgraph.observability.context import extract_tenant_context, with_tenant
 
 
 @celery_app.task(name="semanticgraph.process_document", bind=True)
@@ -45,24 +46,30 @@ def process_document_task(
         status=DocumentStatus.RESOLVED,
     )
 
-    container = default_container()
-    use_case = container.ingest_document()
+    # Restore tenant context across the worker boundary
+    request_headers = getattr(self, "request", None) and getattr(self.request, "headers", None)
+    header_tenant = extract_tenant_context(request_headers) if request_headers else None
+    effective_tenant = header_tenant or tenant_id
 
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = None
+    with with_tenant(effective_tenant):
+        container = default_container()
+        use_case = container.ingest_document()
 
-    if loop and loop.is_running():
-        import concurrent.futures
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-            result = pool.submit(lambda: asyncio.run(use_case.execute(command))).result()
-    else:
-        result = asyncio.run(use_case.execute(command))
+        if loop and loop.is_running():
+            import concurrent.futures
 
-    return {
-        "status": result.status.value,
-        "document_id": str(result.id),
-        "tenant_id": str(tenant_id.value),
-    }
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                result = pool.submit(lambda: asyncio.run(use_case.execute(command))).result()
+        else:
+            result = asyncio.run(use_case.execute(command))
+
+        return {
+            "status": result.status.value,
+            "document_id": str(result.id),
+            "tenant_id": str(effective_tenant.value),
+        }
