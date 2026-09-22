@@ -15,6 +15,7 @@ import asyncio
 import json
 import os
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
@@ -27,6 +28,7 @@ from semanticgraph.control.usage.models import (
     CURRENT_PRICE_VERSION,
     UsageEvent,
     UsageEventType,
+    calculate_cost_millicents,
 )
 from semanticgraph.domain.models.entities import (
     Assertion,
@@ -263,10 +265,20 @@ class GeminiLLMGateway(LLMGatewayPort):
 
         # Record usage if ledger is provided
         if self.usage_ledger:
+            occurred_at = getattr(chunk, "created_at", None) or datetime.now(UTC)
+            cost_millicents = calculate_cost_millicents(
+                model_id=self.config.model_id,
+                price_version=self.config.price_version,
+                input_tokens=norm_usage.input_tokens,
+                output_tokens=norm_usage.output_tokens,
+                cache_read_tokens=norm_usage.cache_read_input_tokens,
+                cache_write_tokens=norm_usage.cache_write_input_tokens,
+                occurred_at=occurred_at,
+            )
             event = UsageEvent(
                 tenant_id=tenant_id,
                 event_id=uuid4(),
-                occurred_at=chunk.created_at,
+                occurred_at=occurred_at,
                 event_type=UsageEventType.LLM_EXTRACTION,
                 provider="google",
                 model_id=self.config.model_id,
@@ -274,8 +286,9 @@ class GeminiLLMGateway(LLMGatewayPort):
                 output_tokens=norm_usage.output_tokens,
                 cache_read_input_tokens=norm_usage.cache_read_input_tokens,
                 cache_write_input_tokens=norm_usage.cache_write_input_tokens,
+                cost_millicents=cost_millicents,
                 price_version=self.config.price_version,
-                document_id=chunk.document_id.value if chunk.document_id else None,
+                document_id=getattr(chunk, "document_id", None),
             )
             try:
                 await self.usage_ledger.record_event(tenant_id, event)
