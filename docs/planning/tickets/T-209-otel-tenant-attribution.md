@@ -1,6 +1,6 @@
 # T-209 · OpenTelemetry with tenant attribution
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-209-otel-tenant-attribution`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-209-otel-tenant-attribution`
 
 **Scope**
 - `src/semanticgraph/observability/**`
@@ -22,8 +22,8 @@ Runs in parallel with the migration chain: no Alembic revision, disjoint paths.
 - [x] `tenant_id` is a resource or span attribute on every span, metric and log line
 - [x] Tenant context crosses the worker boundary explicitly
 - [x] The stable `gen_ai.*` core is instrumented: operation, provider, model, input and output tokens
-- [ ] **Document text never reaches telemetry** — ids and hashes only. **Not true as built; see Review**
-- [ ] A lint or review rule enforces that, before the codebase has 200 log statements — the rule exists but does not cover the case that matters most (see Review)
+- [x] **Document text never reaches telemetry** — ids and hashes only. Fixed and reverified, see second Review entry
+- [x] A lint or review rule enforces that, before the codebase has 200 log statements — the runtime guard now also covers the primary log message, not just `extra`
 
 ## Notes
 These attributes are also the cost-attribution substrate: cloud billing cannot
@@ -74,3 +74,20 @@ the runtime guard cannot skip the one field almost every log call actually uses.
 Continue on a new branch off `main`. Add a test that calls `logger.info()` with a long string via
 a renamed local variable (not a keyword named `document_text`) and asserts it raises or is
 redacted — the case the current test suite has no coverage for at all.
+
+## Review, fix verified 2026-09-22
+
+Reviewed PR #9 (`d5dfd11`) against `t-209-otel-tenant-attribution`. `TenantLogFilter.filter()` now
+calls `assert_telemetry_hygiene(record.getMessage(), "message")` on the rendered message for every
+record, and `HygieneLogger.log()` adds an eager check on the raw `msg` argument before delegating.
+Independently reproduced all three named bypass forms myself with a fresh script (not agy's test
+file) against a 585-character string: direct arg, f-string, and `%s`-style with args — all three now
+raise `DocumentTextInTelemetryError`. Also checked for regressions: normal short log lines and an
+`extra={"document_text": ...}` call both behave exactly as before (no false positive, pre-existing
+check still fires).
+
+Confirmed `configure_logging()` is actually called from `app.py`'s startup — this fix is wired into
+the running app's logging path, not just exercised at the class level.
+
+Full suite 384 passed / 1 skipped / 2 deselected, e2e 2 passed, ruff clean. Accepted. Status set to
+done.
