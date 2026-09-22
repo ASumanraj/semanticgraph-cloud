@@ -16,12 +16,12 @@ version, token counts, scope. It is also the debugging surface and the billing
 substrate, so it pays for itself three times.
 
 ## Acceptance
-- [ ] The application role has no UPDATE or DELETE grant on the audit table
-- [ ] Every listed event type is captured
-- [ ] LLM invocations record model and version alongside token counts
-- [ ] Retention is 15 months, covering a SOC 2 Type II window plus buffer
-- [ ] Entries are exportable per tenant
-- [ ] **No document text is stored** — ids and hashes only
+- [x] The application role has no UPDATE or DELETE grant on the audit table
+- [x] Every listed event type is captured
+- [x] LLM invocations record model and version alongside token counts
+- [x] Retention is 15 months, covering a SOC 2 Type II window plus buffer
+- [x] Entries are exportable per tenant
+- [x] **No document text is stored** — ids and hashes only
 
 ## Notes
 Content in the audit log inherits the same erasure obligations as the primary store,
