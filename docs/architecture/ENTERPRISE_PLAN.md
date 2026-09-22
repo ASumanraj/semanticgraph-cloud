@@ -71,9 +71,9 @@ Tick as each item lands. Detail for every item is in Part 3.
 - [x] Immutable versioned ontologies
 - [x] Assertion-counted delete cascade
 - [x] Usage event ledger
-- [x] Append-only audit log
-- [x] OpenTelemetry with `tenant_id` attribution
-- [x] Per-tenant spend cap
+- [ ] Append-only audit log — reopened 2026-09-22, T-208: the app role can self-set the trigger's retention-prune escape hatch and delete rows
+- [ ] OpenTelemetry with `tenant_id` attribution — reopened 2026-09-22, T-209: the telemetry hygiene guard never checks the primary log message, only structured `extra` fields
+- [ ] Per-tenant spend cap — reopened 2026-09-22, T-210: `QuotaEnforcer` is built and unit-tested but never wired to `app.state`; nothing is enforced by the running app
 
 ### Stage 3 — Pipeline
 - [ ] Parse · [ ] Chunk · [ ] Contextualize · [ ] Extract · [ ] Resolve · [ ] Retrieve
