@@ -1,6 +1,6 @@
 # T-909 · CUAD-based clause-extraction eval harness
 
-**Stage** 4 · **Type** work · **Status** open · **Owner** — · **Branch** `t-909-cuad-eval-harness`
+**Stage** 4 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-909-cuad-eval-harness`
 
 **Scope**
 - `evals/cuad/**`
