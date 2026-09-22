@@ -31,11 +31,11 @@ the three; those stay dependent on the T-904 paid-reviewer pass on our own docum
 
 ## Acceptance
 
-- [ ] A dataset checksum is recorded before first use (§5 of the crosscheck report), not just an access date
-- [ ] CUAD is cited per its licence (Hendrycks et al., NeurIPS 2021, CC BY 4.0) wherever a score from it is reported
-- [ ] The harness reports precision/recall per CUAD category, not one blended number, so a weak category doesn't hide behind strong ones
-- [ ] No claim is made that a CUAD-based score says anything about temporal history, tenant isolation, resolution decisions or deletion — those aren't testable against CUAD by construction
-- [ ] Results state plainly that CUAD's contracts are likely present in model pretraining data, same caveat as the rest of T-904's corpus
+- [x] A dataset checksum is recorded before first use (§5 of the crosscheck report), not just an access date
+- [x] CUAD is cited per its licence (Hendrycks et al., NeurIPS 2021, CC BY 4.0) wherever a score from it is reported
+- [x] The harness reports precision/recall per CUAD category, not one blended number, so a weak category doesn't hide behind strong ones
+- [x] No claim is made that a CUAD-based score says anything about temporal history, tenant isolation, resolution decisions or deletion — those aren't testable against CUAD by construction
+- [x] Results state plainly that CUAD's contracts are likely present in model pretraining data, same caveat as the rest of T-904's corpus
 
 ## Notes
 
