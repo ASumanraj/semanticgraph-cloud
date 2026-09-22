@@ -6,7 +6,9 @@
 - `evals/cuad/**`
 - `tests/unit/evals/**`
 
-**Blocked by** a real Stage 3 extractor (not the T-110 deterministic double) · **Blocks** —
+**Blocked by** ~~a real Stage 3 extractor (not the T-110 deterministic double)~~ — resolved by
+[T-215](T-215-gemini-opt-in-provider.md), which added a real Gemini adapter behind
+`LLMGatewayPort`. Unblocked as of 2026-09-22. · **Blocks** —
 
 ## Goal
 
@@ -39,3 +41,10 @@ the three; those stay dependent on the T-904 paid-reviewer pass on our own docum
 
 This is a second, free benchmark alongside T-904's own ten-document corpus, not a replacement for
 it. T-904 stays the source of gold labels for the three questions CUAD can't answer.
+
+Use `GeminiLLMGateway` (T-215) directly as the extractor — construct it from `GeminiConfig.from_env()`
+in the harness script itself; this ticket's scope doesn't touch `composition/**`, so there's no need
+to go through the app container. CUAD's contracts are public EDGAR filings, so the free tier's
+"public or synthetic data only" constraint is satisfied without needing a paid key — but confirm
+`GEMINI_TIER` before running at any volume, since the free tier's low rate limit will make 510
+documents slow either way.

@@ -15,37 +15,25 @@ grep -H "^\*\*Stage\*\*" docs/planning/tickets/T-*.md
 What this file carries instead is the part that rarely changes: which tickets can
 run together, and what blocks what.
 
-## Do this before the migration chain opens
+## Run order — done as of 2026-09-22
 
-[T-105](T-105-domain-invariants.md) blocks T-200 and every Stage 2 ticket after it.
-`domain/models/entities.py` contradicts all five irreversible rules today, and a
-baseline migration generated from it encodes every contradiction into the schema.
-T-200 is claimed and its `alembic/versions/` is still empty — that is the window.
-
-| Ticket | Scope |
-|---|---|
-| [T-105](T-105-domain-invariants.md) Domain invariants | `domain/**`, `application/**`, in-memory adapters, `tests/unit/**` |
-| [T-106](T-106-narrow-the-graph-seams.md) Narrow the graph seams | `application/ports/**`, use cases, in-memory adapters |
-
-## Run order
-
-T-107, T-211 and T-212 are done. **One backend lane, one agent, in this order** — every
-ticket touches `src/`, the migration chain, or both:
+The full backend lane is complete: T-105, T-106, T-107, T-110, T-200 through T-212, T-214,
+T-215, T-208, T-209 and T-210 are all `Status: done`, each independently reverified against a
+real running Postgres/HTTP stack (not just their own unit tests) — T-208, T-209 and T-210 were
+each reopened once for a defect the original "done" report missed, fixed, and reverified before
+acceptance. See each ticket's `## Review` section for the reproduction and fix.
 
 ```
 T-106 narrow the seams
   → T-214 one owner for model routing; price versions that only append
-    → T-110 wire the record into the running system     ← first thing worth showing
-      → T-208 audit log
-        → T-209 OTel
-          → T-210 spend cap
+    → T-110 wire the record into the running system
+      → T-208 audit log ✓ done, reopened once, refixed
+        → T-209 OTel ✓ done, reopened once, refixed
+          → T-210 spend cap ✓ done, reopened once, refixed
 ```
 
-After T-110, [T-215](T-215-gemini-opt-in-provider.md) adds the first real provider adapter
-(Gemini, opt-in). It is not in the lane above because nothing else waits on it.
-
-T-106 and T-214 have disjoint scopes and could run in separate worktrees; one agent takes
-them in this order.
+[T-215](T-215-gemini-opt-in-provider.md) (Gemini, opt-in) is also done, and unblocks
+[T-909](T-909-cuad-verifier-bakeoff.md) below — the first real (non-double) extractor now exists.
 
 **Beside it, each disjoint from the lane:**
 [T-111](T-111-frontend-stop-misrepresenting-the-product.md) (`frontend/**`, and now also makes
@@ -78,7 +66,7 @@ None of these touch `src/`, so they run beside anything.
 | [T-904](T-904-evaluation-corpus.md) Four-track evaluation corpus | `evals/**`, `docs/research/**` |
 | [T-905](T-905-gleif-coverage-spike.md) Registry coverage on real counterparties | `evals/gleif/**`, `docs/research/**` |
 | [T-908](T-908-dora-register-field-source-check.md) Is the DORA register built from contracts? | `docs/research/**` |
-| [T-909](T-909-cuad-verifier-bakeoff.md) CUAD eval harness (blocked on a real extractor) | `evals/cuad/**`, `tests/unit/evals/**` |
+| [T-909](T-909-cuad-verifier-bakeoff.md) CUAD eval harness (unblocked by T-215) | `evals/cuad/**`, `tests/unit/evals/**` |
 
 ## First wave — five agents, no collisions
 
