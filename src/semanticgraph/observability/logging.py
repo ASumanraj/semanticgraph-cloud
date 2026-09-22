@@ -60,6 +60,10 @@ class TenantLogFilter(logging.Filter):
         if not hasattr(record, "tenant_id") or not record.tenant_id:
             record.tenant_id = str(tenant_id.value) if tenant_id is not None else ""
 
+        # Validate telemetry hygiene on primary rendered message
+        rendered_msg = record.getMessage()
+        assert_telemetry_hygiene(rendered_msg, "message")
+
         # Validate telemetry hygiene on extra attributes
         for k, v in record.__dict__.items():
             if k in (
@@ -148,6 +152,8 @@ class HygieneLogger(logging.LoggerAdapter):
         extra = kwargs.get("extra")
         if extra:
             assert_telemetry_hygiene(extra)
+        if isinstance(msg, str) and len(msg) > MAX_SAFE_ATTR_LENGTH:
+            assert_telemetry_hygiene(msg, "message")
         super().log(level, msg, *args, **kwargs)
 
     def process(self, msg: Any, kwargs: Any) -> tuple[Any, Any]:
