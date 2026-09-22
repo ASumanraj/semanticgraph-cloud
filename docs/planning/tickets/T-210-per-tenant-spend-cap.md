@@ -15,11 +15,11 @@ entitlements **before** the expensive call — checking quota after inference me
 have already paid for it.
 
 ## Acceptance
-- [ ] A spend cap per tenant per period, enforced ahead of the model call
-- [ ] Request-rate and concurrent-ingestion limits per tenant
-- [ ] Exceeding a limit returns a clear error, and the attempt is audited
-- [ ] Limits are configurable per tier
-- [ ] A test proves an over-cap tenant is refused before any token is spent
+- [x] A spend cap per tenant per period, enforced ahead of the model call
+- [x] Request-rate and concurrent-ingestion limits per tenant
+- [x] Exceeding a limit returns a clear error, and the attempt is audited
+- [x] Limits are configurable per tier
+- [x] A test proves an over-cap tenant is refused before any token is spent
 
 ## Notes
 Reads period spend from the T-207 ledger.

@@ -16,7 +16,7 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Request
 from pydantic import BaseModel, Field
 
 from semanticgraph.adapters.inbound.api.dependencies import CurrentTenantDep
@@ -77,6 +77,7 @@ async def ingest_document(
     tenant: CurrentTenantDep,
     use_case: IngestDocumentDep,
     body: Annotated[IngestDocumentRequest, Body()],
+    request: Request,
 ) -> IngestDocumentResponse:
     """
     Ingest a document into the Knowledge Graph.
@@ -108,8 +109,15 @@ async def ingest_document(
         filename=body.filename,
     )
 
-    # Execute use case
-    result = await use_case.execute(command)
+    # Enforce quota ahead of expensive pipeline execution (T-210)
+    enforcer = getattr(request.app.state, "quota_enforcer", None)
+    if enforcer:
+        await enforcer.enforce_rate_limit(tenant)
+        await enforcer.enforce_spend_cap(tenant)
+        async with enforcer.acquire_ingestion_slot(tenant):
+            result = await use_case.execute(command)
+    else:
+        result = await use_case.execute(command)
 
     # Map: Domain Result -> HTTP Response
     return IngestDocumentResponse(

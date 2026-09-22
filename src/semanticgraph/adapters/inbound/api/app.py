@@ -68,6 +68,38 @@ def create_app() -> FastAPI:
 
     # --- Global Exception Handlers (error-handling skill) ---
 
+    from semanticgraph.control.quota.models import (
+        ConcurrentLimitExceededError,
+        RateLimitExceededError,
+        SpendCapExceededError,
+    )
+
+    @app.exception_handler(SpendCapExceededError)
+    async def spend_cap_handler(request: Request, exc: SpendCapExceededError) -> JSONResponse:
+        """Reject operations when tenant exceeds their period spend cap (T-210)."""
+        return JSONResponse(
+            status_code=402,
+            content={"error": {"code": "SPEND_CAP_EXCEEDED", "message": str(exc)}},
+        )
+
+    @app.exception_handler(RateLimitExceededError)
+    async def rate_limit_handler(request: Request, exc: RateLimitExceededError) -> JSONResponse:
+        """Throttle requests when tenant exceeds request rate limit (T-210)."""
+        return JSONResponse(
+            status_code=429,
+            content={"error": {"code": "RATE_LIMIT_EXCEEDED", "message": str(exc)}},
+        )
+
+    @app.exception_handler(ConcurrentLimitExceededError)
+    async def concurrent_limit_handler(
+        request: Request, exc: ConcurrentLimitExceededError
+    ) -> JSONResponse:
+        """Throttle requests when tenant exceeds concurrent ingestion capacity (T-210)."""
+        return JSONResponse(
+            status_code=429,
+            content={"error": {"code": "CONCURRENT_LIMIT_EXCEEDED", "message": str(exc)}},
+        )
+
     @app.exception_handler(QuoteNotFoundError)
     async def quote_not_found_handler(request: Request, exc: QuoteNotFoundError) -> JSONResponse:
         """Reject fabricated quotes that cannot be located in the chunk text (T-110)."""
