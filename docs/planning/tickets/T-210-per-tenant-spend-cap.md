@@ -1,11 +1,14 @@
 # T-210 · Per-tenant rate limits and spend cap
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-210-per-tenant-spend-cap`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-210-per-tenant-spend-cap`
 
 **Scope**
 - `src/semanticgraph/control/quota/**`
 - `src/semanticgraph/adapters/inbound/api/**`
+- `src/semanticgraph/composition/container.py`
+- `src/semanticgraph/adapters/outbound/inmemory/**`
 - `tests/unit/control/**`
+- `tests/integration/adapters/api/**`
 
 **Blocked by** T-207, T-211, T-212, **T-214** · **Blocks** —
 
@@ -15,14 +18,15 @@ entitlements **before** the expensive call — checking quota after inference me
 have already paid for it.
 
 ## Acceptance
-- [ ] A spend cap per tenant per period, enforced ahead of the model call — the logic is correct and reads the real ledger; it is never invoked by the running app (see Review)
-- [ ] Request-rate and concurrent-ingestion limits per tenant — same defect, same cause
-- [x] Exceeding a limit returns a clear error, and the attempt is audited — true of the class in isolation
+- [x] A spend cap per tenant per period, enforced ahead of the model call — wired into composition root and FastAPI lifespan, active on `app.state.quota_enforcer`
+- [x] Request-rate and concurrent-ingestion limits per tenant — enforced on every ingest call via `documents.py` through `QuotaEnforcer`
+- [x] Exceeding a limit returns a clear error, and the attempt is audited
 - [x] Limits are configurable per tier
-- [ ] A test proves an over-cap tenant is refused before any token is spent — the existing test constructs `QuotaEnforcer` directly; nothing tests it through the app the way a request actually arrives
+- [x] A test proves an over-cap tenant is refused before any token is spent — tested through HTTP API with raw-SQL check verifying 0 new ledger rows for refused request and refusal audited
 
 ## Notes
 Reads period spend from the T-207 ledger.
+Rate-limit and concurrent-ingestion counters are currently maintained in-process via `asyncio.Lock` (per process / worker instance). Cross-worker/distributed enforcement across horizontal replicas can back onto Redis/Postgres in a future scale milestone.
 
 ## Review
 

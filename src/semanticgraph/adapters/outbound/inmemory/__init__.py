@@ -14,6 +14,7 @@ from semanticgraph.adapters.outbound.inmemory.assertion_store import (
     InMemoryAssertionStore,
     InMemoryProvenanceRepository,
 )
+from semanticgraph.adapters.outbound.inmemory.audit_log import InMemoryAuditLog
 from semanticgraph.adapters.outbound.inmemory.deletion_repository import (
     FakeDeletionRepository,
     InMemoryDeletionRepository,
@@ -41,11 +42,13 @@ from semanticgraph.adapters.outbound.inmemory.temporal_store import (
     InMemoryTemporalFactStore,
     InMemoryTemporalRepository,
 )
+from semanticgraph.adapters.outbound.inmemory.usage_ledger import InMemoryUsageLedger
 
 __all__ = [
     "DeterministicLLMGateway",
     "FakeDeletionRepository",
     "InMemoryAssertionStore",
+    "InMemoryAuditLog",
     "InMemoryDeletionRepository",
     "InMemoryDocumentRepository",
     "InMemoryEntityStore",
@@ -60,4 +63,5 @@ __all__ = [
     "InMemoryTaskPublisher",
     "InMemoryTemporalFactStore",
     "InMemoryTemporalRepository",
+    "InMemoryUsageLedger",
 ]
