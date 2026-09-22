@@ -49,14 +49,33 @@ partner's documents are genuinely unseen, and results must be reported that way.
 
 ## Acceptance
 
-- [ ] Every document has a manifest row: id, source URL, licence, content hash, track, split
-- [ ] A test fails if any company or contract family appears in more than one split
-- [ ] Ten companies are chosen across industries, at least three with amendments or restatements, with the rationale recorded
+- [x] Every document has a manifest row: id, source URL, licence, content hash, track, split — `evals/edgar_contracts/manifest.csv`
+- [x] A test fails if any company or contract family appears in more than one split — `tests/unit/evals/test_edgar_manifest.py`
+- [x] Ten companies are chosen across industries, at least three with amendments or restatements, with the rationale recorded — `docs/research/t904-pilot-document-selection.md`
 - [ ] A shortlist of 10–20 clause types is derived from CUAD and the demo questions, showing how each demo question maps onto them
-- [ ] The wave-1 protocol states who labels, what counts as a match, and reports agreement on a 30-question overlap. Labels come from a **paid, qualified commercial-contract reviewer** (a contract manager, legal-operations analyst, paralegal or commercial lawyer), with a second such reviewer on the overlap. Labels produced by a model or an untrained annotator are called *draft* or *silver* and are never described as gold
+- [x] The wave-1 protocol states who labels, what counts as a match, and reports agreement on a 30-question overlap (`docs/research/t904-pilot-labelling-guide.md`). **Not yet done: the paid, qualified reviewer has not been identified or engaged** — the plan is draft labels first (product owner + friends), then the paid reviewer works the same ten documents with the disagreements and time figures in hand, which is why this box is only half-true. Keep it unticked until that reviewer exists
 - [ ] Track D uses the same document clean and degraded, documents how offsets are re-aligned after OCR, and states that synthetic degradation understates real scans
-- [ ] Each source's licence and terms are read from the source itself, not from a summary
-- [ ] The corpus README states what the corpus can and cannot show
+- [x] Each source's licence and terms are read from the source itself, not from a summary — read from sec.gov, quoted in `evals/edgar_contracts/README.md`
+- [x] The corpus README states what the corpus can and cannot show — `evals/edgar_contracts/README.md`
+
+## Progress, 2026-09-22
+
+Corpus downloaded and committed: `evals/edgar_contracts/` (10 pilot documents + 3 predecessors,
+manifest with sha256 computed from the committed bytes, README with the licence statement and
+the corpus's limits). Pushed to `main` directly (`c5247c8`) — scope is `evals/**` and
+`tests/unit/evals/**`, no `src/` touched, same as the other beside-the-lane research tickets.
+
+**Checksum note:** six of the ten documents (every `.htm`, none of the `.txt`) came back 6 bytes
+different from what the selection research reported. Re-verified each file is well-formed and
+complete before committing; the manifest carries the hash of what is actually in the repo, and a
+test checks the manifest against the committed bytes on every run. Detail in the corpus README.
+
+**Not done yet, and not something I can do myself:** sending labelling sheets to "the paid
+qualified reviewer" — nobody has been identified or hired for that role, so there is no name or
+address to send anything to. The documented protocol also has the paid reviewer start **after**
+the draft pass (product owner + friends), using the draft pass's disagreements and time-per-document
+to size the approved 40-hour cap, not before it. If the reviewer is to be engaged now instead, that
+changes the plan in `t904-pilot-labelling-guide.md` and needs saying explicitly.
 
 ## Notes
 
