@@ -51,7 +51,12 @@ class InvalidCorrectionError(UsagePricingError, ValueError):
     """Raised when a correction event is invalid or does not reference a valid original event."""
 
 
-CURRENT_PRICE_VERSION: str = "2026-Q3"
+class PromotionalPricingExpiredError(UsagePricingError):
+    """Raised when an operation attempts to use promotional pricing past its expiration cutoff."""
+
+
+CURRENT_PRICE_VERSION: str = "2026-Q4"
+
 
 # Explicit alias mapping to canonical model IDs.
 # Never a separate price entry in active schedules; aliases resolve to the exact canonical ID.
@@ -208,6 +213,112 @@ PRICE_SCHEDULES: dict[str, dict[str, dict[str, float]]] = {
             "cache_write_per_token_millicents": 0.0,
         },
     },
+    "2026-Q4": {
+        # Anthropic Claude 4.5 Haiku (claude-haiku-4-5-20251001)
+        # Source: https://claude.com/pricing (retrieved 2026-09-21)
+        "claude-haiku-4-5-20251001": {
+            "input_per_token_millicents": 0.10,
+            "output_per_token_millicents": 0.50,
+            "cache_read_per_token_millicents": 0.010,
+            "cache_write_per_token_millicents": 0.125,
+        },
+        # Anthropic Claude Sonnet 5 (claude-sonnet-5)
+        # Source: https://claude.com/pricing (retrieved 2026-09-21)
+        "claude-sonnet-5": {
+            "input_per_token_millicents": 0.20,
+            "output_per_token_millicents": 1.00,
+            "cache_read_per_token_millicents": 0.020,
+            "cache_write_per_token_millicents": 0.250,
+        },
+        # Anthropic Claude Opus 5 (claude-opus-5)
+        # Source: https://claude.com/pricing (retrieved 2026-09-21)
+        "claude-opus-5": {
+            "input_per_token_millicents": 0.50,
+            "output_per_token_millicents": 2.50,
+            "cache_read_per_token_millicents": 0.050,
+            "cache_write_per_token_millicents": 0.625,
+        },
+        # OpenAI text-embedding-3-small
+        # Source: https://openai.com/api/pricing (retrieved 2026-09-21)
+        "text-embedding-3-small": {
+            "input_per_token_millicents": 0.002,
+            "output_per_token_millicents": 0.0,
+            "cache_read_per_token_millicents": 0.0,
+            "cache_write_per_token_millicents": 0.0,
+        },
+        # Google Gemini 2.5 Flash Lite
+        # Source: https://ai.google.dev/gemini-api/docs/pricing (retrieved 2026-09-21)
+        # Rates: $0.10 / 1M input, $0.40 / 1M output, $0.025 / 1M cache read
+        "gemini-2.5-flash-lite": {
+            "input_per_token_millicents": 0.010,
+            "output_per_token_millicents": 0.040,
+            "cache_read_per_token_millicents": 0.0025,
+            "cache_write_per_token_millicents": 0.0,
+        },
+        # Google Gemini 2.5 Flash
+        # Source: https://ai.google.dev/gemini-api/docs/pricing (retrieved 2026-09-21)
+        # Rates: $0.30 / 1M input, $2.50 / 1M output, $0.075 / 1M cache read
+        "gemini-2.5-flash": {
+            "input_per_token_millicents": 0.030,
+            "output_per_token_millicents": 0.250,
+            "cache_read_per_token_millicents": 0.0075,
+            "cache_write_per_token_millicents": 0.0,
+        },
+        # Google Gemini 3.5 Flash Lite
+        # Source: https://ai.google.dev/gemini-api/docs/pricing (retrieved 2026-09-21)
+        # Rates: $0.30 / 1M input, $2.50 / 1M output, $0.075 / 1M cache read
+        "gemini-3.5-flash-lite": {
+            "input_per_token_millicents": 0.030,
+            "output_per_token_millicents": 0.250,
+            "cache_read_per_token_millicents": 0.0075,
+            "cache_write_per_token_millicents": 0.0,
+        },
+        # Google Gemini 3.5 Flash
+        # Source: https://ai.google.dev/gemini-api/docs/pricing (retrieved 2026-09-21)
+        # Rates: $1.50 / 1M input, $9.00 / 1M output, $0.375 / 1M cache read
+        "gemini-3.5-flash": {
+            "input_per_token_millicents": 0.150,
+            "output_per_token_millicents": 0.900,
+            "cache_read_per_token_millicents": 0.0375,
+            "cache_write_per_token_millicents": 0.0,
+        },
+        # Google Gemini 3.1 Pro Preview
+        # Source: https://ai.google.dev/gemini-api/docs/pricing (retrieved 2026-09-21)
+        # Rates: $2.00 / 1M input, $12.00 / 1M output, $0.50 / 1M cache read
+        "gemini-3.1-pro-preview": {
+            "input_per_token_millicents": 0.200,
+            "output_per_token_millicents": 1.200,
+            "cache_read_per_token_millicents": 0.050,
+            "cache_write_per_token_millicents": 0.0,
+        },
+        # Google Gemini 3.6 Flash (Promotional rate through 2026-12-31)
+        # Source: https://ai.google.dev/gemini-api/docs/pricing (retrieved 2026-09-21)
+        # Rates: $0.75 / 1M input, $3.75 / 1M output, $0.1875 / 1M cache read
+        "gemini-3.6-flash": {
+            "input_per_token_millicents": 0.075,
+            "output_per_token_millicents": 0.375,
+            "cache_read_per_token_millicents": 0.01875,
+            "cache_write_per_token_millicents": 0.0,
+        },
+        # Google Gemini 3.7 Flash (Promotional rate through 2026-12-31)
+        # Source: https://ai.google.dev/gemini-api/docs/pricing (retrieved 2026-09-21)
+        # Rates: $0.75 / 1M input, $3.75 / 1M output, $0.1875 / 1M cache read
+        "gemini-3.7-flash": {
+            "input_per_token_millicents": 0.075,
+            "output_per_token_millicents": 0.375,
+            "cache_read_per_token_millicents": 0.01875,
+            "cache_write_per_token_millicents": 0.0,
+        },
+        # Google Gemini 3.8 Flash (Promotional rate through 2026-12-31)
+        # Source: https://ai.google.dev/gemini-api/docs/pricing (retrieved 2026-09-21)
+        # Rates: $0.75 / 1M input, $3.75 / 1M output, $0.1875 / 1M cache read
+        "gemini-3.8-flash": {
+            "input_per_token_millicents": 0.075,
+            "output_per_token_millicents": 0.375,
+            "cache_read_per_token_millicents": 0.01875,
+            "cache_write_per_token_millicents": 0.0,
+        },
+    },
 }
 
 PRICE_SCHEDULE_METADATA: dict[str, dict[str, Any]] = {
@@ -236,6 +347,32 @@ PRICE_SCHEDULE_METADATA: dict[str, dict[str, Any]] = {
             "text-embedding-3-small": "https://openai.com/api/pricing",
         },
     },
+    "2026-Q4": {
+        "state": "active",
+        "period_start": "2026-09-21",
+        "period_end": "2026-12-31",
+        "retrieval_date": "2026-09-21",
+        "prompt_caching_ttl": "5-minute",
+        "sources": {
+            "claude-haiku-4-5-20251001": "https://claude.com/pricing",
+            "claude-sonnet-5": "https://claude.com/pricing",
+            "claude-opus-5": "https://claude.com/pricing",
+            "text-embedding-3-small": "https://openai.com/api/pricing",
+            "gemini-2.5-flash-lite": "https://ai.google.dev/gemini-api/docs/pricing",
+            "gemini-2.5-flash": "https://ai.google.dev/gemini-api/docs/pricing",
+            "gemini-3.5-flash-lite": "https://ai.google.dev/gemini-api/docs/pricing",
+            "gemini-3.5-flash": "https://ai.google.dev/gemini-api/docs/pricing",
+            "gemini-3.1-pro-preview": "https://ai.google.dev/gemini-api/docs/pricing",
+            "gemini-3.6-flash": "https://ai.google.dev/gemini-api/docs/pricing",
+            "gemini-3.7-flash": "https://ai.google.dev/gemini-api/docs/pricing",
+            "gemini-3.8-flash": "https://ai.google.dev/gemini-api/docs/pricing",
+        },
+        "promotional_models": {
+            "gemini-3.6-flash": "2026-12-31T23:59:59Z",
+            "gemini-3.7-flash": "2026-12-31T23:59:59Z",
+            "gemini-3.8-flash": "2026-12-31T23:59:59Z",
+        },
+    },
 }
 
 ACTIVE_PRICE_VERSIONS: frozenset[str] = frozenset(
@@ -261,12 +398,13 @@ def compute_schedule_checksum(version_or_schedule: str | dict[str, dict[str, flo
     return hashlib.sha256(canonical_json.encode("utf-8")).hexdigest()
 
 
-# Committed canonical checksums for all published price versions (T-214 Acceptance 4).
+# Committed canonical checksums for all published price versions (T-214 & T-215).
 # A test fails if any published schedule's numbers are altered.
 PRICE_SCHEDULE_CHECKSUMS: dict[str, str] = {
     "2026-Q1": "a1fd10fc2e97ac6a36d239c799d9aaa9038a5ae1402057ef1237c71229a3f178",
     "2026-Q2": "747a57f0c2eb198dcf81f95def063f0a73386eb6efb982815ba517283e7d393b",
     "2026-Q3": "421964c4a4b1d7f55da4d4e7aceff9f97b95ed0fa85f2d95829d886c1a76d7ad",
+    "2026-Q4": "dd2c6368b09ec70ee9cf51b376ce8ca0fbbf2f764a338f5fdf2dc72e846bb8f5",
 }
 
 
@@ -314,6 +452,7 @@ def calculate_cost_millicents(
     output_tokens: int,
     cache_read_tokens: int | None = 0,
     cache_write_tokens: int | None = 0,
+    occurred_at: datetime | None = None,
 ) -> int:
     """Calculates cost in millicents using the exact stamped price version.
 
@@ -321,11 +460,30 @@ def calculate_cost_millicents(
     Resolves both active and historical price schedules.
     Treats None cache fields as 0.
     Exact model IDs as keys; aliases map explicitly to canonical IDs. No prefix matching.
+    Refuses promotional rates if occurred_at is past the promotional cutoff (T-215).
     """
     if price_version not in PRICE_SCHEDULES:
         raise UnknownPriceVersionError(
             f"Price version '{price_version}' is not defined in PRICE_SCHEDULES"
         )
+
+    meta = PRICE_SCHEDULE_METADATA.get(price_version, {})
+    promo_models = meta.get("promotional_models", {})
+    if model_id in promo_models:
+        cutoff = promo_models[model_id]
+        cutoff_dt = (
+            datetime.fromisoformat(cutoff.replace("Z", "+00:00"))
+            if isinstance(cutoff, str)
+            else cutoff
+        )
+        check_time = occurred_at or datetime.now(UTC)
+        if check_time > cutoff_dt:
+            msg = (
+                f"Promotional pricing for model '{model_id}' under price version "
+                f"'{price_version}' expired on {cutoff_dt.isoformat()}. An event occurring "
+                f"at {check_time.isoformat()} cannot silently use the promotional rate."
+            )
+            raise PromotionalPricingExpiredError(msg)
 
     schedule = PRICE_SCHEDULES[price_version]
     if model_id in schedule:

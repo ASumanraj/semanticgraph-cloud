@@ -27,9 +27,11 @@ from sqlmodel import select
 from semanticgraph.control.usage.models import (
     CURRENT_PRICE_VERSION,
     HISTORICAL_PRICE_VERSIONS,
+    PRICE_SCHEDULE_METADATA,
     PRICE_SCHEDULES,
     HistoricalPriceVersionError,
     InvalidCorrectionError,
+    PromotionalPricingExpiredError,
     SQLUsageEvent,
     TenantUsageSummary,
     UnknownPriceVersionError,
@@ -89,6 +91,24 @@ class UsageLedger:
                 f"Cannot stamp new event with historical price version '{event.price_version}'. "
                 f"Historical versions are only resolvable for existing rows and corrections."
             )
+
+        meta = PRICE_SCHEDULE_METADATA.get(event.price_version, {})
+        promo_models = meta.get("promotional_models", {})
+        if event.model_id in promo_models:
+            cutoff = promo_models[event.model_id]
+            cutoff_dt = (
+                datetime.fromisoformat(cutoff.replace("Z", "+00:00"))
+                if isinstance(cutoff, str)
+                else cutoff
+            )
+            if event.occurred_at > cutoff_dt:
+                msg = (
+                    f"Promotional pricing for model '{event.model_id}' under price version "
+                    f"'{event.price_version}' expired on {cutoff_dt.isoformat()}. An event "
+                    f"occurring at {event.occurred_at.isoformat()} cannot silently use the "
+                    "promotional rate."
+                )
+                raise PromotionalPricingExpiredError(msg)
 
         async with self._tenant_session(tenant_id) as session:
             # 1. Check existing event by idempotency key

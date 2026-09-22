@@ -224,5 +224,26 @@ class ModelRouting:
             mapping[dep.model_id] = str(dep.local_alternative) if dep.local_alternative else None
         return mapping
 
+    def get_subprocessors(self) -> frozenset[str]:
+        """Derives the set of third-party model vendor subprocessors for DPA compliance.
+
+        Generated from get_hosted_models() rather than maintained by hand (Stage 7).
+        Default returns Anthropic and OpenAI; gains Google when Gemini is hosted.
+        """
+        subprocessors = set()
+        for model_id in self.get_hosted_models():
+            lower = model_id.lower()
+            if "claude" in lower:
+                subprocessors.add("Anthropic")
+            elif "gemini" in lower:
+                subprocessors.add("Google")
+            elif any(s in lower for s in ("text-embedding", "gpt", "o1", "o3", "openai")):
+                subprocessors.add("OpenAI")
+            elif "deepseek" in lower:
+                subprocessors.add("DeepSeek")
+            else:
+                subprocessors.add(model_id)
+        return frozenset(subprocessors)
+
 
 DEFAULT_MODEL_ROUTING = ModelRouting()

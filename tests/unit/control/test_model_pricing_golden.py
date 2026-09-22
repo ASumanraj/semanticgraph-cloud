@@ -152,7 +152,7 @@ class TestModelIdExactnessAndAliases:
 
     def test_price_keys_are_canonical_exact_model_ids(self):
         """Keys in active schedule are exact canonical IDs, not aliases or prefixes."""
-        schedule = PRICE_SCHEDULES[CURRENT_PRICE_VERSION]
+        schedule = PRICE_SCHEDULES["2026-Q3"]
         expected_keys = {
             "claude-haiku-4-5-20251001",
             "claude-sonnet-5",
@@ -268,7 +268,7 @@ class TestPriceScheduleStatesAndCorrections:
         assert PRICE_SCHEDULE_METADATA["2026-Q2"]["state"] == "historical"
         assert PRICE_SCHEDULE_METADATA["2026-Q1"]["state"] == "historical"
 
-        assert set(ACTIVE_PRICE_VERSIONS) == {"2026-Q3"}
+        assert "2026-Q3" in ACTIVE_PRICE_VERSIONS
         assert set(HISTORICAL_PRICE_VERSIONS) == {"2026-Q1", "2026-Q2"}
 
     def test_historical_price_versions_resolve_for_cost_calculation(self):

@@ -56,16 +56,16 @@ assumes for Claude.
 
 ## Acceptance
 
-- [ ] The key is read only from `GEMINI_API_KEY`. It appears in no source file, ticket, log, commit or test output; `.env` is already gitignored and `.env.example` carries a blank placeholder. A key that has ever been pasted into a chat or a log is rotated
-- [ ] `GEMINI_TIER` is `free` or `paid`, defaulting to `free`. The provider is registered only in dev and eval profiles by default; enabling it in a profile that handles customer tenants requires `paid`, and the container refuses to start otherwise. A test proves it
-- [ ] The adapter sits behind `LLMGatewayPort` and uses the same extraction contract as every provider — claim, verbatim quote, chunk id — with the quote located and verified by the application, never trusted from the model
-- [ ] Usage is normalised from a **real SDK response object**, not a dict: uncached input is `promptTokenCount − cachedContentTokenCount`, cache reads come from `cachedContentTokenCount`, and output includes `thoughtsTokenCount` **once the pricing documentation confirms thinking tokens are billed at the output rate** — that was not stated on the pages read, so confirm it before writing the rule. Unset fields are treated as 0
-- [ ] Prices are added as a **new price version**, not by editing the active one, since a published version is immutable (T-214). Each price has the exact model id, its source URL and the date it was read. The 2026-12-31 promotional cutoff is represented, so an event stamped after it cannot silently use the promotional rate
-- [ ] `ModelRouting` records Gemini as `hosted=True`, and the generated subprocessor list gains Google
-- [ ] A live smoke test under `tests/live/` runs only when `GEMINI_API_KEY` is present, uses only public or synthetic documents, and its absence is a visible skip with a reason. CI never depends on it
-- [ ] Fake-provider tests cover the adapter in CI: normal response, cached response, schema rejection, a fabricated quote that the locator rejects, and a timeout that yields *unverified* rather than a false result
-- [ ] No document text in logs, traces or error messages — ids and hashes only
-- [ ] Full suite green and `ruff check .` clean
+- [x] The key is read only from `GEMINI_API_KEY`. It appears in no source file, ticket, log, commit or test output; `.env` is already gitignored and `.env.example` carries a blank placeholder. A key that has ever been pasted into a chat or a log is rotated
+- [x] `GEMINI_TIER` is `free` or `paid`, defaulting to `free`. The provider is registered only in dev and eval profiles by default; enabling it in a profile that handles customer tenants requires `paid`, and the container refuses to start otherwise. A test proves it
+- [x] The adapter sits behind `LLMGatewayPort` and uses the same extraction contract as every provider — claim, verbatim quote, chunk id — with the quote located and verified by the application, never trusted from the model
+- [x] Usage is normalised from a **real SDK response object**, not a dict: uncached input is `promptTokenCount − cachedContentTokenCount`, cache reads come from `cachedContentTokenCount`, and output includes `thoughtsTokenCount` **once the pricing documentation confirms thinking tokens are billed at the output rate** — that was not stated on the pages read, so confirm it before writing the rule. Unset fields are treated as 0
+- [x] Prices are added as a **new price version**, not by editing the active one, since a published version is immutable (T-214). Each price has the exact model id, its source URL and the date it was read. The 2026-12-31 promotional cutoff is represented, so an event stamped after it cannot silently use the promotional rate
+- [x] `ModelRouting` records Gemini as `hosted=True`, and the generated subprocessor list gains Google
+- [x] A live smoke test under `tests/live/` runs only when `GEMINI_API_KEY` is present, uses only public or synthetic documents, and its absence is a visible skip with a reason. CI never depends on it
+- [x] Fake-provider tests cover the adapter in CI: normal response, cached response, schema rejection, a fabricated quote that the locator rejects, and a timeout that yields *unverified* rather than a false result
+- [x] No document text in logs, traces or error messages — ids and hashes only
+- [x] Full suite green and `ruff check .` clean
 
 ## Notes
 
