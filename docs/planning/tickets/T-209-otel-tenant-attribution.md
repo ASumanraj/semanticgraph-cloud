@@ -47,8 +47,8 @@ both verified:
 ```python
 # 1. A renamed local variable defeats the static linter completely — zero violations reported:
 content = chunk.text
-logger.info(content)          # lint_source_string() returns []
-logger.info(f"processing: {content}")   # also []
+logger.info(content)  # lint_source_string() returns []
+logger.info(f"processing: {content}")  # also []
 
 # 2. The runtime guard never fires on the primary message at all:
 logger.info(long_document_text)   # no exception, and it lands verbatim in the JSON log line

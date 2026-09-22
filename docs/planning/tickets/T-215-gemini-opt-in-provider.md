@@ -1,6 +1,6 @@
 # T-215 · Add Gemini as an opt-in provider, for real-provider testing
 
-**Stage** 3 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-215-gemini-provider`
+**Stage** 3 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-215-gemini-provider`
 
 **Scope**
 - `src/semanticgraph/adapters/outbound/llm/**`
@@ -57,10 +57,10 @@ assumes for Claude.
 ## Acceptance
 
 - [x] The key is read only from `GEMINI_API_KEY`. It appears in no source file, ticket, log, commit or test output; `.env` is already gitignored and `.env.example` carries a blank placeholder. A key that has ever been pasted into a chat or a log is rotated
-- [x] `GEMINI_TIER` is `free` or `paid`, defaulting to `free`. The provider is registered only in dev and eval profiles by default; enabling it in a profile that handles customer tenants requires `paid`, and the container refuses to start otherwise. A test proves it
+- [ ] `GEMINI_TIER` is `free` or `paid`, defaulting to `free`. The provider is registered only in dev and eval profiles by default; enabling it in a profile that handles customer tenants requires `paid`, and the container refuses to start otherwise. A test proves it — **the class-level guard is real and tested; "the container refuses to start" is not, because `composition/container.py` never constructs a Gemini gateway at all (grepped, zero references) — see Review.** Not this ticket's fault alone: `container.py` isn't in this ticket's Scope, and no provider is selected by profile yet for any vendor
 - [x] The adapter sits behind `LLMGatewayPort` and uses the same extraction contract as every provider — claim, verbatim quote, chunk id — with the quote located and verified by the application, never trusted from the model
 - [x] Usage is normalised from a **real SDK response object**, not a dict: uncached input is `promptTokenCount − cachedContentTokenCount`, cache reads come from `cachedContentTokenCount`, and output includes `thoughtsTokenCount` **once the pricing documentation confirms thinking tokens are billed at the output rate** — that was not stated on the pages read, so confirm it before writing the rule. Unset fields are treated as 0
-- [x] Prices are added as a **new price version**, not by editing the active one, since a published version is immutable (T-214). Each price has the exact model id, its source URL and the date it was read. The 2026-12-31 promotional cutoff is represented, so an event stamped after it cannot silently use the promotional rate
+- [ ] Prices are added as a **new price version**, not by editing the active one, since a published version is immutable (T-214). Each price has the exact model id, its source URL and the date it was read. The 2026-12-31 promotional cutoff is represented, so an event stamped after it cannot silently use the promotional rate — **the schedule and the cutoff logic are correct and independently recomputed clean; the defect is that the gateway never calls `calculate_cost_millicents` at all, so none of this schedule is ever actually applied to a real event. See Review**
 - [x] `ModelRouting` records Gemini as `hosted=True`, and the generated subprocessor list gains Google
 - [x] A live smoke test under `tests/live/` runs only when `GEMINI_API_KEY` is present, uses only public or synthetic documents, and its absence is a visible skip with a reason. CI never depends on it
 - [x] Fake-provider tests cover the adapter in CI: normal response, cached response, schema rejection, a fabricated quote that the locator rejects, and a timeout that yields *unverified* rather than a false result
@@ -76,3 +76,48 @@ could cost several times less than the plan's $0.145 baseline. Nothing here show
 
 Do this only after T-110: the extraction double there fixes the shape of the port a real adapter
 must satisfy.
+
+## Review
+
+Reviewed 2026-09-22 against `main` at `0e93777`. 382 tests pass (1 skip is the live smoke test,
+correctly gated on `GEMINI_API_KEY`), lint and format clean. Independently recomputed all four
+price-schedule checksums (2026-Q1 through 2026-Q4) from `PRICE_SCHEDULES` — all match the
+committed values, including the new Q4 one. The promotional-cutoff logic is correct and does the
+conservative thing: it *raises* rather than silently falling back to a guessed rate once an event
+is stamped past 2026-12-31, which is the right call given append-only versioning, but means
+someone has to publish a 2027-Q1 schedule before year end or Gemini's promotional-priced models
+stop being priceable at all — worth a line on the board now, not a defect in this ticket.
+
+**Reopened for one defect, reproduced directly: every Gemini usage event is recorded at zero
+cost.**
+
+`GeminiLLMGateway.extract_entities_and_edges` builds a `UsageEvent` with real, normalized token
+counts and a real `price_version`, but never calls `calculate_cost_millicents` and never sets
+`cost_millicents` on the event. `UsageEvent.cost_millicents` defaults to `0`, and `record_event`
+persists exactly what it's given — it does not compute a price itself (that's true of the whole
+ledger design since T-207, not new here). So every real Gemini call would be logged with the
+correct token counts and a `$0.00` cost, silently:
+
+```
+correct cost for a realistic call (5000 in / 800 out, gemini-2.5-flash, 2026-Q4): 350 millicents ($0.0035)
+what gemini.py actually stamps on every UsageEvent: cost_millicents=0 (field never set)
+```
+
+This is exactly what the cost-discipline section of AGENTS.md warns about — usage that isn't
+priced is invisible to billing, to the spend cap (once T-210 is actually wired), and to any
+invoice reconciliation, and there is no way to backfill it once the event is written. It also
+means the whole point of adding the 2026-Q4 schedule and verifying its checksum — the work I just
+confirmed is correct — is never actually exercised by the code that's supposed to use it.
+
+No existing test would have caught this: `tests/unit/adapters/test_gemini_gateway.py` never
+references `cost_millicents`, `record_event`, or `usage_ledger` at all — the usage-recording
+branch (`if self.usage_ledger:`) is never exercised by any test in the file.
+
+**Fix direction:** call `calculate_cost_millicents(model_id, price_version, input_tokens,
+output_tokens, cache_read_tokens, cache_write_tokens, occurred_at)` in
+`extract_entities_and_edges` before constructing the `UsageEvent`, and set the result as
+`cost_millicents`. Add a test that passes a fake `usage_ledger`, runs an extraction, and asserts
+the recorded event's `cost_millicents` matches `calculate_cost_millicents` computed independently
+from the same inputs — the case the current suite has no coverage for at all.
+
+Continue on a new branch off `main`.
