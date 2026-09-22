@@ -71,9 +71,9 @@ Tick as each item lands. Detail for every item is in Part 3.
 - [x] Immutable versioned ontologies
 - [x] Assertion-counted delete cascade
 - [x] Usage event ledger
-- [ ] Append-only audit log — reopened 2026-09-22, T-208: the app role can self-set the trigger's retention-prune escape hatch and delete rows
-- [ ] OpenTelemetry with `tenant_id` attribution — reopened 2026-09-22, T-209: the telemetry hygiene guard never checks the primary log message, only structured `extra` fields
-- [ ] Per-tenant spend cap — reopened 2026-09-22, T-210: `QuotaEnforcer` is built and unit-tested but never wired to `app.state`; nothing is enforced by the running app
+- [x] Append-only audit log — T-208 fixed and reverified 2026-09-22: a real `semanticgraph_retention` role, checked via `current_user`, replaces the self-settable GUC escape hatch
+- [x] OpenTelemetry with `tenant_id` attribution — T-209 fixed and reverified 2026-09-22: the telemetry hygiene guard now also checks the rendered primary log message, not just `extra` fields
+- [x] Per-tenant spend cap — T-210 fixed and reverified 2026-09-22: `QuotaEnforcer` is now wired into the composition root and `app.state` in the FastAPI lifespan
 
 ### Stage 3 — Pipeline
 - [ ] Parse · [ ] Chunk · [ ] Contextualize · [ ] Extract · [ ] Resolve · [ ] Retrieve

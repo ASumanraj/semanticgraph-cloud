@@ -18,15 +18,17 @@ entitlements **before** the expensive call — checking quota after inference me
 have already paid for it.
 
 ## Acceptance
-- [x] A spend cap per tenant per period, enforced ahead of the model call — wired into composition root and FastAPI lifespan, active on `app.state.quota_enforcer`
+- [x] A spend cap per tenant per period, enforced ahead of the model call — wired into composition root and FastAPI lifespan, active on `app.state.quota_enforcer`, reverified against real Postgres (see second Review entry)
 - [x] Request-rate and concurrent-ingestion limits per tenant — enforced on every ingest call via `documents.py` through `QuotaEnforcer`
 - [x] Exceeding a limit returns a clear error, and the attempt is audited
 - [x] Limits are configurable per tier
-- [x] A test proves an over-cap tenant is refused before any token is spent — tested through HTTP API with raw-SQL check verifying 0 new ledger rows for refused request and refusal audited
+- [x] A test proves an over-cap tenant is refused before any token is spent — tested through the HTTP API; independently reproduced against real Postgres as well, not just the PR's own SQLite-backed test (see second Review entry)
 
 ## Notes
 Reads period spend from the T-207 ledger.
-Rate-limit and concurrent-ingestion counters are currently maintained in-process via `asyncio.Lock` (per process / worker instance). Cross-worker/distributed enforcement across horizontal replicas can back onto Redis/Postgres in a future scale milestone.
+Rate-limit and concurrent-ingestion counters are currently maintained in-process via `asyncio.Lock`
+(per process / worker instance). Cross-worker/distributed enforcement across horizontal replicas
+can back onto Redis/Postgres in a future scale milestone.
 
 ## Review
 
@@ -75,3 +77,39 @@ attempt exists. That HTTP-level test is the one the current suite has no version
 it's the only kind that would have caught this.
 
 Continue on a new branch off `main`.
+
+## Review, fix verified 2026-09-22
+
+Reviewed PR #10 (`b5c0bad`) against `t-210-per-tenant-spend-cap`. `Container` now carries
+`usage_ledger`/`audit_log`/`quota_enforcer` fields, wired for real in both `Container.postgres()`
+and `Container.in_memory()` (new `InMemoryUsageLedger`/`InMemoryAuditLog` adapters for the
+in-memory profile), and `app.py`'s lifespan sets `app.state.quota_enforcer = container.quota_enforcer`.
+Ran the PR's own new tests (`TestQuotaEnforcementThroughAPI`, both pass), full suite (388 passed /
+1 skipped / 2 deselected), e2e (2 passed), ruff clean — matches the report.
+
+One thing worth recording: the PR's own spend-cap test runs against a throwaway **SQLite** database,
+not Postgres, which is exactly the fidelity gap AGENTS.md's "Proving it works" section warns about.
+So I independently reproduced the same scenario myself against the real dev Postgres instance —
+built a real `Container.postgres()`, pre-recorded a usage event that exhausts the $10 free-tier cap,
+and drove the actual HTTP API with `TestClient`. First attempt appeared to fail (the pre-existing
+event vanished from `enforce_spend_cap`'s windowed query), which turned out to be an artifact of my
+own repro script, not the fix: I'd stamped the pre-existing event's `occurred_at` using Postgres's
+SQL `now()`, while `enforce_spend_cap` computes its window's `end_time` from the *application
+process's* Python clock — a ~2-second drift between this dev Postgres instance and the host was
+enough to push the event just outside the query window. The real application always stamps
+`occurred_at` from the same Python process's clock (confirmed in `gemini.py`), so this specific
+mismatch can't happen in the real code path. Redid the repro stamping `occurred_at` the way the
+real app does, and it worked cleanly: HTTP 402 / `SPEND_CAP_EXCEEDED`, zero new `usage_events` rows
+for the refused request, and an `audit_events` row with `action = 'spend_cap_exceeded'` and the
+correct metadata — all verified via raw SQL against real Postgres, independent of the app's own
+session.
+
+Worth flagging anyway, separate from the false alarm: since `occurred_at` for a real extraction
+event and the enforcement check's `end_time` can, in principle, come from different processes
+(an extraction worker vs. the request-handling process), any future work that changes where or how
+`occurred_at` is stamped should keep both derived from the same trusted clock source, or a
+boundary-adjacent event could be silently excluded from a spend-cap window. Not a defect in this
+PR — a note for whoever touches this next.
+
+Full suite 388 passed / 1 skipped / 2 deselected, e2e 2 passed, ruff clean. Accepted. Status set to
+done. All four reopened tickets (T-208, T-209, T-210, T-215) are now closed.
