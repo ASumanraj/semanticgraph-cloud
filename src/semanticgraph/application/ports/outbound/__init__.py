@@ -16,9 +16,6 @@ from semanticgraph.application.ports.outbound.entity_store import (
     EntityStore,
     EntityStorePort,
 )
-from semanticgraph.application.ports.outbound.graph_repository import (
-    GraphRepositoryPort,
-)
 from semanticgraph.application.ports.outbound.llm_gateway import LLMGatewayPort
 from semanticgraph.application.ports.outbound.object_storage import ObjectStoragePort
 from semanticgraph.application.ports.outbound.ontology_store import (
@@ -50,7 +47,6 @@ __all__ = [
     "DocumentRepositoryPort",
     "EntityStore",
     "EntityStorePort",
-    "GraphRepositoryPort",
     "LLMGatewayPort",
     "ObjectStoragePort",
     "OntologyRepositoryPort",

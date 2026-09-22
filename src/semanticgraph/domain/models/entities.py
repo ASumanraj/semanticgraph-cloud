@@ -109,6 +109,7 @@ class Document:
     content_type: str = ""
     size_bytes: int = 0
     status: DocumentStatus = DocumentStatus.PENDING
+    fact_ids: list[UUID] = field(default_factory=list)
 
 
 @dataclass

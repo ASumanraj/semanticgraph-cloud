@@ -24,7 +24,14 @@ class InMemoryAssertionStore:
                 raise ValueError("Assertion must hold at least one EvidenceSpan")
 
         tenant_facts = self._facts.setdefault(tenant_id.value, {})
-        tenant_facts[fact.id] = fact
+        existing = tenant_facts.get(fact.id)
+        if existing is not None:
+            existing.claim = fact.claim
+            for a in fact.assertions:
+                if not any(x.id == a.id for x in existing.assertions):
+                    existing.assertions.append(a)
+        else:
+            tenant_facts[fact.id] = fact
 
     async def get_fact(self, tenant_id: TenantId, fact_id: UUID) -> Fact | None:
         """Retrieves a Fact with all its Assertions and EvidenceSpans."""
