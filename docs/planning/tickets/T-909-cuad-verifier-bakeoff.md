@@ -31,11 +31,11 @@ the three; those stay dependent on the T-904 paid-reviewer pass on our own docum
 
 ## Acceptance
 
-- [ ] A dataset checksum is recorded before first use (§5 of the crosscheck report), not just an access date
-- [ ] CUAD is cited per its licence (Hendrycks et al., NeurIPS 2021, CC BY 4.0) wherever a score from it is reported
-- [ ] The harness reports precision/recall per CUAD category, not one blended number, so a weak category doesn't hide behind strong ones
-- [ ] No claim is made that a CUAD-based score says anything about temporal history, tenant isolation, resolution decisions or deletion — those aren't testable against CUAD by construction
-- [ ] Results state plainly that CUAD's contracts are likely present in model pretraining data, same caveat as the rest of T-904's corpus
+- [x] A dataset checksum is recorded before first use (§5 of the crosscheck report), not just an access date — independently verified against the real published file, see Review
+- [x] CUAD is cited per its licence (Hendrycks et al., NeurIPS 2021, CC BY 4.0) wherever a score from it is reported
+- [x] The harness reports precision/recall per CUAD category, not one blended number, so a weak category doesn't hide behind strong ones
+- [x] No claim is made that a CUAD-based score says anything about temporal history, tenant isolation, resolution decisions or deletion — those aren't testable against CUAD by construction
+- [x] Results state plainly that CUAD's contracts are likely present in model pretraining data, same caveat as the rest of T-904's corpus
 
 ## Notes
 
@@ -48,3 +48,50 @@ to go through the app container. CUAD's contracts are public EDGAR filings, so t
 "public or synthetic data only" constraint is satisfied without needing a paid key — but confirm
 `GEMINI_TIER` before running at any volume, since the free tier's low rate limit will make 510
 documents slow either way.
+
+## Review
+
+Reviewed PR #12 (`cc6c493`) against `t-909-cuad-eval-harness`. Independently downloaded the real
+`master_clauses.csv` from `theatticusproject/cuad` on HuggingFace and recomputed its SHA-256 myself
+— `4da237bec677bf5b02212d523857cd57a801adde60e8021de063c8cc06823720`, 3,955,428 bytes — both match
+`constants.py` exactly. The mapping table in `mapping.py` matches `t904-cuad-crosscheck.md` §3
+faithfully: Q9/Q10 correctly `NOT_COVERED`, Q13 correctly `NOT_APPLICABLE`, the other 9 questions
+mapped to the right CUAD categories. `metrics.py`'s per-category scoring has no blended aggregation,
+as required. Ran the PR's own tests (7/7 passed) and the full suite (395 passed).
+
+**Reopened for one defect, reproduced directly against the real dataset file (not a fixture):**
+`loader.py`'s `parse_master_clauses_row` builds the answer-column key as `f"{cat}-Answer"` for every
+category. That's right for 39 of CUAD's 40 non-identifier columns, but the real CSV's column for
+one of Q5's two mapped categories is spelled with a space: `"Notice Period To Terminate
+Renewal**- Answer**"`, not `"...Renewal-Answer"`. Confirmed by loading the real file and inspecting
+`reader.fieldnames` directly — the no-space key genuinely does not exist in the header. Because
+`row.get(f"{cat}-Answer", row.get(cat, ""))` evaluates its default eagerly, the lookup silently
+falls back to the **base column** — which holds the full verbatim source-span sentence, not the
+short normalized answer:
+
+```
+Notice Period To Terminate Renewal          -> "['This Agreement may be terminated by either
+                                                 party at the expiration of its term or any
+                                                 renewal term upon thirty (30) days written
+                                                 notice to the other party.']"
+Notice Period To Terminate Renewal- Answer  -> "30 days"
+```
+
+So the ground truth loaded for this one category is a full sentence (with Python list-repr
+brackets `parse_cuad_answers` doesn't know to strip, since it only strips leading/trailing `'`/`"`),
+not "30 days" — any model correctly extracting "30 days" would score as a false positive/false
+negative pair against wrong ground truth for this category, dragging down Q5's partial-fit score
+for a reason that has nothing to do with the model. Checked all 40 other category columns against
+the real header: this is the only one with the inconsistent naming, so the blast radius is exactly
+this one category (`Notice Period To Terminate Renewal`, half of Q5), not systemic. Zero test
+coverage of this: `test_cuad_harness.py` has no reference to "Notice Period" or "Renewal" anywhere.
+
+**Fix direction:** `parse_master_clauses_row` needs a per-category answer-column override (a small
+dict mapping `"Notice Period To Terminate Renewal"` to its real, space-containing column name), or a
+more defensive lookup that tries both `f"{cat}-Answer"` and `f"{cat}- Answer"` before falling back to
+the base column. Add a test that loads a fixture row shaped exactly like the real CSV's header
+(including the space) and asserts the parsed answer is the short form, not the source span — the
+case the current suite has no coverage for at all.
+
+Continue on the same branch or a new one off `main`, agent's choice — this is a one-file, one-method
+fix with no migration or scope conflict.
