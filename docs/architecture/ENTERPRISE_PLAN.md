@@ -71,7 +71,7 @@ Tick as each item lands. Detail for every item is in Part 3.
 - [x] Immutable versioned ontologies
 - [x] Assertion-counted delete cascade
 - [x] Usage event ledger
-- [ ] Append-only audit log
+- [x] Append-only audit log
 - [ ] OpenTelemetry with `tenant_id` attribution
 - [ ] Per-tenant spend cap
 
