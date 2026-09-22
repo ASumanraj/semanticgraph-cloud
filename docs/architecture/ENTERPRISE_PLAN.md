@@ -72,7 +72,7 @@ Tick as each item lands. Detail for every item is in Part 3.
 - [x] Assertion-counted delete cascade
 - [x] Usage event ledger
 - [x] Append-only audit log
-- [ ] OpenTelemetry with `tenant_id` attribution
+- [x] OpenTelemetry with `tenant_id` attribution
 - [ ] Per-tenant spend cap
 
 ### Stage 3 — Pipeline

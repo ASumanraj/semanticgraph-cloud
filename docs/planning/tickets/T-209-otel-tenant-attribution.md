@@ -1,6 +1,6 @@
 # T-209 · OpenTelemetry with tenant attribution
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-209-otel-tenant-attribution`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-209-otel-tenant-attribution`
 
 **Scope**
 - `src/semanticgraph/observability/**`
