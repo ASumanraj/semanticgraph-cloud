@@ -1,6 +1,6 @@
 # T-219 · `pyproject.toml` is missing `google-genai` and `ragas` as real dependencies
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-219-declare-missing-dependencies`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-219-declare-missing-dependencies`
 
 **Scope**
 - `pyproject.toml`
@@ -51,9 +51,9 @@ directly, not the lock file — picks up both, and `uv sync` stays reproducible 
 
 ## Acceptance
 
-- [ ] `google-genai` is a core dependency, `ragas` is a `dev` optional dependency, both pinned to at least the versions already validated in this session
-- [ ] A clean install proves it: `pip install -e ".[dev]"` in a fresh virtualenv (no pre-existing packages), then `pytest -q` collects all 4 previously-broken modules with zero `ModuleNotFoundError`s — this is the exact condition that was never tested before and must be shown, not assumed
-- [ ] `ruff check .` clean
+- [x] `google-genai` is a core dependency, `ragas` is a `dev` optional dependency, both pinned to at least the versions already validated in this session
+- [x] A clean install proves it: `pip install -e ".[dev]"` in a fresh virtualenv (no pre-existing packages), then `pytest -q` collects all 4 previously-broken modules with zero `ModuleNotFoundError`s — this is the exact condition that was never tested before and must be shown, not assumed
+- [x] `ruff check .` clean
 
 ## Notes
 
