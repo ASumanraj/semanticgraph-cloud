@@ -20,7 +20,17 @@ T-213's PR papered over it in CI with `pytest -p semanticgraph.control.audit.mod
 
 ## Acceptance
 
-- [ ] `env.py` imports the audit models alongside the usage models
-- [ ] `pytest tests/integration/adapters/postgres/test_migrations.py` passes when run alone, with no `-p` flag and `DATABASE_URL` unset
-- [ ] The `-p semanticgraph.control.audit.models` flag is removed from `ci.yml`'s isolation step (coordinate with T-213 since it owns that file)
-- [ ] `ruff check .` clean
+- [x] `env.py` imports the audit models alongside the usage models
+- [x] `pytest tests/integration/adapters/postgres/test_migrations.py` passes when run alone, with no `-p` flag and `DATABASE_URL` unset
+- [ ] The `-p semanticgraph.control.audit.models` flag is removed from `ci.yml`'s isolation step (coordinate with T-213 since it owns that file) — follow-up after PR merge per instructions
+- [x] `ruff check .` clean
+
+## Review & Verification
+
+- Standalone test execution:
+  `powershell -Command "Remove-Item env:DATABASE_URL -ErrorAction Ignore; .venv\Scripts\pytest.exe tests/integration/adapters/postgres/test_migrations.py -k test_autogenerate_run_against_head_produces_empty_revision -v"`
+  Result: 1 passed in 1.86s with zero autogenerate diffs.
+- Full `test_migrations.py` suite (all 6 tests, including new regression test `test_audit_models_registered_in_metadata_without_drift`):
+  Result: 6 passed in 7.35s.
+- Full test suite: `pytest -q` passed cleanly.
+- `ruff check .` and `ruff format --check .`: all checks passed.
