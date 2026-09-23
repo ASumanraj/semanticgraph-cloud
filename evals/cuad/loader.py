@@ -41,13 +41,31 @@ def parse_cuad_answers(raw_val: str | None) -> list[str]:
     else:
         answers.append(val)
 
-    # Clean surrounding quotation marks
+    # Clean surrounding quotation marks and brackets
     cleaned: list[str] = []
     for ans in answers:
-        a = ans.strip().strip("'\"")
+        a = ans.strip().strip("'\"[]").strip("'\"")
         if a and a.lower() not in ("nan", "none"):
             cleaned.append(a)
     return cleaned
+
+
+# Specific answer-column overrides where CUAD CSV headers differ from standard f"{cat}-Answer"
+CATEGORY_ANSWER_COLUMN_OVERRIDES: dict[str, str] = {
+    "Notice Period To Terminate Renewal": "Notice Period To Terminate Renewal- Answer",
+}
+
+
+def get_answer_column_candidates(category: str) -> tuple[str, ...]:
+    """Returns candidate column names in priority order for extracting normalized answers."""
+    candidates: list[str] = []
+    if category in CATEGORY_ANSWER_COLUMN_OVERRIDES:
+        candidates.append(CATEGORY_ANSWER_COLUMN_OVERRIDES[category])
+    for suffix in ("-Answer", "- Answer", " - Answer", " Answer"):
+        cand = f"{category}{suffix}"
+        if cand not in candidates:
+            candidates.append(cand)
+    return tuple(candidates)
 
 
 def parse_master_clauses_row(
@@ -59,8 +77,16 @@ def parse_master_clauses_row(
 
     annotations: dict[str, list[str]] = {}
     for cat in target_categories:
-        # In master_clauses.csv, answers are typically in '<Category>-Answer' column
-        raw_answer = row.get(f"{cat}-Answer", row.get(cat, ""))
+        raw_answer: str | None = None
+        # Check candidate answer columns first (handling spacing inconsistencies like '- Answer')
+        for col in get_answer_column_candidates(cat):
+            if col in row:
+                raw_answer = row[col]
+                break
+        # Fall back to base category column only if no answer column header was present
+        if raw_answer is None:
+            raw_answer = row.get(cat, "")
+
         answers = parse_cuad_answers(raw_answer)
         if answers:
             annotations[cat] = answers

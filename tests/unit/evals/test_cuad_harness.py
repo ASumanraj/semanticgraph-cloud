@@ -242,6 +242,40 @@ def test_loader_parses_master_clauses_row() -> None:
     assert parsed.get_ground_truth("Expiration Date") == []
 
 
+def test_loader_handles_notice_period_column_space_inconsistency() -> None:
+    """T-909 Review fix: Handle 'Notice Period To Terminate Renewal- Answer' spacing.
+
+    Real CUAD master_clauses.csv has a space before 'Answer' for this one category.
+    Confirm the loader pulls the short normalized answer ('30 days'), not the full
+    source-span sentence from the base column.
+    """
+    source_span = (
+        "['This Agreement may be terminated by either party at the expiration "
+        "of its term or any renewal term upon thirty (30) days written notice.']"
+    )
+    row = {
+        "Filename": "commercial_lease_001.txt",
+        "Document Name": "Commercial Lease Agreement",
+        "Notice Period To Terminate Renewal": source_span,
+        "Notice Period To Terminate Renewal- Answer": "30 days",
+        "Renewal Term": "['automatically renewed for successive 1-year terms']",
+        "Renewal Term-Answer": "1 year",
+    }
+    parsed = parse_master_clauses_row(
+        row,
+        target_categories=["Notice Period To Terminate Renewal", "Renewal Term"],
+    )
+
+    notice_answers = parsed.get_ground_truth("Notice Period To Terminate Renewal")
+    assert notice_answers == ["30 days"], (
+        f"Expected short normalized answer ['30 days'], got {notice_answers!r}. "
+        "The loader must pull from 'Notice Period To Terminate Renewal- Answer', "
+        "not fall back to the raw source span sentence."
+    )
+    assert source_span not in notice_answers
+    assert parsed.get_ground_truth("Renewal Term") == ["1 year"]
+
+
 class FakeLLMExtractor(LLMGatewayPort):
     """Deterministic extractor fake for evaluation harness unit testing."""
 
