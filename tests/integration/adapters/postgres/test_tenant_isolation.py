@@ -369,4 +369,3 @@ class TestPostgresDocumentRepositoryUnderRLS:
             assert count == 0, "Raw SQL without tenant context returned rows under RLS!"
 
         await engine.dispose()
-
