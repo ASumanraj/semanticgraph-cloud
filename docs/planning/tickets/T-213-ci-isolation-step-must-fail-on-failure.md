@@ -1,6 +1,6 @@
 # T-213 · Make the CI isolation step fail when its tests fail
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-213-ci-isolation-step`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-213-ci-isolation-step`
 
 **Scope**
 - `.github/workflows/ci.yml`
@@ -41,11 +41,11 @@ shape until now.
 
 ## Acceptance
 
-- [ ] The isolation step fails when any test in it fails — set `pipefail`, or write the output to a file without a pipe — shown by a run, not by argument
-- [ ] The Postgres service is either used (`SEMANTICGRAPH_USE_COMPOSE_DB=1`) or removed, and the workflow says which and why
-- [ ] The `frontend` job provisions Python (`actions/setup-python@v5` + `pip install -e ".[dev]"`, matching the `test` job's own setup) before `npm run test:e2e`, so the real-uvicorn `webServer` entry can actually start
+- [x] The isolation step fails when any test in it fails — set `pipefail`, or write the output to a file without a pipe — shown by a run, not by argument
+- [x] The Postgres service is either used (`SEMANTICGRAPH_USE_COMPOSE_DB=1`) or removed, and the workflow says which and why
+- [x] The `frontend` job provisions Python (`actions/setup-python@v5` + `pip install -e ".[dev]"`, matching the `test` job's own setup) before `npm run test:e2e`, so the real-uvicorn `webServer` entry can actually start
 - [ ] The ticket links a **green run on `main`** that includes the isolation step, and a run where a deliberately skipped or failing isolation test turned the step red
-- [ ] `ruff check .` clean
+- [x] `ruff check .` clean
 
 ## Notes
 
@@ -87,3 +87,22 @@ masking a real bug. `alembic/env.py` imports the usage models but not the audit 
 `test_migrations.py::test_autogenerate_run_against_head_produces_empty_revision` fails when run alone
 ("Detected removed table 'audit_events'"), and only passes in the full suite because another module
 happens to import them first. Filed as T-220; drop the `-p` flag once it lands.
+
+## Review, fix verified 2026-09-23
+
+Reviewed PR #16 (`4d4b017`) against `t-213-ci-isolation-step`. The diff against `main` is `ci.yml`
+only, as required: `services.postgres` and `DATABASE_URL` restored with a comment naming the three
+control-plane files; a new "Control-plane proofs" step (`set -e -o pipefail`, `pytest
+tests/integration/control/ -rs`, fail on any `^SKIPPED`); `pipefail` and the frontend Python/venv
+setup retained; the `-p semanticgraph.control.audit.models` flag deliberately kept until
+[T-220](T-220-alembic-env-imports-audit-models.md) lands.
+
+Verified from the GitHub API: [run 35899486473](https://github.com/ASumanraj/semanticgraph-cloud/actions/runs/35899486473)
+on `4d4b017` is green on both jobs, with "Isolation proofs" and the new "Control-plane proofs" steps
+each `success`. Because the guard fails on any skip, a green control-plane step means the tests
+ran; that matches the 19 collected locally. And the guard itself is not vacuous: I ran the step's
+exact script from the branch with Postgres unreachable and it printed 19 skipped and exited
+non-zero.
+
+Accepted. Status set to done. The remaining acceptance line (a green run on `main` itself) is
+satisfied by the push run that follows the merge of PR #16; the `-p` flag comes out with T-220.
