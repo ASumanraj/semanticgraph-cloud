@@ -17,6 +17,7 @@ dependencies = [
     "pgvector>=0.3.6",
     # LLM
     "anthropic>=0.40",
+    "google-genai>=2.24",
     # Pipeline — Celery is transitional; Stage 3 migrates to Temporal
     "celery>=5.4",
     "redis>=5.2",
@@ -32,6 +33,10 @@ dev = [
     "pyright>=1.1.390",
     "aiosqlite>=0.20",
     "testcontainers[postgres]>=4.9.0",
+    "ragas>=0.1.19",
+    "langchain-community<0.3",
+    "langchain-core<0.3",
+    "langchain-openai<0.2",
 ]
 
 [build-system]

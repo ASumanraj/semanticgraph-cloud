@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlmodel import SQLModel
 
 from semanticgraph.adapters.outbound.postgres import models  # noqa: F401
+from semanticgraph.control.audit import models as audit_models  # noqa: F401
 from semanticgraph.control.usage import models as usage_models  # noqa: F401
 
 # this is the Alembic Config object, which provides
@@ -28,7 +29,8 @@ target_metadata = SQLModel.metadata
 
 
 def get_url() -> str:
-    db_url = os.environ.get("DATABASE_URL") or config.get_main_option("sqlalchemy.url")
+    override = config.attributes.get("sqlalchemy.url")
+    db_url = override or os.environ.get("DATABASE_URL") or config.get_main_option("sqlalchemy.url")
     if db_url:
         if db_url.startswith("postgresql://"):
             return db_url.replace("postgresql://", "postgresql+psycopg_async://", 1)

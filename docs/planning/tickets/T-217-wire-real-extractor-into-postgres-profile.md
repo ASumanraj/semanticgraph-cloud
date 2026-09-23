@@ -57,34 +57,42 @@ worth persisting rather than more deterministic fixture data.
 
 ## Review
 
-The core work of T-217 — profile-selection seam, `GeminiLLMGateway` construction under
-`GEMINI_API_KEY`, the `GEMINI_TIER=paid` guard, fallback to the deterministic double with
-observable logging, `llm_provider` attribute, and the six new unit tests — is clean, verified,
-and accepted.
+Reviewed PR #14 (`e9b695a`) against `t-217-real-provider-in-postgres-profile`. The actual ask is
+done correctly: `Container.postgres()` constructs a real `GeminiLLMGateway` (with
+`profile="postgres"`, which is in `GeminiLLMGateway.CUSTOMER_PROFILES`) when `GEMINI_API_KEY` is
+set, refuses to start under `GEMINI_TIER=free`/unset via the real `GeminiFreeTierDisallowedError`
+guard (not a new, parallel check — reuses T-215's own class-level guard as intended), and falls
+back to the deterministic double with an observable `llm_provider` field and a log line when no
+key is configured. Ran the new tests myself: `tests/unit/composition/` 16/16 passed, full suite 402
+passed / 1 skipped / 2 deselected, `ruff check .` and `ruff format --check .` clean — all matching
+the report exactly.
 
-One regression must be reverted before merging:
+**Reopened for one defect, outside the ticket's stated scope, reproduced directly:**
+`Container.postgres()` used to read `database_url = os.environ["DATABASE_URL"]` — a required key,
+raising `KeyError` immediately if unset. This diff silently changed it to
+`os.environ.get("DATABASE_URL", "postgresql://user:password@localhost:5432/semanticgraph")`.
+Confirmed directly: with `DATABASE_URL` unset entirely, `Container.postgres()` no longer raises —
+it silently builds a working engine pointed at `localhost:5432` with hardcoded dev credentials
+baked into application code. No test in `test_container.py` needs this (every one of the four new
+tests explicitly sets `DATABASE_URL` via `monkeypatch.setenv`), so the change wasn't necessary to
+make the new tests pass — it looks like an incidental edit, not a considered one. This is the wrong
+direction for a "postgres" (customer-facing) profile: a missing `DATABASE_URL` in a real deployment
+should fail loudly at startup, the same way the `GEMINI_TIER` guard this same ticket added is
+designed to fail loudly on misconfiguration, not silently connect to whatever happens to be at
+`localhost:5432`.
 
-```python
-# src/semanticgraph/composition/container.py
-database_url = os.environ.get(
-    "DATABASE_URL",
-    "postgresql://user:password@localhost:5432/semanticgraph",
-)
-```
+**Fix direction:** revert that one line back to `os.environ["DATABASE_URL"]`. Nothing else in this
+diff touches it or depends on the fallback. Continue on the same branch.
 
-Prior to PR #14, `container.py:182` was:
+## Review, fix verified 2026-09-23
 
-```python
-database_url = os.environ["DATABASE_URL"]
-```
+Reviewed PR #14 (`aa643bb`) against `t-217-real-provider-in-postgres-profile`. The one-line revert
+is exact — `database_url = os.environ["DATABASE_URL"]`, nothing else touched — plus a new
+regression test (`test_postgres_container_refuses_to_start_without_database_url`) that unsets the
+env var via `monkeypatch.delenv` and asserts `KeyError`. Independently reproduced myself with a
+fresh script, not the new test file: `Container.postgres()` with both `DATABASE_URL` and
+`GEMINI_API_KEY` unset now raises `KeyError: 'DATABASE_URL'` immediately, no silent fallback.
 
-`Container.postgres()` is the customer-facing composition root. Missing infrastructure configuration
-must fail loudly at startup with a `KeyError` on `DATABASE_URL`, not silently fall back to an arbitrary
-developer-machine `localhost:5432` string that might succeed in an accidental local test and mask
-a deployment misconfiguration in staging/prod. None of the six tests added by T-217 need this fallback
-— all of them explicitly set `DATABASE_URL` via `monkeypatch.setenv`. Reverting this line back to
-strict `os.environ["DATABASE_URL"]` leaves the suite 100% green and preserves the fail-closed
-guarantee.
-
-**Fix Applied:** Reverted `database_url = os.environ["DATABASE_URL"]`. Verified full suite green.
-
+Ran `tests/unit/composition/test_container.py` (7/7 passed) and the full suite myself: 403 passed,
+1 skipped, 2 deselected — matching the report exactly. `ruff check .` and `ruff format --check .`
+clean. Accepted. Status set to done.
