@@ -200,10 +200,7 @@ class Container:
         from semanticgraph.control.quota.enforcer import QuotaEnforcer
         from semanticgraph.control.usage.ledger import UsageLedger
 
-        database_url = os.environ.get(
-            "DATABASE_URL",
-            "postgresql://user:password@localhost:5432/semanticgraph",
-        )
+        database_url = os.environ["DATABASE_URL"]
         # SQLAlchemy async requires the asyncpg or psycopg_async dialect prefix.
         if database_url.startswith("postgresql://"):
             database_url = database_url.replace("postgresql://", "postgresql+psycopg_async://", 1)

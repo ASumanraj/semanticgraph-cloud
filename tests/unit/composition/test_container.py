@@ -93,3 +93,10 @@ def test_model_routing_for_gemini():
     assert routing.extraction.model_id == "gemini-2.5-pro"
     assert routing.extraction.hosted is True
     assert "Google" in routing.get_subprocessors()
+
+
+def test_postgres_container_refuses_to_start_without_database_url(monkeypatch):
+    """Container.postgres() fails loudly with KeyError if DATABASE_URL is unset."""
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    with pytest.raises(KeyError):
+        Container.postgres()

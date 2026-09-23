@@ -54,3 +54,37 @@ Disjoint in intent from [T-218](T-218-persist-graph-and-expose-it-over-http.md) 
 `composition/container.py` — claim and finish one before the other starts, or expect a merge
 conflict on that file. This one is smaller; doing it first means T-218's real extractor output is
 worth persisting rather than more deterministic fixture data.
+
+## Review
+
+The core work of T-217 — profile-selection seam, `GeminiLLMGateway` construction under
+`GEMINI_API_KEY`, the `GEMINI_TIER=paid` guard, fallback to the deterministic double with
+observable logging, `llm_provider` attribute, and the six new unit tests — is clean, verified,
+and accepted.
+
+One regression must be reverted before merging:
+
+```python
+# src/semanticgraph/composition/container.py
+database_url = os.environ.get(
+    "DATABASE_URL",
+    "postgresql://user:password@localhost:5432/semanticgraph",
+)
+```
+
+Prior to PR #14, `container.py:182` was:
+
+```python
+database_url = os.environ["DATABASE_URL"]
+```
+
+`Container.postgres()` is the customer-facing composition root. Missing infrastructure configuration
+must fail loudly at startup with a `KeyError` on `DATABASE_URL`, not silently fall back to an arbitrary
+developer-machine `localhost:5432` string that might succeed in an accidental local test and mask
+a deployment misconfiguration in staging/prod. None of the six tests added by T-217 need this fallback
+— all of them explicitly set `DATABASE_URL` via `monkeypatch.setenv`. Reverting this line back to
+strict `os.environ["DATABASE_URL"]` leaves the suite 100% green and preserves the fail-closed
+guarantee.
+
+**Fix Applied:** Reverted `database_url = os.environ["DATABASE_URL"]`. Verified full suite green.
+
