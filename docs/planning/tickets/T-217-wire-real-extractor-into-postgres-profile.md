@@ -43,10 +43,10 @@ configured, falling back to the deterministic double only when none is:
 
 ## Acceptance
 
-- [ ] `Container.postgres()` constructs a real `GeminiLLMGateway` when `GEMINI_API_KEY` is present, proven by a test that asserts the constructed gateway's type, not just that no exception was raised
-- [ ] `Container.postgres()` refuses to start with `GEMINI_TIER=free` (or unset) in a profile that handles customer tenants — the exact case T-215 flagged as untested
-- [ ] With no provider configured, the deterministic double is still used, and this is observable (a log line or a `Container` attribute), not silent
-- [ ] Full suite green, `ruff check .` clean
+- [x] `Container.postgres()` constructs a real `GeminiLLMGateway` when `GEMINI_API_KEY` is present, proven by a test that asserts the constructed gateway's type, not just that no exception was raised
+- [x] `Container.postgres()` refuses to start with `GEMINI_TIER=free` (or unset) in a profile that handles customer tenants — the exact case T-215 flagged as untested
+- [x] With no provider configured, the deterministic double is still used, and this is observable (a log line or a `Container` attribute), not silent
+- [x] Full suite green, `ruff check .` clean — reopened for one unrelated regression found in the same diff, see Review
 
 ## Notes
 
@@ -54,3 +54,32 @@ Disjoint in intent from [T-218](T-218-persist-graph-and-expose-it-over-http.md) 
 `composition/container.py` — claim and finish one before the other starts, or expect a merge
 conflict on that file. This one is smaller; doing it first means T-218's real extractor output is
 worth persisting rather than more deterministic fixture data.
+
+## Review
+
+Reviewed PR #14 (`e9b695a`) against `t-217-real-provider-in-postgres-profile`. The actual ask is
+done correctly: `Container.postgres()` constructs a real `GeminiLLMGateway` (with
+`profile="postgres"`, which is in `GeminiLLMGateway.CUSTOMER_PROFILES`) when `GEMINI_API_KEY` is
+set, refuses to start under `GEMINI_TIER=free`/unset via the real `GeminiFreeTierDisallowedError`
+guard (not a new, parallel check — reuses T-215's own class-level guard as intended), and falls
+back to the deterministic double with an observable `llm_provider` field and a log line when no
+key is configured. Ran the new tests myself: `tests/unit/composition/` 16/16 passed, full suite 402
+passed / 1 skipped / 2 deselected, `ruff check .` and `ruff format --check .` clean — all matching
+the report exactly.
+
+**Reopened for one defect, outside the ticket's stated scope, reproduced directly:**
+`Container.postgres()` used to read `database_url = os.environ["DATABASE_URL"]` — a required key,
+raising `KeyError` immediately if unset. This diff silently changed it to
+`os.environ.get("DATABASE_URL", "postgresql://user:password@localhost:5432/semanticgraph")`.
+Confirmed directly: with `DATABASE_URL` unset entirely, `Container.postgres()` no longer raises —
+it silently builds a working engine pointed at `localhost:5432` with hardcoded dev credentials
+baked into application code. No test in `test_container.py` needs this (every one of the four new
+tests explicitly sets `DATABASE_URL` via `monkeypatch.setenv`), so the change wasn't necessary to
+make the new tests pass — it looks like an incidental edit, not a considered one. This is the wrong
+direction for a "postgres" (customer-facing) profile: a missing `DATABASE_URL` in a real deployment
+should fail loudly at startup, the same way the `GEMINI_TIER` guard this same ticket added is
+designed to fail loudly on misconfiguration, not silently connect to whatever happens to be at
+`localhost:5432`.
+
+**Fix direction:** revert that one line back to `os.environ["DATABASE_URL"]`. Nothing else in this
+diff touches it or depends on the fallback. Continue on the same branch.
