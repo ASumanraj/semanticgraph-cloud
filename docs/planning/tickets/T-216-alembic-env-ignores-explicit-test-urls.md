@@ -101,3 +101,38 @@ effect. `set_main_option` can stay for anything else that reads it, but `attribu
 This blocks trusting CI's own `test` job at all until fixed — right now it fails at "Test (fast
 suite)" before "Isolation proofs" ever runs, so T-213's own acceptance criteria (a green isolation
 run, a deliberately-broken run turning it red) can't be attempted yet. Fix this one first.
+
+## Correction 2026-09-23 — the real CI failure was never this bug
+
+Got the actual CI log text for the first time (the GitHub REST API's log-download endpoint refuses
+an unauthenticated request even on a public repo — three rounds of asking annotations-only
+summaries before getting real log text via `gh run view --log-failed`). The `test` job's "Test
+(fast suite)" step has been failing at **collection**, not at any test this fix touches:
+`ModuleNotFoundError: No module named 'google'` / `'ragas'` across four modules, from
+`pyproject.toml` never declaring those as dependencies — filed as
+[T-219](T-219-declare-google-genai-and-ragas-dependencies.md). Pytest aborts the whole run
+("Interrupted: N errors during collection") before a single test executes when collection fails, so
+**this ticket's own fix has never actually been exercised in real CI** — every CI run since this
+PR opened failed for a reason upstream of anything `alembic/env.py` touches.
+
+The fix itself is still correct and still necessary — see the Review below, done independently
+before this correction — it just couldn't be the CI-run proof-of-life the acceptance criteria call
+for, because CI never got far enough to run it. Re-run PR #13's CI once T-219 lands and see what
+the isolation-proof step actually reports for the first time.
+
+## Review
+
+Reviewed PR #13 (`6e60a5a`) against `t-216-alembic-env-url-precedence`. Diff matches the Design
+section exactly: `get_url()` checks `config.attributes.get("sqlalchemy.url")` first, and every
+fixture in scope (plus `test_document_repository.py`, one file outside the ticket's stated Scope
+list but the same bug — correctly caught and fixed anyway) sets that attribute. The new regression
+test (`test_attributes_url_overrides_database_url_env`) genuinely proves the fix: it points
+`DATABASE_URL` at a decoy SQLite file and `cfg.attributes["sqlalchemy.url"]` at the real target,
+then asserts the target got migrated and the decoy didn't.
+
+Ran it myself against a real Postgres with `DATABASE_URL` set to an unrelated target (the exact CI
+condition): `pytest tests/integration/adapters/postgres/ tests/integration/adapters/api/test_documents_api.py tests/e2e/ -v`
+→ 47 passed, 2 deselected, matching the report exactly. `pytest -q` → 397 passed, 1 skipped, 2
+deselected, also matching. `ruff check .` and `ruff format --check .` clean. The code is accepted;
+Status stays `claimed` rather than `done` only because CI itself still hasn't shown a green run —
+see the Correction above for why, and T-219 for what has to land first.

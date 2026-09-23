@@ -29,14 +29,30 @@ container is idle.
 request, so its status could not be read, and `gh` is not installed. Every claim that CI is
 green is currently unchecked.
 
+**Update 2026-09-23 — CI runs now, and a fourth problem turned up.** The Actions-permissions block
+is lifted (separate fix). The `frontend` job's E2E step fails on a clean runner:
+`/home/runner/.../.venv/bin/python: not found`, exit 127. `frontend/playwright.config.ts`'s
+`webServer` array (added by T-111) hardcodes `{repo_root}/.venv/bin/python -m uvicorn ...` to start
+a real backend for the upload E2E test — but the `frontend` job only runs `actions/setup-node` and
+`npm ci`. There is no Python, no `.venv`, and no `pip install` anywhere in that job, so the
+interpreter path genuinely doesn't exist. This passed every local check because a local `.venv`
+already exists from backend development — nobody tested the frontend job's actual clean-runner
+shape until now.
+
 ## Acceptance
 
 - [ ] The isolation step fails when any test in it fails — set `pipefail`, or write the output to a file without a pipe — shown by a run, not by argument
 - [ ] The Postgres service is either used (`SEMANTICGRAPH_USE_COMPOSE_DB=1`) or removed, and the workflow says which and why
+- [ ] The `frontend` job provisions Python (`actions/setup-python@v5` + `pip install -e ".[dev]"`, matching the `test` job's own setup) before `npm run test:e2e`, so the real-uvicorn `webServer` entry can actually start
 - [ ] The ticket links a **green run on `main`** that includes the isolation step, and a run where a deliberately skipped or failing isolation test turned the step red
 - [ ] `ruff check .` clean
 
 ## Notes
 
-Needs someone who can see the Actions tab. If the repository stays private, paste the run
-URL into the ticket rather than leaving the acceptance boxes unchecked.
+Needs someone who can see the Actions tab, or `gh run view --log-failed` from an authenticated
+environment — the GitHub REST API's log-download endpoint refuses unauthenticated requests even on
+a public repo, which is what made the first three rounds of diagnosis slow.
+
+Wait for [T-219](T-219-declare-google-genai-and-ragas-dependencies.md) to land first — the `test`
+job's own failure right now is a missing-dependency problem at collection time, unrelated to this
+ticket, and it's easier to tell whether the isolation step passes once that noise is gone.

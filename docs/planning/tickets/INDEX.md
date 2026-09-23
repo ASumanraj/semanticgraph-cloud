@@ -44,9 +44,15 @@ database (testcontainers Postgres or a scratch SQLite file) silently migrates th
 whenever `DATABASE_URL` is set — which the CI job always does. This is why the "done, reverified
 against a real Postgres" claims above still stand (those reviews connected by hand, never through
 this fixture family) but the automated isolation-proof suite itself has apparently never passed
-unattended. **Fix T-216 before trusting a green `test` job**, and before starting T-213 — T-213's
-own acceptance (a green isolation run, a deliberately-broken run turning it red) can't be attempted
-while the fast-suite step fails first.
+unattended. T-216's fix is accepted (Review section, independently reverified) but **CI still
+doesn't show green** — the real cause turned out to be upstream of T-216 entirely:
+[T-219](T-219-declare-google-genai-and-ragas-dependencies.md), `pyproject.toml` never declared
+`google-genai`/`ragas` as dependencies, so `pip install -e ".[dev]"` in CI's clean environment
+never installs them and `pytest` fails at collection before a single test runs — meaning T-216's
+own fix has never actually been exercised by CI yet either. **Land T-219 first**, then re-check
+whether T-216's isolation-proof step actually goes green, then start T-213 — which also picked up
+a fourth item (`frontend` job needs `actions/setup-python` before its E2E step, since T-111's
+dual-webServer Playwright config needs a real `.venv` that job never provisions).
 
 **Tracing the T-111 `GraphExplorer` gap turned up two more real ones, filed as
 [T-217](T-217-wire-real-extractor-into-postgres-profile.md) and
