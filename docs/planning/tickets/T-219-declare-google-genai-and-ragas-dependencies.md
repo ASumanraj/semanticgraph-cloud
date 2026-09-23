@@ -1,6 +1,6 @@
 # T-219 · `pyproject.toml` is missing `google-genai` and `ragas` as real dependencies
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-219-declare-missing-dependencies`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-219-declare-missing-dependencies`
 
 **Scope**
 - `pyproject.toml`
