@@ -1,6 +1,6 @@
 # T-217 · Wire a real LLM provider into `Container.postgres()`
 
-**Stage** 3 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-217-real-provider-in-postgres-profile`
+**Stage** 3 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-217-real-provider-in-postgres-profile`
 
 **Scope**
 - `src/semanticgraph/composition/container.py`
@@ -83,3 +83,16 @@ designed to fail loudly on misconfiguration, not silently connect to whatever ha
 
 **Fix direction:** revert that one line back to `os.environ["DATABASE_URL"]`. Nothing else in this
 diff touches it or depends on the fallback. Continue on the same branch.
+
+## Review, fix verified 2026-09-23
+
+Reviewed PR #14 (`aa643bb`) against `t-217-real-provider-in-postgres-profile`. The one-line revert
+is exact — `database_url = os.environ["DATABASE_URL"]`, nothing else touched — plus a new
+regression test (`test_postgres_container_refuses_to_start_without_database_url`) that unsets the
+env var via `monkeypatch.delenv` and asserts `KeyError`. Independently reproduced myself with a
+fresh script, not the new test file: `Container.postgres()` with both `DATABASE_URL` and
+`GEMINI_API_KEY` unset now raises `KeyError: 'DATABASE_URL'` immediately, no silent fallback.
+
+Ran `tests/unit/composition/test_container.py` (7/7 passed) and the full suite myself: 403 passed,
+1 skipped, 2 deselected — matching the report exactly. `ruff check .` and `ruff format --check .`
+clean. Accepted. Status set to done.
