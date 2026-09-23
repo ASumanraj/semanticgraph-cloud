@@ -178,6 +178,7 @@ class TestQuotaEnforcementThroughAPI:
         url = f"sqlite:///{db_path.as_posix()}"
         cfg = Config()
         cfg.set_main_option("script_location", "alembic")
+        cfg.attributes["sqlalchemy.url"] = url
         cfg.set_main_option("sqlalchemy.url", url)
         command.upgrade(cfg, "head")
 

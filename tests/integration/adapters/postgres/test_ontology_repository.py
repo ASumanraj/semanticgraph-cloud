@@ -59,6 +59,7 @@ APP_PASSWORD = "semanticgraph_app"
 def migrated_postgres(postgres_admin_url: str) -> str:
     ini_path = Path("alembic.ini").resolve()
     cfg = Config(str(ini_path))
+    cfg.attributes["sqlalchemy.url"] = postgres_admin_url
     cfg.set_main_option("sqlalchemy.url", postgres_admin_url)
     command.upgrade(cfg, "head")
     return postgres_admin_url
