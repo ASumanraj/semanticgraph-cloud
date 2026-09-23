@@ -1,6 +1,6 @@
 # T-213 · Make the CI isolation step fail when its tests fail
 
-**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-213-ci-isolation-step`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-213-ci-isolation-step`
 
 **Scope**
 - `.github/workflows/ci.yml`
@@ -41,29 +41,11 @@ shape until now.
 
 ## Acceptance
 
-- [x] The isolation step fails when any test in it fails — set `pipefail`, or write the output to a file without a pipe — shown by a run, not by argument
-- [x] The Postgres service is either used (`SEMANTICGRAPH_USE_COMPOSE_DB=1`) or removed, and the workflow says which and why
-- [x] The `frontend` job provisions Python (`actions/setup-python@v5` + `pip install -e ".[dev]"`, matching the `test` job's own setup) before `npm run test:e2e`, so the real-uvicorn `webServer` entry can actually start
-- [x] The ticket links a **green run on `main`** that includes the isolation step, and a run where a deliberately skipped or failing isolation test turned the step red
-- [x] `ruff check .` clean
-
-## Review & Verification
-
-### Proof Runs
-- **Green CI Run (PR #16 / `t-213-ci-isolation-step`)**:
-  - Run #35845437331: https://github.com/ASumanraj/semanticgraph-cloud/actions/runs/35845437331
-    - `Job: test -> conclusion: success` (all fast suite tests and all Postgres isolation proof tests passed)
-    - `Job: frontend -> conclusion: success` (Playwright E2E with real uvicorn backend passed)
-  - Also previously verified in run #35843999420: https://github.com/ASumanraj/semanticgraph-cloud/actions/runs/35843999420.
-- **Deliberately Failing Run (Proof of `pipefail` enforcement)**:
-  - Run #35844805846: https://github.com/ASumanraj/semanticgraph-cloud/actions/runs/35844805846
-  - Step `Isolation proofs (real Postgres, must not skip)` failed when a test failure was deliberately triggered (`pytest.fail(...)`). The non-zero exit code propagated out of `tee` through `set -e -o pipefail`, marking the step and job as `failure`. The test was reverted immediately after verification.
-
-### Postgres Service Removal Rationale
-The `postgres` service container in `.github/workflows/ci.yml` was removed because integration tests in `tests/integration/adapters/postgres/` use `testcontainers` by default (`PostgresContainer("postgres:15-alpine")`), booting clean, isolated database instances per test module. The GitHub Actions job-level service container was completely unused (only read if `SEMANTICGRAPH_USE_COMPOSE_DB=1` is set), wasted boot time on every run, and leaked an ambient `DATABASE_URL` into the environment. `SEMANTICGRAPH_REQUIRE_POSTGRES: "1"` is preserved so any failure to launch testcontainers fails loudly. Documented directly in comments within `ci.yml`.
-
-### Frontend Python Setup
-Added `actions/setup-python@v5` (Python 3.12) and virtualenv creation with `pip install -e ".[dev]"` to the `frontend` job before `npm run test:e2e`. This ensures the Playwright `webServer` configuration (`.venv/bin/python -m uvicorn ...`) finds the Python interpreter and required dependencies on clean GitHub Actions runners.
+- [ ] The isolation step fails when any test in it fails — set `pipefail`, or write the output to a file without a pipe — shown by a run, not by argument
+- [ ] The Postgres service is either used (`SEMANTICGRAPH_USE_COMPOSE_DB=1`) or removed, and the workflow says which and why
+- [ ] The `frontend` job provisions Python (`actions/setup-python@v5` + `pip install -e ".[dev]"`, matching the `test` job's own setup) before `npm run test:e2e`, so the real-uvicorn `webServer` entry can actually start
+- [ ] The ticket links a **green run on `main`** that includes the isolation step, and a run where a deliberately skipped or failing isolation test turned the step red
+- [ ] `ruff check .` clean
 
 ## Notes
 

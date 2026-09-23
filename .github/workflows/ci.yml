@@ -14,15 +14,30 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    # Note on Postgres service (T-213):
-    # The postgres service container was removed. Integration tests in
-    # tests/integration/adapters/postgres/ use testcontainers by default, providing
-    # an isolated, fresh Postgres container per test module. An ambient job-level
-    # service container was idle/unused (conftest only connects to compose if
-    # SEMANTICGRAPH_USE_COMPOSE_DB=1 is set), wasted boot time, and polluted
-    # the environment with DATABASE_URL.
-    # SEMANTICGRAPH_REQUIRE_POSTGRES=1 is kept so testcontainers failures fail loudly.
+    # Postgres service (T-213, safe since T-216):
+    # This service serves the three control-plane test files (test_audit_log,
+    # test_usage_event_ledger, test_usage_event_attribution) which connect
+    # straight to DATABASE_URL on localhost:5432.
+    # Postgres adapter integration tests (tests/integration/adapters/postgres/)
+    # use testcontainers and, since T-216, give fixture-explicit URLs priority over
+    # ambient DATABASE_URL.
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: semanticgraph
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     env:
+      DATABASE_URL: postgresql://user:password@localhost:5432/semanticgraph
       SEMANTICGRAPH_REQUIRE_POSTGRES: "1"
 
     steps:
@@ -57,6 +72,21 @@ jobs:
           if grep -qE "^SKIPPED" /tmp/isolation_output.txt; then
             echo "ERROR: one or more isolation tests were skipped" >&2
             grep -E "^SKIPPED" /tmp/isolation_output.txt >&2
+            exit 1
+          fi
+
+      - name: Control-plane proofs (audit log and usage ledger, must not skip)
+        run: |
+          set -e -o pipefail
+          pytest tests/integration/control/ \
+            -v -rs \
+            --tb=short \
+            2>&1 | tee /tmp/control_output.txt
+          # Fail the step if any test was skipped — a skip here means the
+          # control-plane proofs did not run, which is a silent pass.
+          if grep -qE "^SKIPPED" /tmp/control_output.txt; then
+            echo "ERROR: one or more control-plane tests were skipped" >&2
+            grep -E "^SKIPPED" /tmp/control_output.txt >&2
             exit 1
           fi
 
