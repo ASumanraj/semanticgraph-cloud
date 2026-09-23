@@ -14,6 +14,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    # Postgres service (T-213, safe since T-216):
+    # This service serves the three control-plane test files (test_audit_log,
+    # test_usage_event_ledger, test_usage_event_attribution) which connect
+    # straight to DATABASE_URL on localhost:5432.
+    # Postgres adapter integration tests (tests/integration/adapters/postgres/)
+    # use testcontainers and, since T-216, give fixture-explicit URLs priority over
+    # ambient DATABASE_URL.
     services:
       postgres:
         image: postgres:15-alpine
@@ -55,7 +62,8 @@ jobs:
 
       - name: Isolation proofs (real Postgres, must not skip)
         run: |
-          pytest tests/integration/adapters/postgres/ \
+          set -e -o pipefail
+          pytest -p semanticgraph.control.audit.models tests/integration/adapters/postgres/ \
             -v -rs \
             --tb=short \
             2>&1 | tee /tmp/isolation_output.txt
@@ -64,6 +72,21 @@ jobs:
           if grep -qE "^SKIPPED" /tmp/isolation_output.txt; then
             echo "ERROR: one or more isolation tests were skipped" >&2
             grep -E "^SKIPPED" /tmp/isolation_output.txt >&2
+            exit 1
+          fi
+
+      - name: Control-plane proofs (audit log and usage ledger, must not skip)
+        run: |
+          set -e -o pipefail
+          pytest tests/integration/control/ \
+            -v -rs \
+            --tb=short \
+            2>&1 | tee /tmp/control_output.txt
+          # Fail the step if any test was skipped — a skip here means the
+          # control-plane proofs did not run, which is a silent pass.
+          if grep -qE "^SKIPPED" /tmp/control_output.txt; then
+            echo "ERROR: one or more control-plane tests were skipped" >&2
+            grep -E "^SKIPPED" /tmp/control_output.txt >&2
             exit 1
           fi
 
@@ -77,6 +100,16 @@ jobs:
           node-version: "20"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Setup virtualenv for E2E backend
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -e ".[dev]"
 
       - name: Install
         working-directory: frontend
