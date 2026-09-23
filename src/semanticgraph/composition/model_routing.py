@@ -245,5 +245,23 @@ class ModelRouting:
                 subprocessors.add(model_id)
         return frozenset(subprocessors)
 
+    @classmethod
+    def for_gemini(cls, model_id: str = "gemini-2.5-flash") -> ModelRouting:
+        """Returns a ModelRouting configuration with Gemini as primary extraction."""
+        return cls(
+            extraction=ModelDependency(
+                model_id=model_id,
+                hosted=True,
+                local_alternative=LocalAlternative(
+                    name="qwen2.5-72b-instruct",
+                    status=AlternativeStatus.CANDIDATE,
+                    notes=(
+                        "Candidate: 72B open-weights; unmeasured on this ontology extraction task."
+                    ),
+                ),
+                notes=f"Primary extraction via Google Gemini ({model_id}).",
+            )
+        )
+
 
 DEFAULT_MODEL_ROUTING = ModelRouting()
