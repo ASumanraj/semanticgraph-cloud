@@ -1,6 +1,6 @@
 # T-218 · Persist the extracted graph to Postgres and expose it over HTTP
 
-**Stage** 3 · **Type** work · **Status** open · **Owner** — · **Branch** `t-218-postgres-graph-and-route`
+**Stage** 3 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-218-postgres-graph-and-route`
 
 **Scope**
 - `alembic/versions/**` (one new revision — take a turn per `README.md`)
