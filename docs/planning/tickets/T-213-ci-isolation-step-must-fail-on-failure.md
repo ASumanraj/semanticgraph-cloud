@@ -1,6 +1,6 @@
 # T-213 · Make the CI isolation step fail when its tests fail
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-213-ci-isolation-step`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-213-ci-isolation-step`
 
 **Scope**
 - `.github/workflows/ci.yml`
