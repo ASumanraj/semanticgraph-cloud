@@ -1,6 +1,6 @@
 # T-217 · Wire a real LLM provider into `Container.postgres()`
 
-**Stage** 3 · **Type** work · **Status** open · **Owner** — · **Branch** `t-217-real-provider-in-postgres-profile`
+**Stage** 3 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-217-real-provider-in-postgres-profile`
 
 **Scope**
 - `src/semanticgraph/composition/container.py`
