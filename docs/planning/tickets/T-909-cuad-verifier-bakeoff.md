@@ -1,6 +1,6 @@
 # T-909 · CUAD-based clause-extraction eval harness
 
-**Stage** 4 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-909-cuad-eval-harness`
+**Stage** 4 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-909-cuad-eval-harness`
 
 **Scope**
 - `evals/cuad/**`
@@ -95,3 +95,27 @@ case the current suite has no coverage for at all.
 
 Continue on the same branch or a new one off `main`, agent's choice — this is a one-file, one-method
 fix with no migration or scope conflict.
+
+## Review, fix verified 2026-09-23
+
+Reviewed PR #12 (`2c8d7fc`) against `t-909-cuad-eval-harness`. `loader.py` now carries a
+`CATEGORY_ANSWER_COLUMN_OVERRIDES` map (`"Notice Period To Terminate Renewal"` →
+`"Notice Period To Terminate Renewal- Answer"`) and `get_answer_column_candidates()`, which checks
+the override first, then `-Answer`/`- Answer`/` - Answer`/` Answer` suffixes, before ever falling
+back to the base column.
+
+Independently re-verified against the real downloaded `master_clauses.csv` (not the fixture):
+confirmed `"Notice Period To Terminate Renewal- Answer"` is present in the real header and the
+no-space variant is not, then ran the actual first data row through the fixed
+`parse_master_clauses_row` myself — it now returns `["30 days"]` instead of the source-span
+sentence. Also spot-checked several unrelated categories (`Agreement Date`, `Anti-Assignment`,
+`Cap On Liability`, `Change Of Control`) through the same row to confirm the override map didn't
+regress the other 39 categories' normal `-Answer` lookup.
+
+The new unit test (`test_loader_handles_notice_period_column_space_inconsistency`) is a real test,
+not a rubber stamp — its fixture includes both the wrong base column and the real answer column
+side by side, so it actually proves the override wins rather than passing by omission.
+
+Ran the suite myself: `pytest tests/unit/evals/test_cuad_harness.py -q` → 8 passed. `ruff check
+evals/cuad tests/unit/evals` → clean. Full suite → 347 passed, 50 skipped, 2 deselected — matches
+the PR's own numbers exactly. Accepted. Status set to done.
