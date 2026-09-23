@@ -110,6 +110,25 @@ class TestAlembicBaselineMigrations:
         # check() verifies autogenerate produces no new operations
         command.check(cfg)
 
+    def test_audit_models_registered_in_metadata_without_drift(self, alembic_config):
+        """Regression test for T-220: alembic/env.py imports audit models into target_metadata.
+
+        Prevents regression where autogenerate detected 'audit_events' and its 8 indexes
+        as removed tables/indexes because env.py only imported usage models.
+        """
+        cfg, _ = alembic_config
+        command.upgrade(cfg, "head")
+
+        from sqlmodel import SQLModel
+
+        assert "audit_events" in SQLModel.metadata.tables, (
+            "audit_events must be present in SQLModel.metadata"
+        )
+        assert "usage_events" in SQLModel.metadata.tables, (
+            "usage_events must be present in SQLModel.metadata"
+        )
+        command.check(cfg)
+
     def test_attributes_url_overrides_database_url_env(self, tmp_path: Path, monkeypatch):
         """Proof for T-216: cfg.attributes['sqlalchemy.url'] takes precedence over DATABASE_URL."""
         target_db = tmp_path / "target.db"
