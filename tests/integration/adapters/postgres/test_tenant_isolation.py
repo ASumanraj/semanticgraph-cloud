@@ -12,7 +12,6 @@ Tests T-201 acceptance criteria on PostgreSQL:
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse
 from uuid import uuid4
@@ -111,8 +110,6 @@ class TestEngineEnforcedTenantIsolation:
 
     def test_app_role_does_not_own_tables_and_lacks_bypassrls(self, migrated_postgres: str):
         """Criterion 2: App connects as a role that doesn't own tables and lacks BYPASSRLS."""
-        if os.environ.get("PROOF_DELIBERATE_FAIL") == "1":
-            pytest.fail("Deliberate failure to prove T-213 pipefail enforcement")
         with psycopg.connect(migrated_postgres) as conn, conn.cursor() as cur:
             cur.execute(
                 """
