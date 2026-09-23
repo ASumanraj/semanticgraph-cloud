@@ -1,6 +1,6 @@
 # T-220 · `alembic/env.py` does not import the audit models, so the drift check is order-dependent
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-220-alembic-env-audit-models`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-220-alembic-env-imports-audit-models`
 
 **Scope**
 - `alembic/env.py`
