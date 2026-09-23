@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./compiled.css";
-import { AppLayout } from "../components/layout/AppLayout";
 import React from 'react';
 
 const geistSans = Geist({
@@ -16,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SemanticGraph Cloud",
-  description: "Enterprise GraphRAG & AI Observability",
+  description: "Enterprise Knowledge-Graph Substrate",
 };
 
 export const viewport: Viewport = {
@@ -29,10 +28,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}
     >
-      <body>
-        <AppLayout>
-          {children}
-        </AppLayout>
+      <body className="min-h-screen bg-[#0a0a0b] text-slate-200">
+        {children}
       </body>
     </html>
   );

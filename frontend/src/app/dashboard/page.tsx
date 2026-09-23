@@ -1,80 +1,78 @@
 "use client";
 
 import React from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-const extractionData = [
-  { time: '08:00', volume: 400 },
-  { time: '09:00', volume: 300 },
-  { time: '10:00', volume: 550 },
-  { time: '11:00', volume: 450 },
-  { time: '12:00', volume: 700 },
-  { time: '13:00', volume: 600 },
-];
-
-const activityFeed = [
-  { id: 1, message: "Gemini LLM extracted 15 entities from doc_42", time: "2 mins ago", status: "success" },
-  { id: 2, message: "Gemini LLM extraction failed for doc_43: Rate limit", time: "15 mins ago", status: "error" },
-  { id: 3, message: "Gemini LLM extracted 8 entities from doc_44", time: "1 hour ago", status: "success" },
-];
+import { Activity, FileText, Database } from 'lucide-react';
+import Link from 'next/link';
 
 export default function MetricsDashboard() {
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold mb-6">Metrics & Observability Dashboard</h1>
+    <div className="p-8 max-w-7xl mx-auto space-y-8 text-gray-100">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Metrics &amp; Observability</h1>
+        <p className="text-gray-400 text-sm">
+          Tenant-scoped telemetry, extraction volume, and pipeline execution logs.
+        </p>
+      </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow border">
-          <h3 className="text-gray-500 text-sm font-medium">Total Entities Extracted</h3>
-          <p className="text-3xl font-bold mt-2">24,592</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-gray-900/40 p-6 rounded-xl border border-gray-800 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400 text-sm font-medium">Total Entities Extracted</span>
+            <Database className="w-5 h-5 text-gray-500" />
+          </div>
+          <p className="text-3xl font-bold font-mono mt-3 text-white">0</p>
+          <p className="text-xs text-gray-500 mt-2">No entities extracted yet</p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow border">
-          <h3 className="text-gray-500 text-sm font-medium">Tokens Used</h3>
-          <p className="text-3xl font-bold mt-2">1.2M</p>
+
+        <div className="bg-gray-900/40 p-6 rounded-xl border border-gray-800 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400 text-sm font-medium">Ingested Documents</span>
+            <FileText className="w-5 h-5 text-gray-500" />
+          </div>
+          <p className="text-3xl font-bold font-mono mt-3 text-white">0</p>
+          <p className="text-xs text-gray-500 mt-2">No documents ingested yet</p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow border">
-          <h3 className="text-gray-500 text-sm font-medium">Average Latency</h3>
-          <p className="text-3xl font-bold mt-2">450ms</p>
+
+        <div className="bg-gray-900/40 p-6 rounded-xl border border-gray-800 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400 text-sm font-medium">Pipeline Status</span>
+            <Activity className="w-5 h-5 text-gray-500" />
+          </div>
+          <p className="text-3xl font-bold font-mono mt-3 text-teal-400">Idle</p>
+          <p className="text-xs text-gray-500 mt-2">Awaiting ingestion requests</p>
         </div>
       </div>
 
-      {/* Chart and Feed Section */}
+      {/* Chart and Feed Section with honest empty states */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Chart */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow border">
-          <h2 className="text-xl font-semibold mb-4">Extraction Volume over Time</h2>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={extractionData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="time" />
-                <YAxis />
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <Tooltip />
-                <Area type="monotone" dataKey="volume" stroke="#8884d8" fillOpacity={1} fill="url(#colorVolume)" />
-              </AreaChart>
-            </ResponsiveContainer>
+        {/* Extraction Volume */}
+        <div className="lg:col-span-2 bg-gray-900/40 p-6 rounded-xl border border-gray-800 backdrop-blur-sm flex flex-col">
+          <h2 className="text-lg font-semibold text-white mb-4">Extraction Volume over Time</h2>
+          <div className="flex-1 min-h-[260px] flex flex-col items-center justify-center border border-dashed border-gray-800 rounded-lg p-8 text-center">
+            <Activity className="w-10 h-10 text-gray-600 mb-3" />
+            <p className="text-sm font-medium text-gray-300">No extraction volume recorded yet</p>
+            <p className="text-xs text-gray-500 mt-1 max-w-sm">
+              Extraction volume metrics will display here once documents are processed through the extraction pipeline.
+            </p>
+            <Link
+              href="/dashboard/explorer"
+              className="mt-4 px-4 py-2 text-xs font-medium rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+            >
+              Go to Graph Explorer
+            </Link>
           </div>
         </div>
 
         {/* Activity Feed */}
-        <div className="bg-white p-6 rounded-lg shadow border">
-          <h2 className="text-xl font-semibold mb-4">Recent Activity Feed</h2>
-          <div className="space-y-4">
-            {activityFeed.map((activity) => (
-              <div key={activity.id} className="border-b pb-3 last:border-0 last:pb-0">
-                <p className={`text-sm ${activity.status === 'error' ? 'text-red-600' : 'text-gray-800'}`}>
-                  {activity.message}
-                </p>
-                <p className="text-xs text-gray-400 mt-1">{activity.time}</p>
-              </div>
-            ))}
+        <div className="bg-gray-900/40 p-6 rounded-xl border border-gray-800 backdrop-blur-sm flex flex-col">
+          <h2 className="text-lg font-semibold text-white mb-4">Recent Activity</h2>
+          <div className="flex-1 min-h-[260px] flex flex-col items-center justify-center border border-dashed border-gray-800 rounded-lg p-6 text-center">
+            <FileText className="w-10 h-10 text-gray-600 mb-3" />
+            <p className="text-sm font-medium text-gray-300">No recent activity</p>
+            <p className="text-xs text-gray-500 mt-1 max-w-xs">
+              Document uploads, chunking runs, and entity resolutions will appear in this feed.
+            </p>
           </div>
         </div>
       </div>
