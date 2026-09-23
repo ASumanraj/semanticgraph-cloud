@@ -48,6 +48,17 @@ unattended. **Fix T-216 before trusting a green `test` job**, and before startin
 own acceptance (a green isolation run, a deliberately-broken run turning it red) can't be attempted
 while the fast-suite step fails first.
 
+**Tracing the T-111 `GraphExplorer` gap turned up two more real ones, filed as
+[T-217](T-217-wire-real-extractor-into-postgres-profile.md) and
+[T-218](T-218-persist-graph-and-expose-it-over-http.md).** `Container.postgres()` still hardcodes
+the deterministic double as its extractor (T-215's own unchecked acceptance box said as much) and
+still uses `InMemoryEntityStore`/`InMemorySubgraphReader` for the actual knowledge graph — there is
+no `entities`/`edges` table in Postgres at all yet, so nothing extracted from a real document
+survives a restart or is queryable. `SearchEngine`'s two methods are empty stub bodies by design
+("Stage 3 fills them"). T-218 builds real persistence and a truthful, unranked
+`GET /api/v1/graph`; T-217 is smaller and separate (which extractor `Container.postgres()` uses).
+Both touch `composition/container.py` — sequence them, don't parallelize.
+
 **Beside it, each disjoint from the lane:**
 [T-111](T-111-frontend-stop-misrepresenting-the-product.md) (`frontend/**`, done — the frontend
 `Lint` failure seen in the same first CI run is main not yet having T-111 merged, not a new defect),
