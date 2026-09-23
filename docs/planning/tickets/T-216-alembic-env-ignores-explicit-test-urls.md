@@ -90,11 +90,11 @@ effect. `set_main_option` can stay for anything else that reads it, but `attribu
 
 ## Acceptance
 
-- [ ] `alembic/env.py`'s `get_url()` gives an explicit `config.attributes["sqlalchemy.url"]` priority over `DATABASE_URL`
-- [ ] Every fixture in scope that calls `set_main_option("sqlalchemy.url", ...)` on a throwaway database also sets `cfg.attributes["sqlalchemy.url"]`
-- [ ] With `DATABASE_URL` set to an unrelated real Postgres in the environment, `pytest tests/integration/adapters/postgres/ tests/integration/adapters/api/test_documents_api.py tests/e2e/ -v` passes with zero errors and zero unexpected skips — this is the exact condition CI runs under, and the ticket must show a run under it, not just a run with `DATABASE_URL` unset
-- [ ] `pytest -q` (the fast-suite step) is clean under the same `DATABASE_URL`-set condition
-- [ ] `ruff check .` clean
+- [x] `alembic/env.py`'s `get_url()` gives an explicit `config.attributes["sqlalchemy.url"]` priority over `DATABASE_URL`
+- [x] Every fixture in scope that calls `set_main_option("sqlalchemy.url", ...)` on a throwaway database also sets `cfg.attributes["sqlalchemy.url"]`
+- [x] With `DATABASE_URL` set to an unrelated real Postgres in the environment, `pytest tests/integration/adapters/postgres/ tests/integration/adapters/api/test_documents_api.py tests/e2e/ -v` passes with zero errors and zero unexpected skips — this is the exact condition CI runs under, and the ticket must show a run under it, not just a run with `DATABASE_URL` unset
+- [x] `pytest -q` (the fast-suite step) is clean under the same `DATABASE_URL`-set condition
+- [x] `ruff check .` clean
 
 ## Notes
 

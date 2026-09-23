@@ -29,6 +29,7 @@ def alembic_config(tmp_path: Path) -> Generator[tuple[Config, str], None, None]:
 
     ini_path = Path("alembic.ini").resolve()
     cfg = Config(str(ini_path))
+    cfg.attributes["sqlalchemy.url"] = url
     cfg.set_main_option("sqlalchemy.url", url)
 
     old_env = os.environ.get("DATABASE_URL")
@@ -108,3 +109,28 @@ class TestAlembicBaselineMigrations:
 
         # check() verifies autogenerate produces no new operations
         command.check(cfg)
+
+    def test_attributes_url_overrides_database_url_env(self, tmp_path: Path, monkeypatch):
+        """Proof for T-216: cfg.attributes['sqlalchemy.url'] takes precedence over DATABASE_URL."""
+        target_db = tmp_path / "target.db"
+        unrelated_db = tmp_path / "unrelated.db"
+        target_url = f"sqlite:///{target_db.as_posix()}"
+        unrelated_url = f"sqlite:///{unrelated_db.as_posix()}"
+
+        monkeypatch.setenv("DATABASE_URL", unrelated_url)
+
+        ini_path = Path("alembic.ini").resolve()
+        cfg = Config(str(ini_path))
+        cfg.attributes["sqlalchemy.url"] = target_url
+        cfg.set_main_option("sqlalchemy.url", target_url)
+
+        command.upgrade(cfg, "head")
+
+        # target_db was migrated
+        insp_target = inspect(create_engine(target_url))
+        assert "documents" in insp_target.get_table_names()
+
+        # unrelated_db was NOT migrated
+        if unrelated_db.exists():
+            insp_unrelated = inspect(create_engine(unrelated_url))
+            assert "documents" not in insp_unrelated.get_table_names()

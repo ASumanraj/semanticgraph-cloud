@@ -28,7 +28,8 @@ target_metadata = SQLModel.metadata
 
 
 def get_url() -> str:
-    db_url = os.environ.get("DATABASE_URL") or config.get_main_option("sqlalchemy.url")
+    override = config.attributes.get("sqlalchemy.url")
+    db_url = override or os.environ.get("DATABASE_URL") or config.get_main_option("sqlalchemy.url")
     if db_url:
         if db_url.startswith("postgresql://"):
             return db_url.replace("postgresql://", "postgresql+psycopg_async://", 1)

@@ -29,6 +29,7 @@ def postgres_admin_url(postgres_container: PostgresContainer) -> str:
     url = postgres_container.get_connection_url().replace("postgresql+psycopg2://", "postgresql://")
     ini_path = Path("alembic.ini").resolve()
     cfg = Config(str(ini_path))
+    cfg.attributes["sqlalchemy.url"] = url
     cfg.set_main_option("sqlalchemy.url", url)
     command.upgrade(cfg, "head")
 

@@ -41,6 +41,7 @@ async def session_factory(tmp_path):
     os.environ["DATABASE_URL"] = url
 
     cfg = Config("alembic.ini")
+    cfg.attributes["sqlalchemy.url"] = url
     cfg.set_main_option("sqlalchemy.url", url)
     command.upgrade(cfg, "head")
 
