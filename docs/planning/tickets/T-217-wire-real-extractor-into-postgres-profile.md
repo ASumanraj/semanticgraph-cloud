@@ -46,7 +46,7 @@ configured, falling back to the deterministic double only when none is:
 - [x] `Container.postgres()` constructs a real `GeminiLLMGateway` when `GEMINI_API_KEY` is present, proven by a test that asserts the constructed gateway's type, not just that no exception was raised
 - [x] `Container.postgres()` refuses to start with `GEMINI_TIER=free` (or unset) in a profile that handles customer tenants — the exact case T-215 flagged as untested
 - [x] With no provider configured, the deterministic double is still used, and this is observable (a log line or a `Container` attribute), not silent
-- [x] Full suite green, `ruff check .` clean — reopened for one unrelated regression found in the same diff, see Review
+- [x] Full suite green, `ruff check .` clean
 
 ## Notes
 

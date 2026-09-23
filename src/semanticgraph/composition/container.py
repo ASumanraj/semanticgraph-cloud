@@ -38,6 +38,15 @@ from semanticgraph.application.use_cases.search_subgraph import SearchEngine
 from semanticgraph.application.use_cases.upload_document import UploadDocumentUseCase
 from semanticgraph.composition.model_routing import DEFAULT_MODEL_ROUTING, ModelRouting
 from semanticgraph.observability.instrumentation import InstrumentedLLMGateway
+from semanticgraph.observability.logging import get_logger
+
+logger = get_logger(__name__)
+
+
+def _log_info(msg: str, *args: Any) -> None:
+    logger.logger.disabled = False
+    logger.info(msg, *args)
+
 
 ADAPTER_PROFILE_ENV = "SEMANTICGRAPH_ADAPTERS"
 DEFAULT_ADAPTER_PROFILE = "inmemory"
@@ -70,6 +79,7 @@ class Container:
     usage_ledger: Any = None
     audit_log: Any = None
     quota_enforcer: Any = None
+    llm_provider: str = "deterministic"
 
     def __post_init__(self) -> None:
         if self.quota_enforcer is None:
@@ -99,6 +109,13 @@ class Container:
     def graph_repo(self) -> EntityStore:
         """Compatibility accessor for callers expecting graph_repo."""
         return self.entity_store
+
+    @property
+    def raw_llm_gateway(self) -> LLMGatewayPort:
+        """Compatibility accessor returning the unwrapped LLMGatewayPort."""
+        if hasattr(self.llm_gateway, "inner"):
+            return self.llm_gateway.inner
+        return self.llm_gateway
 
     @classmethod
     def in_memory(cls, routing: ModelRouting | None = None) -> Container:
@@ -137,13 +154,17 @@ class Container:
             ),
             entity_store=InMemoryEntityStore(),
             subgraph_reader=InMemorySubgraphReader(),
-            llm_gateway=InstrumentedLLMGateway(DeterministicLLMGateway(routing=model_routing)),
+            llm_gateway=InstrumentedLLMGateway(
+                DeterministicLLMGateway(routing=model_routing),
+                provider="deterministic",
+            ),
             task_publisher=InMemoryTaskPublisher(),
             object_storage=InMemoryObjectStorage(),
             model_routing=model_routing,
             usage_ledger=usage_ledger,
             audit_log=audit_log,
             quota_enforcer=quota_enforcer,
+            llm_provider="deterministic",
         )
 
     @classmethod
@@ -189,10 +210,50 @@ class Container:
         engine = create_async_engine(database_url, pool_pre_ping=True)
         session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
-        model_routing = routing or DEFAULT_MODEL_ROUTING
         usage_ledger = UsageLedger(session_factory=session_factory)
         audit_log = AuditLog(session_factory=session_factory)
         quota_enforcer = QuotaEnforcer(usage_ledger=usage_ledger, audit_log=audit_log)
+
+        gemini_api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+        if gemini_api_key:
+            from semanticgraph.adapters.outbound.llm.gemini import (
+                GeminiConfig,
+                GeminiLLMGateway,
+            )
+
+            gemini_config = GeminiConfig.from_env()
+            model_routing = routing or ModelRouting.for_gemini(gemini_config.model_id)
+
+            # Instantiating with profile="postgres" enforces GEMINI_TIER='paid' for customer tenants
+            raw_gateway = GeminiLLMGateway(
+                config=gemini_config,
+                profile="postgres",
+                usage_ledger=usage_ledger,
+            )
+            llm_gateway = InstrumentedLLMGateway(
+                raw_gateway,
+                provider="google",
+                model=gemini_config.model_id,
+            )
+            llm_provider = "gemini"
+            _log_info(
+                "Configured LLM gateway with real provider '%s' (model: %s, tier: %s)",
+                llm_provider,
+                gemini_config.model_id,
+                gemini_config.tier,
+            )
+        else:
+            model_routing = routing or DEFAULT_MODEL_ROUTING
+            raw_gateway = DeterministicLLMGateway(routing=model_routing)
+            llm_gateway = InstrumentedLLMGateway(
+                raw_gateway,
+                provider="deterministic",
+            )
+            llm_provider = "deterministic"
+            _log_info(
+                "No real LLM provider configured; using explicit fallback double (%s)",
+                llm_provider,
+            )
 
         return cls(
             document_repo=PostgresDocumentRepository(session_factory=session_factory),
@@ -203,13 +264,14 @@ class Container:
             deletion_repo=PostgresDeletionRepository(session_factory=session_factory),
             entity_store=InMemoryEntityStore(),
             subgraph_reader=InMemorySubgraphReader(),
-            llm_gateway=InstrumentedLLMGateway(DeterministicLLMGateway(routing=model_routing)),
+            llm_gateway=llm_gateway,
             task_publisher=InMemoryTaskPublisher(),
             object_storage=InMemoryObjectStorage(),
             model_routing=model_routing,
             usage_ledger=usage_ledger,
             audit_log=audit_log,
             quota_enforcer=quota_enforcer,
+            llm_provider=llm_provider,
         )
 
     @classmethod
