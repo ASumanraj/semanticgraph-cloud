@@ -1,6 +1,6 @@
 # T-216 · Alembic migrations silently target the wrong database under `DATABASE_URL`
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-216-alembic-env-url-precedence`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-216-alembic-env-url-precedence`
 
 **Scope**
 - `alembic/env.py`
@@ -136,3 +136,15 @@ condition): `pytest tests/integration/adapters/postgres/ tests/integration/adapt
 deselected, also matching. `ruff check .` and `ruff format --check .` clean. The code is accepted;
 Status stays `claimed` rather than `done` only because CI itself still hasn't shown a green run —
 see the Correction above for why, and T-219 for what has to land first.
+
+## Closed out 2026-09-23 — CI confirms it for real
+
+T-219 merged, `t-216-alembic-env-url-precedence` rebased onto the new `main` (`16d1620`) and
+force-pushed. [CI run 35834156101](https://github.com/ASumanraj/semanticgraph-cloud/actions/runs/35834156101):
+`test` job **fully green**, "Isolation proofs (real Postgres, must not skip)" passing — the first
+time in this project's history that the RLS/tenant-isolation test class has actually executed and
+passed unattended, not just locally by hand. This is the proof-of-life this ticket's acceptance
+criteria always wanted; it just needed T-219 out of the way first to get there.
+
+The `frontend` job still fails at `E2E tests`, but that's the separate, already-filed T-213 item
+(no Python provisioned in that job) — outside this ticket's scope. Status set to done.

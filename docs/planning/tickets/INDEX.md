@@ -36,40 +36,32 @@ T-106 narrow the seams
 [T-909](T-909-cuad-verifier-bakeoff.md) below — the first real (non-double) extractor now exists.
 [T-909] itself is done too, reopened once for a CSV-loader defect, fixed and reverified.
 
-**CI actually runs now (2026-09-23)** — the Actions-permissions block that silently failed every
-run since 2026-09-19 is lifted. First real run turned up
-[T-216](T-216-alembic-env-ignores-explicit-test-urls.md): `alembic/env.py` lets `DATABASE_URL`
-override any URL a test fixture explicitly set, so every fixture that migrates its own throwaway
-database (testcontainers Postgres or a scratch SQLite file) silently migrates the wrong one instead
-whenever `DATABASE_URL` is set — which the CI job always does. This is why the "done, reverified
-against a real Postgres" claims above still stand (those reviews connected by hand, never through
-this fixture family) but the automated isolation-proof suite itself has apparently never passed
-unattended. T-216's fix is accepted (Review section, independently reverified) but **CI still
-doesn't show green** — the real cause turned out to be upstream of T-216 entirely:
-[T-219](T-219-declare-google-genai-and-ragas-dependencies.md), `pyproject.toml` never declared
-`google-genai`/`ragas` as dependencies, so `pip install -e ".[dev]"` in CI's clean environment
-never installs them and `pytest` fails at collection before a single test runs — meaning T-216's
-own fix has never actually been exercised by CI yet either. **Land T-219 first**, then re-check
-whether T-216's isolation-proof step actually goes green, then start T-213 — which also picked up
+**CI actually runs now, and is green on the backend (2026-09-23)** — the Actions-permissions block
+that silently failed every run since 2026-09-19 is lifted. Getting there took two rounds: T-216
+(`alembic/env.py` let `DATABASE_URL` silently override a test fixture's explicit migration target)
+and T-219 (`pyproject.toml` never declared `google-genai`/`ragas`, so a clean CI install failed at
+collection before T-216's fix could even be reached). Both done, both merged, and
+[CI run 35834156101](https://github.com/ASumanraj/semanticgraph-cloud/actions/runs/35834156101)
+proves it: the `test` job is fully green, including "Isolation proofs (real Postgres, must not
+skip)" passing for the first time this project has ever actually run it unattended. The `frontend`
+job still fails — that's T-213's remaining item (below), not a backend concern. Start T-213 — which
+also picked up
 a fourth item (`frontend` job needs `actions/setup-python` before its E2E step, since T-111's
 dual-webServer Playwright config needs a real `.venv` that job never provisions).
 
-**Tracing the T-111 `GraphExplorer` gap turned up two more real ones, filed as
-[T-217](T-217-wire-real-extractor-into-postgres-profile.md) and
-[T-218](T-218-persist-graph-and-expose-it-over-http.md).** `Container.postgres()` still hardcodes
-the deterministic double as its extractor (T-215's own unchecked acceptance box said as much) and
-still uses `InMemoryEntityStore`/`InMemorySubgraphReader` for the actual knowledge graph — there is
-no `entities`/`edges` table in Postgres at all yet, so nothing extracted from a real document
-survives a restart or is queryable. `SearchEngine`'s two methods are empty stub bodies by design
-("Stage 3 fills them"). T-218 builds real persistence and a truthful, unranked
-`GET /api/v1/graph`; T-217 is smaller and separate (which extractor `Container.postgres()` uses).
-Both touch `composition/container.py` — sequence them, don't parallelize.
+**Tracing the T-111 `GraphExplorer` gap turned up two more real ones — [T-217](T-217-wire-real-extractor-into-postgres-profile.md)
+is done** (Gemini wired into `Container.postgres()`, reopened once for an unrelated
+`DATABASE_URL` fail-open regression, fixed and reverified) **and [T-218](T-218-persist-graph-and-expose-it-over-http.md)
+is open.** `Container.postgres()` still uses `InMemoryEntityStore`/`InMemorySubgraphReader` for the
+actual knowledge graph — there is no `entities`/`edges` table in Postgres at all yet, so nothing
+extracted from a real document survives a restart or is queryable. `SearchEngine`'s two methods are
+empty stub bodies by design ("Stage 3 fills them"). T-218 builds real persistence and a truthful,
+unranked `GET /api/v1/graph`.
 
 **Beside it, each disjoint from the lane:**
-[T-111](T-111-frontend-stop-misrepresenting-the-product.md) (`frontend/**`, done — the frontend
-`Lint` failure seen in the same first CI run is main not yet having T-111 merged, not a new defect),
+[T-111](T-111-frontend-stop-misrepresenting-the-product.md) (`frontend/**`, done),
 [T-213](T-213-ci-isolation-step-must-fail-on-failure.md)
-(`ci.yml`, start after T-216), [T-905](T-905-gleif-coverage-spike.md), [T-906](T-906-batch-versus-interactive-ingestion.md),
+(`ci.yml`, ready to claim), [T-905](T-905-gleif-coverage-spike.md), [T-906](T-906-batch-versus-interactive-ingestion.md),
 [T-900](T-900-verify-whyhow-ai.md), [T-901](T-901-temporal-cloud-cost.md) (all `docs/**` or
 `evals/**`), and [T-600](T-600-split-infra-stacks.md) (`infra/**`).
 
