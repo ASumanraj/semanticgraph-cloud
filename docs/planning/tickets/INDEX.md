@@ -34,11 +34,25 @@ T-106 narrow the seams
 
 [T-215](T-215-gemini-opt-in-provider.md) (Gemini, opt-in) is also done, and unblocks
 [T-909](T-909-cuad-verifier-bakeoff.md) below — the first real (non-double) extractor now exists.
+[T-909] itself is done too, reopened once for a CSV-loader defect, fixed and reverified.
+
+**CI actually runs now (2026-09-23)** — the Actions-permissions block that silently failed every
+run since 2026-09-19 is lifted. First real run turned up
+[T-216](T-216-alembic-env-ignores-explicit-test-urls.md): `alembic/env.py` lets `DATABASE_URL`
+override any URL a test fixture explicitly set, so every fixture that migrates its own throwaway
+database (testcontainers Postgres or a scratch SQLite file) silently migrates the wrong one instead
+whenever `DATABASE_URL` is set — which the CI job always does. This is why the "done, reverified
+against a real Postgres" claims above still stand (those reviews connected by hand, never through
+this fixture family) but the automated isolation-proof suite itself has apparently never passed
+unattended. **Fix T-216 before trusting a green `test` job**, and before starting T-213 — T-213's
+own acceptance (a green isolation run, a deliberately-broken run turning it red) can't be attempted
+while the fast-suite step fails first.
 
 **Beside it, each disjoint from the lane:**
-[T-111](T-111-frontend-stop-misrepresenting-the-product.md) (`frontend/**`, and now also makes
-the upload reach the real API), [T-213](T-213-ci-isolation-step-must-fail-on-failure.md)
-(`ci.yml`), [T-905](T-905-gleif-coverage-spike.md), [T-906](T-906-batch-versus-interactive-ingestion.md),
+[T-111](T-111-frontend-stop-misrepresenting-the-product.md) (`frontend/**`, done — the frontend
+`Lint` failure seen in the same first CI run is main not yet having T-111 merged, not a new defect),
+[T-213](T-213-ci-isolation-step-must-fail-on-failure.md)
+(`ci.yml`, start after T-216), [T-905](T-905-gleif-coverage-spike.md), [T-906](T-906-batch-versus-interactive-ingestion.md),
 [T-900](T-900-verify-whyhow-ai.md), [T-901](T-901-temporal-cloud-cost.md) (all `docs/**` or
 `evals/**`), and [T-600](T-600-split-infra-stacks.md) (`infra/**`).
 
