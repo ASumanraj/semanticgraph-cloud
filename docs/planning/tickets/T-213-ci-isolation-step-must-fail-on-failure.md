@@ -56,3 +56,34 @@ a public repo, which is what made the first three rounds of diagnosis slow.
 Wait for [T-219](T-219-declare-google-genai-and-ragas-dependencies.md) to land first — the `test`
 job's own failure right now is a missing-dependency problem at collection time, unrelated to this
 ticket, and it's easier to tell whether the isolation step passes once that noise is gone.
+
+## Review
+
+Reviewed PR #16 (`ca85328`) against `t-213-ci-isolation-step`. Verified from the GitHub API, not the
+report: run 35844805846 (deliberate failure injected in `test_tenant_isolation.py`) failed exactly the
+"Isolation proofs" step; run 35845437331 (deliberate failure reverted) and 35845745760 (final head) are
+green on both jobs, so the `pipefail` fix works and the `frontend` job's new Python/venv setup lets
+T-111's real-uvicorn Playwright test pass on a clean runner. Those two criteria stand.
+
+**Reopened for one defect, reproduced locally by simulating the runner:** the report calls the
+`postgres` service "completely unused". It is not — `tests/integration/control/test_audit_log.py`,
+`test_usage_event_ledger.py` and `test_usage_event_attribution.py` connect straight to
+`DATABASE_URL` (or `localhost:5432`) and `pytest.skip` when nothing answers. T-216's notes said so.
+With the service and `DATABASE_URL` removed, running `pytest tests/integration/control` with
+`SEMANTICGRAPH_REQUIRE_POSTGRES=1` and no Postgres on 5432 gives **19 skipped, 0 run**: the T-208
+append-only/retention-role proofs (the exploit-refusal tests) and the usage-ledger tests now skip
+silently in CI. `SEMANTICGRAPH_REQUIRE_POSTGRES` is only read by the `postgres/` conftest, and the
+skip-grep guard only wraps the `postgres/` step, so the green runs above hide this. A coverage
+regression on exactly the tests this ticket exists to protect.
+
+**Fix direction (ci.yml only):** restore the `postgres` service and `DATABASE_URL` (safe now that
+T-216 gives fixtures' explicit URLs priority), update the workflow comment to say the service serves
+those three control-plane files, and add a guarded step that runs `pytest tests/integration/control
+-rs` and fails on any `SKIPPED`, mirroring the isolation step. Prove it the same way: a run where
+those tests execute, and the count shown.
+
+**Separate finding, not this ticket:** the `-p semanticgraph.control.audit.models` flag agy added is
+masking a real bug. `alembic/env.py` imports the usage models but not the audit models, so
+`test_migrations.py::test_autogenerate_run_against_head_produces_empty_revision` fails when run alone
+("Detected removed table 'audit_events'"), and only passes in the full suite because another module
+happens to import them first. Filed as T-220; drop the `-p` flag once it lands.
