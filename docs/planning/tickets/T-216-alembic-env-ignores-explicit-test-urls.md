@@ -1,6 +1,6 @@
 # T-216 · Alembic migrations silently target the wrong database under `DATABASE_URL`
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-216-alembic-env-url-precedence`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-216-alembic-env-url-precedence`
 
 **Scope**
 - `alembic/env.py`
