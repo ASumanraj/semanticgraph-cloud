@@ -61,7 +61,7 @@ unranked `GET /api/v1/graph`.
 **Beside it, each disjoint from the lane:**
 [T-111](T-111-frontend-stop-misrepresenting-the-product.md) (`frontend/**`, done),
 [T-213](T-213-ci-isolation-step-must-fail-on-failure.md)
-(`ci.yml`, ready to claim), [T-905](T-905-gleif-coverage-spike.md), [T-906](T-906-batch-versus-interactive-ingestion.md),
+(`ci.yml`, done; PR #16 awaiting merge), [T-220](T-220-alembic-env-imports-audit-models.md) (`alembic/env.py`, open), [T-905](T-905-gleif-coverage-spike.md), [T-906](T-906-batch-versus-interactive-ingestion.md),
 [T-900](T-900-verify-whyhow-ai.md), [T-901](T-901-temporal-cloud-cost.md) (all `docs/**` or
 `evals/**`), and [T-600](T-600-split-infra-stacks.md) (`infra/**`).
 
@@ -158,6 +158,6 @@ a ticket.
 
 - 2026-09-21: the docker-compose host ports were remapped to 8003 and 3003 (`9e13a83`). Nobody
   asked for it; it is internally consistent and stays. History is not rewritten.
-- 2026-09-21: `uv.lock` stays untracked while CI installs with pip.
+- 2026-09-21: `uv.lock` stays untracked while CI installs with pip. (Superseded 2026-09-23: T-219 committed it; still open whether to keep it tracked.)
 - 2026-09-21: Gemini is used on public or synthetic data only until paid terms are confirmed (T-215).
 - 2026-09-21: T-904 wave 1 approved as a 10-document pilot capped at 40 paid reviewer hours.
