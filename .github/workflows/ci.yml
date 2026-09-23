@@ -46,6 +46,8 @@ jobs:
         run: pytest -q
 
       - name: Isolation proofs (real Postgres, must not skip)
+        env:
+          PROOF_DELIBERATE_FAIL: "1"
         run: |
           set -e -o pipefail
           pytest -p semanticgraph.control.audit.models tests/integration/adapters/postgres/ \
