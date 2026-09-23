@@ -14,23 +14,15 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: semanticgraph
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+    # Note on Postgres service (T-213):
+    # The postgres service container was removed. Integration tests in
+    # tests/integration/adapters/postgres/ use testcontainers by default, providing
+    # an isolated, fresh Postgres container per test module. An ambient job-level
+    # service container was idle/unused (conftest only connects to compose if
+    # SEMANTICGRAPH_USE_COMPOSE_DB=1 is set), wasted boot time, and polluted
+    # the environment with DATABASE_URL.
+    # SEMANTICGRAPH_REQUIRE_POSTGRES=1 is kept so testcontainers failures fail loudly.
     env:
-      DATABASE_URL: postgresql://user:password@localhost:5432/semanticgraph
       SEMANTICGRAPH_REQUIRE_POSTGRES: "1"
 
     steps:
@@ -55,6 +47,7 @@ jobs:
 
       - name: Isolation proofs (real Postgres, must not skip)
         run: |
+          set -e -o pipefail
           pytest tests/integration/adapters/postgres/ \
             -v -rs \
             --tb=short \
@@ -77,6 +70,16 @@ jobs:
           node-version: "20"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Setup virtualenv for E2E backend
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -e ".[dev]"
 
       - name: Install
         working-directory: frontend
