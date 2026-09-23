@@ -366,3 +366,9 @@ class TestPostgresDocumentRepositoryUnderRLS:
             assert count == 0, "Raw SQL without tenant context returned rows under RLS!"
 
         await engine.dispose()
+
+
+def test_deliberate_failure_for_t213_proof():
+    """Temporary test to prove that isolation proofs fail the step on test failure (T-213)."""
+    assert False, "Deliberate failure to prove T-213 pipefail enforcement"
+
