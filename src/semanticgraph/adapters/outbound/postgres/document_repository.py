@@ -135,15 +135,28 @@ class PostgresDocumentRepository:
 
         async with self._tenant_session(tenant_id) as session:
             for chunk in chunks:
-                sql_chunk = SQLSemanticChunk(
-                    id=chunk.id.value,
-                    document_id=chunk.document_id,
-                    tenant_id=tenant_id.value,
-                    text=chunk.text,
-                    token_count=chunk.token_count,
-                    chunk_index=chunk.chunk_index,
+                res = await session.execute(
+                    select(SQLSemanticChunk).where(
+                        SQLSemanticChunk.id == chunk.id.value,
+                        SQLSemanticChunk.tenant_id == tenant_id.value,
+                    )
                 )
-                session.add(sql_chunk)
+                sql_chunk = res.scalars().first()
+                if not sql_chunk:
+                    sql_chunk = SQLSemanticChunk(
+                        id=chunk.id.value,
+                        document_id=chunk.document_id,
+                        tenant_id=tenant_id.value,
+                        text=chunk.text,
+                        token_count=chunk.token_count,
+                        chunk_index=chunk.chunk_index,
+                    )
+                    session.add(sql_chunk)
+                else:
+                    sql_chunk.text = chunk.text
+                    sql_chunk.token_count = chunk.token_count
+                    sql_chunk.chunk_index = chunk.chunk_index
+                    session.add(sql_chunk)
 
     async def get_chunks(self, tenant_id: TenantId, document_id: UUID) -> list[SemanticChunk]:
         async with self._tenant_session(tenant_id) as session:
