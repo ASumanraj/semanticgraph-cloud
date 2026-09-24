@@ -24,9 +24,13 @@ from semanticgraph.application.ports.outbound.llm_gateway import LLMGatewayPort
 from semanticgraph.application.ports.outbound.task_publisher import TaskPublisherPort
 from semanticgraph.domain.exceptions import DomainException
 from semanticgraph.domain.models.entities import (
+    ChunkId,
     Document,
     DocumentStatus,
+    Edge,
+    EntityId,
     Ontology,
+    RawEntity,
     SemanticChunk,
     TenantId,
 )
@@ -164,11 +168,91 @@ class IngestDocumentUseCase:
                     await self._assertion_store.save_fact(command.tenant_id, fact)
                     saved_facts.append(fact)
 
-        # 4. Persist to graph (tenant-isolated)
-        await self._entity_store.save_raw_entities(command.tenant_id, all_entities)
-        await self._entity_store.save_edges(command.tenant_id, all_edges)
+        # 4. Deduplicate extracted entities by (chunk_id, name, start, end)
+        unique_entities: list[RawEntity] = []
+        entity_id_map: dict[UUID, UUID] = {}
+        seen_entities: dict[tuple, RawEntity] = {}
 
-        # 5. Queue resolution scan
+        for entity in all_entities:
+            if entity.spans and entity.spans[0].chunk_id:
+                s = entity.spans[0]
+                key = (s.chunk_id.value, entity.name, s.start_offset, s.end_offset)
+            else:
+                key = (None, entity.name, entity.id.value)
+
+            if key in seen_entities:
+                surviving = seen_entities[key]
+                entity_id_map[entity.id.value] = surviving.id.value
+            else:
+                seen_entities[key] = entity
+                entity_id_map[entity.id.value] = entity.id.value
+                unique_entities.append(entity)
+
+        # Rewrite edge endpoints to the surviving entity id and drop exact duplicate edges
+        seen_edge_keys: set[tuple] = set()
+        unique_edges: list[Edge] = []
+        for edge in all_edges:
+            new_src = entity_id_map.get(edge.source_entity_id.value, edge.source_entity_id.value)
+            new_tgt = entity_id_map.get(edge.target_entity_id.value, edge.target_entity_id.value)
+            edge.source_entity_id = EntityId(value=new_src)
+            edge.target_entity_id = EntityId(value=new_tgt)
+
+            span_key = None
+            if edge.spans and edge.spans[0].chunk_id:
+                s = edge.spans[0]
+                span_key = (s.chunk_id.value, s.start_offset, s.end_offset)
+
+            edge_key = (
+                edge.source_entity_id.value,
+                edge.target_entity_id.value,
+                edge.edge_type,
+                span_key,
+            )
+            if edge_key not in seen_edge_keys:
+                seen_edge_keys.add(edge_key)
+                unique_edges.append(edge)
+
+        # 5. Persist to graph (tenant-isolated)
+        pre_save_ids = [e.id.value for e in unique_entities]
+        await self._entity_store.save_raw_entities(command.tenant_id, unique_entities)
+
+        # If save_raw_entities re-linked entities to existing DB rows, update edge endpoints
+        post_save_map = {
+            old_id: e.id.value
+            for old_id, e in zip(pre_save_ids, unique_entities, strict=True)
+            if old_id != e.id.value
+        }
+        if post_save_map:
+            reconciled_edges: list[Edge] = []
+            seen_reconciled: set[tuple] = set()
+            for edge in unique_edges:
+                if edge.source_entity_id.value in post_save_map:
+                    edge.source_entity_id = EntityId(
+                        value=post_save_map[edge.source_entity_id.value]
+                    )
+                if edge.target_entity_id.value in post_save_map:
+                    edge.target_entity_id = EntityId(
+                        value=post_save_map[edge.target_entity_id.value]
+                    )
+
+                span_k = None
+                if edge.spans and edge.spans[0].chunk_id:
+                    s = edge.spans[0]
+                    span_k = (s.chunk_id.value, s.start_offset, s.end_offset)
+                ek = (
+                    edge.source_entity_id.value,
+                    edge.target_entity_id.value,
+                    edge.edge_type,
+                    span_k,
+                )
+                if ek not in seen_reconciled:
+                    seen_reconciled.add(ek)
+                    reconciled_edges.append(edge)
+            unique_edges = reconciled_edges
+
+        await self._entity_store.save_edges(command.tenant_id, unique_edges)
+
+        # 6. Queue resolution scan
         await self._task_publisher.publish_resolution_scan(command.tenant_id)
 
         doc.fact_ids = [f.id for f in saved_facts]
@@ -182,6 +266,7 @@ class IngestDocumentUseCase:
         paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
         return [
             SemanticChunk(
+                id=ChunkId(value=uuid5(document_id, str(i))),
                 tenant_id=tenant_id,
                 document_id=document_id,
                 text=para,
