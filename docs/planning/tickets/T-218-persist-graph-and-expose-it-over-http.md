@@ -10,6 +10,8 @@
 - `src/semanticgraph/composition/container.py`
 - `tests/integration/adapters/postgres/**`
 - `tests/integration/adapters/api/**`
+- `src/semanticgraph/application/use_cases/ingest_document.py` (added 2026-09-25, see slice 2 review)
+- `tests/unit/use_cases/**` (added 2026-09-25)
 
 **Blocked by** T-217 should land first if both are claimed (shared file, see its Notes) · **Blocks** —
 
@@ -161,3 +163,46 @@ literal Scope but is the necessary result-shape change for the cascade; no other
 
 Slice 1 accepted; slice 2 (repository + `Container.postgres()` wiring) may begin once PR #19 is
 merged. Status stays `claimed` until the HTTP route lands.
+
+## Review, slice 2 (store + reader + wiring) — 2026-09-25
+
+Reviewed PR #20 (`f7f8925`). CI is green and the store code is careful (span validation, endpoint
+existence check, tenant session copied from the house pattern, cycle-safe recursive CTE). **Not
+accepted: the idempotency claim is false on the real ingestion path, and the test that should have
+caught it does not exist.** Both reproduced against a real Postgres with a scratch test (removed).
+
+**1. Running the real use case twice duplicates everything.** `test_graph_repository.py`'s docstring
+lists "IngestDocumentUseCase execution against real Postgres" as test 6; the use case is imported and
+never called. I ran `IngestDocumentUseCase.execute` twice with the same command (same document id)
+against the Postgres store: after run 1, `semantic_chunks`/`entities`/`edges` = 2/2/2; after run 2 =
+**4/4/4**. Cause: `_chunk_document` gives every chunk a fresh random id on each run, `save_chunks` is a
+plain insert, so the retry writes new chunks, and the store's "same chunk_id + name + span" dedupe
+never matches because `chunk_id` differs. The store-level test passes only because it reuses one
+`chunk_id` by hand. The duplicated chunks predate this ticket, but AGENTS.md requires idempotent,
+retry-safe steps and my slice-2 instruction required it end to end.
+
+**2. A duplicate mention in one batch makes edge saving fail.** `save_raw_entities` re-links a
+duplicate `(chunk, name, span)` by mutating `entity.id`, but edges hold their own copy of the old id.
+With `[Acme, Acme(dup), Beta]` plus an edge from the duplicate to Beta, `save_edges` raises
+`ValueError: ... source_entity_id ... does not exist in entities table`, after the entities and chunks
+are already committed. An extractor emitting the same mention twice is realistic. The store cannot fix
+the edge objects it never sees; the ids must be reconciled where both lists are in hand, in
+`IngestDocumentUseCase`.
+
+**Scope extended** (nobody else holds these; T-105 is done): `application/use_cases/ingest_document.py`
+and `tests/unit/use_cases/**`.
+
+**Fix direction:**
+- Deterministic chunk ids: `uuid5(document_id, chunk_index)` (facts already use `uuid5`, same idea),
+  and make `save_chunks` an upsert so a retry is a no-op. Same document twice must give 2/2/2, not 4/4/4.
+- In the use case, dedupe extracted entities by `(chunk_id, name, start, end)` and rewrite edge
+  endpoints to the surviving id before saving; drop edges that become exact duplicates.
+- Add the missing real-Postgres test that calls `IngestDocumentUseCase.execute` (twice) and reads
+  entity/edge/chunk counts with raw SQL, plus the duplicate-mention case.
+
+**Also fix in this pass (small):** escape `%`, `_` and `\` in the seed-match and `find_similar_entities`
+`ILIKE` patterns (a query of `%` currently matches every entity in the tenant); `find_similar_entities`
+maps each row twice and ignores `threshold`, so say so in its docstring or use it.
+
+**For slice 3, not now:** the recursive CTE enumerates paths, which grows fast on dense graphs. The
+HTTP route must clamp `depth` (max 3) and cap returned rows, and say when a result was truncated.
