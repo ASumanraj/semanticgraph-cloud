@@ -317,9 +317,9 @@ class SQLRawEntity(SQLModel, table=True):
 
     # Mandatory provenance (rule 1)
     chunk_id: UUID = Field(foreign_key="semantic_chunks.id", index=True, nullable=False)
-    start_offset: int = Field(default=0, nullable=False)
-    end_offset: int = Field(default=0, nullable=False)
-    quote: str = Field(default="", nullable=False)
+    start_offset: int = Field(nullable=False)
+    end_offset: int = Field(nullable=False)
+    quote: str = Field(nullable=False)
 
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), nullable=False)
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC), nullable=False)
@@ -353,8 +353,8 @@ class SQLEdge(SQLModel, table=True):
 
     # Mandatory provenance (rule 1)
     chunk_id: UUID = Field(foreign_key="semantic_chunks.id", index=True, nullable=False)
-    start_offset: int = Field(default=0, nullable=False)
-    end_offset: int = Field(default=0, nullable=False)
-    quote: str = Field(default="", nullable=False)
+    start_offset: int = Field(nullable=False)
+    end_offset: int = Field(nullable=False)
+    quote: str = Field(nullable=False)
 
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), nullable=False)

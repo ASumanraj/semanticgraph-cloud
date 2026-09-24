@@ -549,7 +549,7 @@ class TestEngineEnforcedTenantIsolation:
             assert len(cur.fetchall()) == 0
 
             # Tenant A tries to insert entity masquerading as Tenant B -> RLS fails
-            with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            with pytest.raises(psycopg.errors.InsufficientPrivilege), conn.transaction():
                 cur.execute(
                     """
                     INSERT INTO entities (
@@ -565,7 +565,7 @@ class TestEngineEnforcedTenantIsolation:
                 )
 
             # Tenant A tries to insert edge masquerading as Tenant B -> RLS fails
-            with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            with pytest.raises(psycopg.errors.InsufficientPrivilege), conn.transaction():
                 cur.execute(
                     """
                     INSERT INTO edges (

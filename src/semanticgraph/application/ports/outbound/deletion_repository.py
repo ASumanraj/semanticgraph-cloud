@@ -30,6 +30,8 @@ class DeletionResult:
     purged_eval_fixtures_count: int = 0
     rematerialized_golden_records_count: int = 0
     deleted_golden_records_count: int = 0
+    deleted_entities_count: int = 0
+    deleted_edges_count: int = 0
 
     @property
     def total_records_erased(self) -> int:
@@ -38,6 +40,8 @@ class DeletionResult:
             + self.deleted_assertions_count
             + self.deleted_facts_count
             + self.deleted_mentions_count
+            + self.deleted_entities_count
+            + self.deleted_edges_count
             + self.purged_embeddings_count
             + self.purged_caches_count
             + self.purged_summaries_count

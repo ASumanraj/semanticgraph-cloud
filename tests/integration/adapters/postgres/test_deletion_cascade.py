@@ -71,9 +71,9 @@ def app_db_url(migrated_postgres: str) -> str:
 @pytest.fixture
 def clean_db(migrated_postgres: str):
     tables = (
-        "eval_fixtures, community_summaries, query_caches, chunk_embeddings, "
-        "golden_records, cluster_memberships, resolution_decisions, mentions, "
-        "evidence_spans, assertions, facts, extraction_runs, ontologies, "
+        "edges, entities, eval_fixtures, community_summaries, query_caches, "
+        "chunk_embeddings, golden_records, cluster_memberships, resolution_decisions, "
+        "mentions, evidence_spans, assertions, facts, extraction_runs, ontologies, "
         "semantic_chunks, documents"
     )
     with psycopg.connect(migrated_postgres, autocommit=True) as conn, conn.cursor() as cur:
@@ -424,3 +424,185 @@ async def test_tenant_isolation_fails_closed_on_deletion(
     # Tenant A's document still exists
     doc_check = await doc_repo.get_document(tenant_a, doc_a.id)
     assert doc_check is not None
+
+
+@pytest.mark.asyncio
+async def test_cascade_deletes_entities_and_edges_without_dangling_edges_and_preserves_shared_facts(
+    clean_db, app_db_url: str, session_factory
+) -> None:
+    """T-218 Review Slice 1:
+
+    Proves:
+    (a) delete_document_cascade succeeds when document has entities/edges (no ForeignKeyViolation).
+    (b) No dangling edge survives (edges from doc and edges pointing to doc's entities are removed).
+    (c) A fact still asserted by a second document is untouched (Rule 4).
+    """
+    doc_repo = PostgresDocumentRepository(session_factory)
+    prov_repo = PostgresProvenanceRepository(session_factory)
+    del_repo = PostgresDeletionRepository(session_factory)
+
+    tenant_id = TenantId(uuid4())
+
+    # Doc 1 (to be deleted)
+    doc1 = Document(tenant_id=tenant_id, filename="doc1.pdf")
+    await doc_repo.save_document(tenant_id, doc1)
+    chunk1_id = ChunkId()
+    chunk1 = SemanticChunk(
+        tenant_id=tenant_id,
+        document_id=doc1.id,
+        id=chunk1_id,
+        text="Acme Corp partnered with Beta LLC in 2024.",
+    )
+    await doc_repo.save_chunks(tenant_id, [chunk1])
+
+    # Doc 2 (survives)
+    doc2 = Document(tenant_id=tenant_id, filename="doc2.pdf")
+    await doc_repo.save_document(tenant_id, doc2)
+    chunk2_id = ChunkId()
+    chunk2 = SemanticChunk(
+        tenant_id=tenant_id,
+        document_id=doc2.id,
+        id=chunk2_id,
+        text="Beta LLC was acquired by Gamma Inc.",
+    )
+    await doc_repo.save_chunks(tenant_id, [chunk2])
+
+    # Shared fact asserted by both Doc 1 and Doc 2
+    span_shared_1 = EvidenceSpan(
+        chunk_id=chunk1_id,
+        start_offset=0,
+        end_offset=33,
+        quote="Acme Corp partnered with Beta LLC",
+    )
+    assert_shared_1 = Assertion(
+        tenant_id=tenant_id,
+        document_id=doc1.id,
+        chunk_id=chunk1_id,
+        spans=[span_shared_1],
+    )
+    span_shared_2 = EvidenceSpan(
+        chunk_id=chunk2_id,
+        start_offset=0,
+        end_offset=30,
+        quote="Beta LLC was acquired by Gamma",
+    )
+    assert_shared_2 = Assertion(
+        tenant_id=tenant_id,
+        document_id=doc2.id,
+        chunk_id=chunk2_id,
+        spans=[span_shared_2],
+    )
+    fact_shared = Fact(
+        tenant_id=tenant_id,
+        claim="Beta LLC is a corporate entity.",
+        assertions=[assert_shared_1, assert_shared_2],
+    )
+    await prov_repo.save_fact(tenant_id, fact_shared)
+
+    # Insert raw entities and edges directly via SQL under tenant context
+    ent1_id = uuid4()
+    ent2_id = uuid4()
+    edge1_id = uuid4()
+    ent_doc2_id = uuid4()
+    edge_dangling_target_id = uuid4()
+
+    with psycopg.connect(app_db_url) as conn, conn.cursor() as cur:
+        cur.execute(
+            "SELECT set_config('app.current_tenant_id', %s, false);",
+            (str(tenant_id.value),),
+        )
+        # Entities for Doc 1
+        cur.execute(
+            """
+            INSERT INTO entities (
+                id, tenant_id, name, entity_type, chunk_id, start_offset, end_offset,
+                quote, resolution_status, kind, created_at, updated_at
+            )
+            VALUES
+                (%s, %s, 'Acme Corp', 'ORG', %s, 0, 9, 'Acme Corp', 'unresolved', 'raw',
+                 now(), now()),
+                (%s, %s, 'Beta LLC', 'ORG', %s, 25, 33, 'Beta LLC', 'unresolved', 'raw',
+                 now(), now());
+            """,
+            (ent1_id, tenant_id.value, chunk1_id.value, ent2_id, tenant_id.value, chunk1_id.value),
+        )
+        # Edge within Doc 1
+        cur.execute(
+            """
+            INSERT INTO edges (
+                id, tenant_id, source_entity_id, target_entity_id, edge_type, weight,
+                chunk_id, start_offset, end_offset, quote, created_at
+            )
+            VALUES (%s, %s, %s, %s, 'PARTNERED_WITH', 1.0, %s, 0, 33,
+                    'Acme Corp partnered with Beta LLC', now());
+            """,
+            (edge1_id, tenant_id.value, ent1_id, ent2_id, chunk1_id.value),
+        )
+
+        # Entity for Doc 2
+        cur.execute(
+            """
+            INSERT INTO entities (
+                id, tenant_id, name, entity_type, chunk_id, start_offset, end_offset,
+                quote, resolution_status, kind, created_at, updated_at
+            )
+            VALUES (%s, %s, 'Gamma Inc', 'ORG', %s, 25, 34, 'Gamma Inc', 'unresolved', 'raw',
+                    now(), now());
+            """,
+            (ent_doc2_id, tenant_id.value, chunk2_id.value),
+        )
+        # Cross-document edge from Doc 2 chunk pointing to Doc 1's ent1 as target
+        cur.execute(
+            """
+            INSERT INTO edges (
+                id, tenant_id, source_entity_id, target_entity_id, edge_type, weight,
+                chunk_id, start_offset, end_offset, quote, created_at
+            )
+            VALUES (%s, %s, %s, %s, 'ACQUIRED_BY', 1.0, %s, 0, 10,
+                    'Beta LLC was acquired', now());
+            """,
+            (edge_dangling_target_id, tenant_id.value, ent_doc2_id, ent1_id, chunk2_id.value),
+        )
+        conn.commit()
+
+    # Step 1: Execute deletion cascade on Doc 1
+    res = await del_repo.delete_document_cascade(tenant_id, doc1.id)
+
+    # (a) The delete succeeds
+    assert res.deleted_chunks_count == 1
+    assert res.deleted_entities_count == 2
+    assert res.deleted_edges_count >= 1
+
+    # Verify directly via SQL
+    with psycopg.connect(app_db_url) as conn, conn.cursor() as cur:
+        cur.execute(
+            "SELECT set_config('app.current_tenant_id', %s, false);",
+            (str(tenant_id.value),),
+        )
+
+        # Doc 1 entities are gone
+        cur.execute("SELECT COUNT(*) FROM entities WHERE id IN (%s, %s);", (ent1_id, ent2_id))
+        assert cur.fetchone()[0] == 0
+
+        # Doc 2 entity survives
+        cur.execute("SELECT COUNT(*) FROM entities WHERE id = %s;", (ent_doc2_id,))
+        assert cur.fetchone()[0] == 1
+
+        # (b) No dangling edge survives:
+        # Edge 1 (from Doc 1 chunk) is gone
+        cur.execute("SELECT COUNT(*) FROM edges WHERE id = %s;", (edge1_id,))
+        assert cur.fetchone()[0] == 0
+
+        # Cross edge pointing to deleted entity ent1_id is also gone (no dangling edge!)
+        cur.execute("SELECT COUNT(*) FROM edges WHERE id = %s;", (edge_dangling_target_id,))
+        assert cur.fetchone()[0] == 0
+
+        # (c) Fact still asserted by Doc 2 is untouched
+        cur.execute("SELECT COUNT(*) FROM facts WHERE id = %s;", (fact_shared.id,))
+        assert cur.fetchone()[0] == 1
+
+        cur.execute("SELECT COUNT(*) FROM assertions WHERE fact_id = %s;", (fact_shared.id,))
+        assert cur.fetchone()[0] == 1
+
+        cur.execute("SELECT chunk_id FROM assertions WHERE fact_id = %s;", (fact_shared.id,))
+        assert cur.fetchone()[0] == chunk2_id.value
