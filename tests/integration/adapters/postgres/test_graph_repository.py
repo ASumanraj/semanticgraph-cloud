@@ -629,6 +629,169 @@ class TestIngestDocumentUseCaseWithRealPostgres:
                 assert edge_row[7] > edge_row[6]
                 assert len(edge_row[8]) > 0
 
+    async def test_ingest_document_called_twice_is_idempotent_raw_sql_2_2_2(
+        self, doc_repo, entity_store, prov_repo, app_db_url: str, clean_db
+    ):
+        """Review 1 & 3: IngestDocumentUseCase called twice with the same command
+        must produce 2/2/2 after run 1 and still 2/2/2 after run 2 in raw SQL.
+        """
+        tenant_id = TenantId(uuid4())
+        ontology = Ontology(
+            tenant_id=tenant_id,
+            name="Tech Ontology",
+            allowed_entity_types=["Organization", "Technology"],
+            allowed_edge_types=["DEVELOPS", "USES"],
+        )
+
+        use_case = IngestDocumentUseCase(
+            document_repo=doc_repo,
+            entity_store=entity_store,
+            llm_gateway=DeterministicLLMGateway(),
+            task_publisher=InMemoryTaskPublisher(),
+            assertion_store=prov_repo,
+        )
+
+        doc_id = uuid4()
+        text_content = (
+            "OpenAI developed GPT-4 in San Francisco.\n\n"
+            "Anthropic introduced Claude to enterprise customers."
+        )
+
+        command = IngestDocumentCommand(
+            tenant_id=tenant_id,
+            document_id=doc_id,
+            document_bytes=text_content.encode("utf-8"),
+            ontology=ontology,
+            filename="ai_models.txt",
+        )
+
+        # Run 1
+        await use_case.execute(command)
+
+        with psycopg.connect(app_db_url) as conn, conn.cursor() as cur:
+            cur.execute(
+                "SELECT set_config('app.current_tenant_id', %s, false);",
+                (str(tenant_id.value),),
+            )
+            cur.execute("SELECT count(*) FROM semantic_chunks WHERE document_id = %s;", (doc_id,))
+            assert cur.fetchone()[0] == 2
+            cur.execute("SELECT count(*) FROM entities;")
+            assert cur.fetchone()[0] == 2
+            cur.execute("SELECT count(*) FROM edges;")
+            assert cur.fetchone()[0] == 2
+
+        # Run 2 (retry / re-ingest of identical document)
+        await use_case.execute(command)
+
+        with psycopg.connect(app_db_url) as conn, conn.cursor() as cur:
+            cur.execute(
+                "SELECT set_config('app.current_tenant_id', %s, false);",
+                (str(tenant_id.value),),
+            )
+            cur.execute("SELECT count(*) FROM semantic_chunks WHERE document_id = %s;", (doc_id,))
+            chunk_count = cur.fetchone()[0]
+            cur.execute("SELECT count(*) FROM entities;")
+            entity_count = cur.fetchone()[0]
+            cur.execute("SELECT count(*) FROM edges;")
+            edge_count = cur.fetchone()[0]
+
+            assert (chunk_count, entity_count, edge_count) == (2, 2, 2)
+
+    async def test_duplicate_mention_in_batch_rewrites_edge_endpoints(
+        self, doc_repo, entity_store, prov_repo, app_db_url: str, clean_db
+    ):
+        """Review 2 & 3: A duplicate mention in one batch must not fail edge saving.
+        The use case must dedupe entities and rewrite edge endpoints to the surviving id.
+        """
+        tenant_id = TenantId(uuid4())
+        ontology = Ontology(
+            tenant_id=tenant_id,
+            name="Tech Ontology",
+            allowed_entity_types=["Organization", "Technology"],
+            allowed_edge_types=["PARTNERS_WITH"],
+        )
+
+        class DuplicateMentionLLMGateway:
+            async def extract_entities_and_edges(
+                self, tenant_id: TenantId, chunk: SemanticChunk, ontology: Ontology
+            ) -> tuple[list[RawEntity], list[Edge]]:
+                span_acme = EvidenceSpan(
+                    chunk_id=chunk.id, start_offset=0, end_offset=16, quote="Acme Corporation"
+                )
+                ent1 = RawEntity(
+                    tenant_id=tenant_id,
+                    name="Acme Corporation",
+                    entity_type="Organization",
+                    spans=[span_acme],
+                )
+                ent2_dup = RawEntity(
+                    tenant_id=tenant_id,
+                    name="Acme Corporation",
+                    entity_type="Organization",
+                    spans=[span_acme],
+                )
+                span_beta = EvidenceSpan(
+                    chunk_id=chunk.id, start_offset=31, end_offset=39, quote="Beta Inc"
+                )
+                ent3_beta = RawEntity(
+                    tenant_id=tenant_id,
+                    name="Beta Inc",
+                    entity_type="Organization",
+                    spans=[span_beta],
+                )
+                span_edge = EvidenceSpan(
+                    chunk_id=chunk.id,
+                    start_offset=0,
+                    end_offset=39,
+                    quote="Acme Corporation partners with Beta Inc",
+                )
+                edge = Edge(
+                    tenant_id=tenant_id,
+                    source_entity_id=ent2_dup.id,
+                    target_entity_id=ent3_beta.id,
+                    edge_type="PARTNERS_WITH",
+                    spans=[span_edge],
+                )
+                return [ent1, ent2_dup, ent3_beta], [edge]
+
+        use_case = IngestDocumentUseCase(
+            document_repo=doc_repo,
+            entity_store=entity_store,
+            llm_gateway=DuplicateMentionLLMGateway(),
+            task_publisher=InMemoryTaskPublisher(),
+            assertion_store=prov_repo,
+        )
+
+        doc_id = uuid4()
+        text_content = "Acme Corporation partners with Beta Inc."
+
+        command = IngestDocumentCommand(
+            tenant_id=tenant_id,
+            document_id=doc_id,
+            document_bytes=text_content.encode("utf-8"),
+            ontology=ontology,
+            filename="partners.txt",
+        )
+
+        await use_case.execute(command)
+
+        with psycopg.connect(app_db_url) as conn, conn.cursor() as cur:
+            cur.execute(
+                "SELECT set_config('app.current_tenant_id', %s, false);",
+                (str(tenant_id.value),),
+            )
+            cur.execute("SELECT id, name FROM entities ORDER BY name ASC;")
+            entities = cur.fetchall()
+            assert len(entities) == 2  # Acme and Beta
+            surviving_acme_id = [e[0] for e in entities if e[1] == "Acme Corporation"][0]
+            beta_id = [e[0] for e in entities if e[1] == "Beta Inc"][0]
+
+            cur.execute("SELECT id, source_entity_id, target_entity_id FROM edges;")
+            edges = cur.fetchall()
+            assert len(edges) == 1
+            assert edges[0][1] == surviving_acme_id
+            assert edges[0][2] == beta_id
+
 
 @pytest.mark.asyncio
 class TestPostgresSubgraphReaderRetrieval:
@@ -759,3 +922,31 @@ class TestPostgresSubgraphReaderRetrieval:
         # Tenant B queries for the exact same entity name -> gets NOTHING
         res_b = await subgraph_reader.search_subgraph(tenant_b, query="Secret", depth=2)
         assert res_b == []
+
+    async def test_subgraph_search_escapes_like_wildcards(
+        self, entity_store, subgraph_reader, doc_repo, clean_db
+    ):
+        """Review 4: Escape %, _ and \\ in ILIKE queries so wildcards don't match everything."""
+        tenant_id = TenantId(uuid4())
+        doc = Document(tenant_id=tenant_id, filename="wildcard.txt")
+        await doc_repo.save_document(tenant_id, doc)
+        chunk_id = ChunkId()
+        chunk = SemanticChunk(
+            id=chunk_id, tenant_id=tenant_id, document_id=doc.id, text="Alpha Corporation text"
+        )
+        await doc_repo.save_chunks(tenant_id, [chunk])
+        span = EvidenceSpan(chunk_id=chunk_id, start_offset=0, end_offset=5, quote="Alpha")
+        entity = RawEntity(tenant_id=tenant_id, name="Alpha Corp", entity_type="Org", spans=[span])
+        await entity_store.save_raw_entities(tenant_id, [entity])
+
+        # Query of "%" must NOT match "Alpha Corp"
+        res_percent = await subgraph_reader.search_subgraph(tenant_id, query="%", depth=1)
+        assert res_percent == []
+
+        # Query of "_" must NOT match "Alpha Corp"
+        res_underscore = await subgraph_reader.search_subgraph(tenant_id, query="_", depth=1)
+        assert res_underscore == []
+
+        # find_similar_entities with "%" must NOT match
+        sim_percent = await entity_store.find_similar_entities(tenant_id, "%")
+        assert sim_percent == []

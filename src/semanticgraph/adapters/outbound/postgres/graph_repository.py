@@ -93,6 +93,11 @@ def _validate_edge_provenance(edge: Edge) -> EvidenceSpan:
     return span
 
 
+def _escape_like(pattern: str) -> str:
+    """Escapes SQL LIKE wildcard characters ('%', '_', and '\\')."""
+    return pattern.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 def _map_sql_entity_to_domain(row: SQLRawEntity) -> RawEntity | GoldenRecord:
     if row.kind == "golden_record":
         return GoldenRecord(
@@ -330,22 +335,25 @@ class PostgresEntityStore:
     async def find_similar_entities(
         self, tenant_id: TenantId, name: str, threshold: float = 0.85
     ) -> list[RawEntity]:
-        """Finds entities similar to the given surface name via ILIKE match."""
+        """Finds entities similar to the given surface name via ILIKE match.
+
+        Note: `threshold` is reserved for future fuzzy/vector similarity matching (Stage 3).
+        Currently surface name matching performs an exact substring ILIKE search with
+        escaped wildcards.
+        """
+        escaped_name = _escape_like(name.strip())
         async with self._tenant_session(tenant_id) as session:
             result = await session.execute(
                 select(SQLRawEntity)
                 .where(
                     SQLRawEntity.tenant_id == tenant_id.value,
-                    SQLRawEntity.name.ilike(f"%{name}%"),
+                    SQLRawEntity.name.ilike(f"%{escaped_name}%", escape="\\"),
                 )
                 .order_by(SQLRawEntity.name)
             )
             rows = result.scalars().all()
-            return [
-                _map_sql_entity_to_domain(r)
-                for r in rows
-                if isinstance(_map_sql_entity_to_domain(r), RawEntity)
-            ]  # type: ignore[return-value]
+            mapped = [_map_sql_entity_to_domain(r) for r in rows]
+            return [e for e in mapped if isinstance(e, RawEntity)]  # type: ignore[return-value]
 
 
 class PostgresSubgraphReader:
@@ -391,14 +399,15 @@ class PostgresSubgraphReader:
             return []
 
         safe_depth = max(0, depth)
-        query_pattern = f"%{query.strip()}%"
+        escaped_query = _escape_like(query.strip())
+        query_pattern = f"%{escaped_query}%"
 
         async with self._tenant_session(tenant_id) as session:
             # 1. Match seed entities
             seed_result = await session.execute(
                 select(SQLRawEntity).where(
                     SQLRawEntity.tenant_id == tenant_id.value,
-                    SQLRawEntity.name.ilike(query_pattern),
+                    SQLRawEntity.name.ilike(query_pattern, escape="\\"),
                 )
             )
             seed_entities = seed_result.scalars().all()
