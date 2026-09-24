@@ -173,9 +173,7 @@ class Container:
 
         from semanticgraph.adapters.outbound.inmemory import (
             DeterministicLLMGateway,
-            InMemoryEntityStore,
             InMemoryObjectStorage,
-            InMemorySubgraphReader,
             InMemoryTaskPublisher,
         )
         from semanticgraph.adapters.outbound.postgres.deletion_repository import (
@@ -183,6 +181,10 @@ class Container:
         )
         from semanticgraph.adapters.outbound.postgres.document_repository import (
             PostgresDocumentRepository,
+        )
+        from semanticgraph.adapters.outbound.postgres.graph_repository import (
+            PostgresEntityStore,
+            PostgresSubgraphReader,
         )
         from semanticgraph.adapters.outbound.postgres.ontology_repository import (
             PostgresOntologyRepository,
@@ -262,8 +264,8 @@ class Container:
             temporal_fact_store=PostgresTemporalFactRepository(session_factory=session_factory),
             ontology_store=PostgresOntologyRepository(session_factory=session_factory),
             deletion_repo=PostgresDeletionRepository(session_factory=session_factory),
-            entity_store=InMemoryEntityStore(),
-            subgraph_reader=InMemorySubgraphReader(),
+            entity_store=PostgresEntityStore(session_factory=session_factory),
+            subgraph_reader=PostgresSubgraphReader(session_factory=session_factory),
             llm_gateway=llm_gateway,
             task_publisher=InMemoryTaskPublisher(),
             object_storage=InMemoryObjectStorage(),
