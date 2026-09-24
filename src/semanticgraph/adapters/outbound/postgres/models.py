@@ -295,3 +295,66 @@ class SQLEvalFixture(SQLModel, table=True):
     name: str = Field(nullable=False)
     expected_output: str = Field(nullable=False)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), nullable=False)
+
+
+class SQLRawEntity(SQLModel, table=True):
+    __tablename__ = "entities"
+    __table_args__ = (
+        Index("idx_tenant_entity_name", "tenant_id", "name"),
+        Index("idx_tenant_entity_type", "tenant_id", "entity_type"),
+        Index("idx_tenant_entity_chunk", "tenant_id", "chunk_id"),
+        Index("idx_tenant_entity_golden", "tenant_id", "golden_record_id"),
+        Index("idx_tenant_entity_created", "tenant_id", "created_at"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    tenant_id: UUID = Field(index=True, nullable=False)
+    name: str = Field(nullable=False, index=True)
+    entity_type: str = Field(nullable=False, index=True)
+    golden_record_id: UUID | None = Field(default=None, index=True, nullable=True)
+    resolution_status: str = Field(default="unresolved", nullable=False)
+    kind: str = Field(default="raw", nullable=False)
+
+    # Mandatory provenance (rule 1)
+    chunk_id: UUID = Field(foreign_key="semantic_chunks.id", index=True, nullable=False)
+    start_offset: int = Field(nullable=False)
+    end_offset: int = Field(nullable=False)
+    quote: str = Field(nullable=False)
+
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), nullable=False)
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC), nullable=False)
+
+
+# Alias for convenience
+SQLEntity = SQLRawEntity
+
+
+class SQLEdge(SQLModel, table=True):
+    __tablename__ = "edges"
+    __table_args__ = (
+        Index("idx_tenant_edge_source", "tenant_id", "source_entity_id"),
+        Index("idx_tenant_edge_target", "tenant_id", "target_entity_id"),
+        Index("idx_tenant_edge_type", "tenant_id", "edge_type"),
+        Index("idx_tenant_edge_chunk", "tenant_id", "chunk_id"),
+        Index("idx_tenant_edge_temporal", "tenant_id", "valid_from", "valid_to"),
+        Index("idx_tenant_edge_created", "tenant_id", "created_at"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    tenant_id: UUID = Field(index=True, nullable=False)
+    source_entity_id: UUID = Field(index=True, nullable=False)
+    target_entity_id: UUID = Field(index=True, nullable=False)
+    edge_type: str = Field(nullable=False, index=True)
+    weight: float = Field(default=1.0, nullable=False)
+
+    # Temporal bounds (per existing domain model)
+    valid_from: datetime | None = Field(default=None, nullable=True)
+    valid_to: datetime | None = Field(default=None, nullable=True)
+
+    # Mandatory provenance (rule 1)
+    chunk_id: UUID = Field(foreign_key="semantic_chunks.id", index=True, nullable=False)
+    start_offset: int = Field(nullable=False)
+    end_offset: int = Field(nullable=False)
+    quote: str = Field(nullable=False)
+
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), nullable=False)

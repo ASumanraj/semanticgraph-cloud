@@ -25,6 +25,7 @@ from semanticgraph.adapters.outbound.postgres.models import (
     SQLClusterMembership,
     SQLCommunitySummary,
     SQLDocument,
+    SQLEdge,
     SQLEvalFixture,
     SQLEvidenceSpan,
     SQLExtractionRun,
@@ -32,6 +33,7 @@ from semanticgraph.adapters.outbound.postgres.models import (
     SQLGoldenRecord,
     SQLMention,
     SQLQueryCache,
+    SQLRawEntity,
     SQLSemanticChunk,
 )
 from semanticgraph.application.use_cases.delete_document import (
@@ -196,6 +198,41 @@ class PostgresDeletionRepository(DeletionRepositoryPort):
                 mention_res = await session.execute(mention_del)
                 deleted_mentions_count = mention_res.rowcount or 0
 
+            # 8.5 Delete entities and edges belonging to document's chunks
+            deleted_entities_count = 0
+            deleted_edges_count = 0
+            if chunk_ids:
+                # Collect entities belonging to this document's chunks
+                ent_stmt = select(SQLRawEntity.id).where(
+                    SQLRawEntity.tenant_id == tenant_id.value,
+                    SQLRawEntity.chunk_id.in_(chunk_ids),
+                )
+                doc_entity_ids = list((await session.execute(ent_stmt)).scalars().all())
+
+                # Delete edges from this document's chunks or referencing deleted entities
+                edge_cond = SQLEdge.chunk_id.in_(chunk_ids)
+                if doc_entity_ids:
+                    edge_cond = (
+                        edge_cond
+                        | SQLEdge.source_entity_id.in_(doc_entity_ids)
+                        | SQLEdge.target_entity_id.in_(doc_entity_ids)
+                    )
+
+                edge_del = delete(SQLEdge).where(
+                    SQLEdge.tenant_id == tenant_id.value,
+                    edge_cond,
+                )
+                edge_res = await session.execute(edge_del)
+                deleted_edges_count = edge_res.rowcount or 0
+
+                # Delete entities belonging to this document's chunks
+                ent_del = delete(SQLRawEntity).where(
+                    SQLRawEntity.tenant_id == tenant_id.value,
+                    SQLRawEntity.chunk_id.in_(chunk_ids),
+                )
+                ent_res = await session.execute(ent_del)
+                deleted_entities_count = ent_res.rowcount or 0
+
             # 9. Delete chunks
             deleted_chunks_count = 0
             if chunk_ids:
@@ -290,4 +327,6 @@ class PostgresDeletionRepository(DeletionRepositoryPort):
                 purged_eval_fixtures_count=purged_eval_fixtures_count,
                 rematerialized_golden_records_count=rematerialized_golden_records_count,
                 deleted_golden_records_count=deleted_golden_records_count,
+                deleted_entities_count=deleted_entities_count,
+                deleted_edges_count=deleted_edges_count,
             )
