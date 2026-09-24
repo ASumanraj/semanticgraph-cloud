@@ -134,3 +134,30 @@ migration has no server default).
 **Fix direction:** same branch, slice 1 only: cascade in `deletion_repository.py` + a deletion test,
 the savepoint fix, drop the provenance defaults. Then show `pytest tests/integration/adapters/postgres/
 -q` under a real Postgres with the counts, and a CI run. Do not start slice 2 until this is accepted.
+
+## Review, slice 1 fix verified — 2026-09-24
+
+Reviewed PR #19 (`89d9af4`). All three findings are fixed and independently reproduced, not read off
+the report:
+
+- **Deletion cascade.** `delete_document_cascade` now deletes the document's entities and every edge
+  asserted by its chunks or touching its entity ids, before the chunk delete, in the same transaction.
+  The new test proves the delete succeeds, no dangling edge survives (including an incoming edge from
+  a second document), and a fact asserted by two documents keeps the second assertion. It is not
+  vacuous: with `deletion_repository.py` reverted to `main`, that test fails with the exact
+  `ForeignKeyViolation ... entities_chunk_id_fkey` from the original defect. Entity ids are
+  per-mention (per-chunk), as the report states; cross-document identity lives at the Golden Record.
+- **Savepoint test.** Passes; the whole `tests/integration/adapters/postgres/` directory under a real
+  Postgres is **43 passed, 0 skipped** on my run, matching the report.
+- **Provenance defaults** removed from both models; the migration is unchanged, still one head
+  (`65f7a3919e0a`), `ruff check .` clean.
+
+CI [run 36043772040](https://github.com/ASumanraj/semanticgraph-cloud/actions/runs/36043772040) on
+`89d9af4`: green on both jobs, Isolation proofs and Control-plane proofs each `success`.
+
+One note, accepted: `application/ports/outbound/deletion_repository.py` gained `deleted_entities_count`
+and `deleted_edges_count` (default 0, included in `total_records_erased`). It is outside the ticket's
+literal Scope but is the necessary result-shape change for the cascade; no other adapter is affected.
+
+Slice 1 accepted; slice 2 (repository + `Container.postgres()` wiring) may begin once PR #19 is
+merged. Status stays `claimed` until the HTTP route lands.
