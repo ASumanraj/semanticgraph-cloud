@@ -1,6 +1,6 @@
 # T-220 · `alembic/env.py` does not import the audit models, so the drift check is order-dependent
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-220-alembic-env-imports-audit-models`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-220-alembic-env-imports-audit-models`
 
 **Scope**
 - `alembic/env.py`
@@ -22,7 +22,7 @@ T-213's PR papered over it in CI with `pytest -p semanticgraph.control.audit.mod
 
 - [x] `env.py` imports the audit models alongside the usage models
 - [x] `pytest tests/integration/adapters/postgres/test_migrations.py` passes when run alone, with no `-p` flag and `DATABASE_URL` unset
-- [ ] The `-p semanticgraph.control.audit.models` flag is removed from `ci.yml`'s isolation step (coordinate with T-213 since it owns that file) — follow-up after PR merge per instructions
+- [x] The `-p semanticgraph.control.audit.models` flag is removed from `ci.yml`'s isolation step (coordinate with T-213 since it owns that file)
 - [x] `ruff check .` clean
 
 ## Review & Verification
