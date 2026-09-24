@@ -206,3 +206,24 @@ maps each row twice and ignores `threshold`, so say so in its docstring or use i
 
 **For slice 3, not now:** the recursive CTE enumerates paths, which grows fast on dense graphs. The
 HTTP route must clamp `depth` (max 3) and cap returned rows, and say when a result was truncated.
+
+## Review, slice 2 fix verified — 2026-09-25
+
+Reviewed PR #20 (`f88495a`). Independently reproduced, not read off the report:
+
+- The five new tests (three real-Postgres, two unit) **fail against the previous source** (`f7f8925`)
+  and pass on the fix, so they test the defects. Running `IngestDocumentUseCase.execute` twice against
+  Postgres now leaves `semantic_chunks`/`entities`/`edges` at 2/2/2 (was 4/4/4). The duplicate-mention
+  batch with an edge saves cleanly. A `%` or `_` query no longer matches everything.
+- `tests/integration/adapters/postgres/`: **56 passed, 0 skipped**. Fast suite: 425 passed, 1 skipped,
+  2 deselected. `ruff check .` clean, one Alembic head (`65f7a3919e0a`).
+- CI [run 36052230341](https://github.com/ASumanraj/semanticgraph-cloud/actions/runs/36052230341) on
+  `f88495a`: green on both jobs, Isolation proofs, Control-plane proofs and E2E each `success`.
+
+**Known gap, not blocking this slice:** the same double-run leaves `assertions` and `evidence_spans` at
+4 for 2 facts. Facts are deterministic (`uuid5`), assertions are not, so a retry adds a second assertion
+per fact. It predates this ticket and does not affect correctness of the delete cascade (the document's
+assertions all go together), but it inflates assertion counts and breaks "retry-safe". Filed as T-222;
+it touches `ingest_document.py`, so it starts after T-218.
+
+Slice 2 accepted. Slice 3 (HTTP route) may begin once PR #20 is merged.
