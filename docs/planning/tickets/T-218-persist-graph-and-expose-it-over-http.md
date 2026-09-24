@@ -89,3 +89,48 @@ ticket's job is making the graph real and readable, not making it smart.
 
 See also [T-217](T-217-wire-real-extractor-into-postgres-profile.md) — same
 `composition/container.py`, don't run both at once.
+
+## Review, slice 1 (tables, migration, RLS tests) — 2026-09-24
+
+Reviewed branch `t-218-postgres-graph-and-route` at `0524a8f`. The schema is sound: one new revision
+(`65f7a3919e0a`) off `e8f1a2c3b4d5`, a single head, `tenant_id` leading every composite index,
+`FORCE ROW LEVEL SECURITY` and a tenant policy copied exactly from the existing migrations' pattern,
+`GRANT ... TO semanticgraph_app`, provenance columns non-null on both tables, valid_from/valid_to kept
+on edges. `ruff check .` clean. Two of the three new isolation tests pass against a real Postgres.
+**Slice 1 is not accepted; two defects, both reproduced against a real Postgres (testcontainers), not
+argued.**
+
+**1. Deleting a document that has extracted entities now fails (Irreversible Rule 4).**
+`entities.chunk_id` and `edges.chunk_id` are foreign keys to `semantic_chunks` with no `ON DELETE`,
+and `PostgresDeletionRepository.delete_document_cascade` knows nothing about the new tables. Repro:
+migrate to head, save a document + chunk, insert one entity and one edge pointing at that chunk (as
+`IngestDocumentUseCase` will once slice 2 wires the store), call `delete_document_cascade`. Result:
+`ForeignKeyViolation: update or delete on table "semantic_chunks" violates foreign key constraint
+"entities_chunk_id_fkey"`, at the "Delete chunks" step. Today nothing writes these rows, so nothing
+breaks yet; the moment slice 2 wires `PostgresEntityStore`, **every document with an extracted entity
+becomes undeletable**, which is the GDPR path. The cascade must reach these tables in the same
+transaction, like embeddings, caches and summaries already do (`deletion_repository.py`, steps 5-9),
+and `test_deletion_cascade.py` needs a case for it (its `clean_db` table list too).
+Design points the fix must settle and prove: entity/edge rows are per-chunk assertions, so delete the
+ones whose `chunk_id` belongs to the document; an edge from *another* document may reference an
+entity id of the deleted one (no FK on `source_entity_id`/`target_entity_id`) — state which it is
+(shared ids or per-mention ids) and test that no dangling edge survives and that a fact still asserted
+by a second document is untouched.
+
+**2. One of the three new isolation tests fails when it actually runs.**
+`test_tenant_a_cannot_read_or_spoof_tenant_b_entities_and_edges` fails with
+`InFailedSqlTransaction: current transaction is aborted` at the edge insert: the first
+`pytest.raises(InsufficientPrivilege)` insert aborts the enclosing transaction, so the second statement
+cannot run. Each expected-failure statement needs its own savepoint (`with conn.transaction():`
+inside the `pytest.raises`), or its own connection. The report said "356 passed, 53 skipped" — those
+skips are the Postgres-backed tests, so this test was never executed before being reported. Run the
+integration directory with a real Postgres (Docker is available) before reporting.
+
+**Minor, fix in the same pass:** `start_offset`, `end_offset` and `quote` default to `0`/`""` on both
+models. Rule 1 says the span is mandatory, including at the ORM: an extractor that forgets it should
+fail, not persist `(0, 0, "")`. `SQLEvidenceSpan` has no such defaults. Remove them (model-only; the
+migration has no server default).
+
+**Fix direction:** same branch, slice 1 only: cascade in `deletion_repository.py` + a deletion test,
+the savepoint fix, drop the provenance defaults. Then show `pytest tests/integration/adapters/postgres/
+-q` under a real Postgres with the counts, and a CI run. Do not start slice 2 until this is accepted.
