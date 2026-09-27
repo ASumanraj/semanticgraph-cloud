@@ -12,5 +12,6 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _ensure_loggers_enabled():
+    """Ensure the application root logger remains enabled across test runs."""
     yield
     logging.getLogger("semanticgraph").disabled = False
