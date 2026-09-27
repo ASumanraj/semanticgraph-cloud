@@ -259,3 +259,48 @@ Decisions:
    `provenance`. That is the product's differentiator and is cheap to show.
 6. **Frontend follows `frontend/AGENTS.md`:** read the relevant guide in `node_modules/next/dist/docs/`
    before writing any frontend code; the Next.js version has breaking changes.
+
+## Review, slice 3 (route, overview read, GraphExplorer) — 2026-09-27
+
+Reviewed PR #20 at `2c589bd`. The route, response shape, limits, tenant handling and frontend follow the
+slice 3 decisions. The Postgres HTTP tests pass alone (4 passed in 13 s, including the raw-SQL comparison
+and the two-tenant test). CI [run 36298100010](https://github.com/ASumanraj/semanticgraph-cloud/actions/runs/36298100010)
+is green on both jobs. **Not accepted: one defect that hides skipped tests, reproduced.**
+
+**The `postgres_api_client` fixture leaks environment variables.**
+`tests/integration/adapters/postgres/test_graph_api.py` sets `os.environ["DATABASE_URL"]` (the address of
+a module-scoped testcontainer) and `os.environ["SEMANTICGRAPH_ADAPTERS"] = "postgres"` and never restores
+either. Every later test in the same process inherits them, and the container is gone by then. This is the
+same class of bug as T-216. Effects, all reproduced:
+
+- Full fast suite (`pytest -q`, healthy Postgres on 5432): **416 passed, 21 skipped**. Before slice 3 the
+  same command gave 425 passed, 1 skipped. The 19 control-plane tests (audit log, usage ledger, usage
+  attribution) now skip with "Real PostgreSQL is not available on localhost:5432", because they read the
+  leaked `DATABASE_URL`. Run alone, the same 19 pass.
+- The new graph API test module followed by `tests/integration/control` in one process gives 4 passed,
+  19 skipped.
+- The in-memory API tests (`tests/integration/adapters/api/test_graph_api.py`) run after the Postgres tests
+  in one process fail or hang, because the leaked `SEMANTICGRAPH_ADAPTERS=postgres` makes them build the
+  Postgres profile against a dead address (my combined run stalled for over ten minutes and ended `FF`).
+- CI stays green only because the API directory sorts before the Postgres directory and the control-plane
+  step runs in its own process with its own skip guard. The fast-suite step has no skip guard, so the
+  loss is invisible there. The report's "21 skipped, in-memory profile skips Postgres-specific tests" was
+  wrong: the skips came from this leak.
+
+**Fix direction:** set both variables with `monkeypatch.setenv` (or save and restore in a `try/finally`),
+so they are gone after each test. Then prove it: `pytest -q` on the whole suite must show the control-plane
+tests running (0 skipped from `tests/integration/control`), and the API and Postgres directories must pass
+in either order. Consider having the fast-suite step in `ci.yml` fail on unexpected skips from
+`tests/integration/control` (ci.yml is not in this ticket's scope; note it for T-213's owner instead).
+
+**Non-blocking, for follow-ups:**
+- The Playwright backend runs the in-memory profile with the deterministic test extractor ("Entity from
+  chunk N", one self-loop edge per chunk). The Postgres HTTP test covers the real store, but the graph a
+  user sees today is placeholder data. The route or `/health` should say which extractor produced the data
+  so the UI can label it (T-111 principle: do not misrepresent).
+- The search path has no database-level row cap: the recursive CTE returns every reached edge and the route
+  slices afterwards. Add a `LIMIT` in the reader.
+- The in-memory `search_subgraph` ignores `depth` and returns edges whose far endpoint is not in the entity
+  set, so the route drops them and reports `truncated` even though no cap was hit.
+- `graph.py` repeats `hasattr(x, "value")` unwrapping and duplicates the edge filtering across both branches;
+  a small mapper function would remove about half the file.
