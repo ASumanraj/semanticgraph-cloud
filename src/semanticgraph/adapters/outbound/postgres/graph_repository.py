@@ -537,6 +537,63 @@ class PostgresSubgraphReader:
 
             return list(domain_entities) + list(domain_edges)
 
+    async def get_overview(
+        self, tenant_id: TenantId, limit_entities: int = 200, limit_edges: int = 400
+    ) -> tuple[list[RawEntity | GoldenRecord], list[Edge]]:
+        """Returns a bounded overview of the tenant's most recent entities
+
+        and the edges among them.
+        """
+        async with self._tenant_session(tenant_id) as session:
+            # 1. Fetch most recent entities for this tenant
+            res_entities = await session.execute(
+                select(SQLRawEntity)
+                .where(SQLRawEntity.tenant_id == tenant_id.value)
+                .order_by(SQLRawEntity.created_at.desc())
+                .limit(limit_entities)
+            )
+            entity_rows = res_entities.scalars().all()
+            if not entity_rows:
+                return [], []
+
+            entity_ids = [e.id for e in entity_rows]
+            domain_entities = [_map_sql_entity_to_domain(e) for e in entity_rows]
+
+            # 2. Fetch edges among these entities
+            res_edges = await session.execute(
+                select(SQLEdge)
+                .where(
+                    SQLEdge.tenant_id == tenant_id.value,
+                    SQLEdge.source_entity_id.in_(entity_ids),
+                    SQLEdge.target_entity_id.in_(entity_ids),
+                )
+                .order_by(SQLEdge.created_at.desc())
+                .limit(limit_edges)
+            )
+            edge_rows = res_edges.scalars().all()
+            domain_edges = [
+                Edge(
+                    id=er.id,
+                    tenant_id=TenantId(value=er.tenant_id),
+                    source_entity_id=EntityId(value=er.source_entity_id),
+                    target_entity_id=EntityId(value=er.target_entity_id),
+                    edge_type=er.edge_type,
+                    weight=float(er.weight),
+                    valid_from=er.valid_from,
+                    valid_to=er.valid_to,
+                    spans=[
+                        EvidenceSpan(
+                            chunk_id=ChunkId(value=er.chunk_id),
+                            start_offset=er.start_offset,
+                            end_offset=er.end_offset,
+                            quote=er.quote,
+                        )
+                    ],
+                )
+                for er in edge_rows
+            ]
+            return domain_entities, domain_edges
+
 
 class PostgresGraphRepository(PostgresEntityStore, PostgresSubgraphReader):
     """Deep module combining entity persistence and subgraph reading."""

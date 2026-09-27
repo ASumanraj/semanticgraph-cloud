@@ -34,11 +34,35 @@ class InMemoryGraphRepository:
     async def search_subgraph(
         self, tenant_id: TenantId, query: str, depth: int = 2
     ) -> list[RawEntity | GoldenRecord | Edge]:
-        return [
+        entities = [
             e
             for e in self.saved_entities
             if e.tenant_id == tenant_id and query.lower() in e.name.lower()
         ]
+        entity_ids = {e.id for e in entities}
+        edges = [
+            e
+            for e in self.saved_edges
+            if e.tenant_id == tenant_id
+            and (e.source_entity_id in entity_ids or e.target_entity_id in entity_ids)
+        ]
+        return list(entities) + list(edges)
+
+    async def get_overview(
+        self, tenant_id: TenantId, limit_entities: int = 200, limit_edges: int = 400
+    ) -> tuple[list[RawEntity | GoldenRecord], list[Edge]]:
+        tenant_entities = [e for e in self.saved_entities if e.tenant_id == tenant_id]
+        recent_entities = list(reversed(tenant_entities))[:limit_entities]
+        entity_ids = {e.id for e in recent_entities}
+        tenant_edges = [
+            e
+            for e in self.saved_edges
+            if e.tenant_id == tenant_id
+            and e.source_entity_id in entity_ids
+            and e.target_entity_id in entity_ids
+        ]
+        recent_edges = list(reversed(tenant_edges))[:limit_edges]
+        return recent_entities, recent_edges
 
 
 # Aliases for the new seams

@@ -144,9 +144,11 @@ def create_app() -> FastAPI:
     # --- Include Routers ---
     from semanticgraph.adapters.inbound.api.v1.documents import router as documents_router
     from semanticgraph.adapters.inbound.api.v1.facts import router as facts_router
+    from semanticgraph.adapters.inbound.api.v1.graph import router as graph_router
 
     app.include_router(documents_router)
     app.include_router(facts_router)
+    app.include_router(graph_router)
 
     @app.get("/health")
     def health_check() -> dict[str, str]:

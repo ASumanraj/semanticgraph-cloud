@@ -125,11 +125,10 @@ class Container:
             InMemoryAuditLog,
             InMemoryDeletionRepository,
             InMemoryDocumentRepository,
-            InMemoryEntityStore,
+            InMemoryGraphRepository,
             InMemoryObjectStorage,
             InMemoryOntologyStore,
             InMemoryResolutionDecisionStore,
-            InMemorySubgraphReader,
             InMemoryTaskPublisher,
             InMemoryTemporalFactStore,
             InMemoryUsageLedger,
@@ -142,6 +141,7 @@ class Container:
         usage_ledger = InMemoryUsageLedger()
         audit_log = InMemoryAuditLog()
         quota_enforcer = QuotaEnforcer(usage_ledger=usage_ledger, audit_log=audit_log)
+        graph_repo = InMemoryGraphRepository()
         return cls(
             document_repo=doc_repo,
             assertion_store=assertion_store,
@@ -152,8 +152,8 @@ class Container:
                 document_repo=doc_repo,
                 assertion_store=assertion_store,
             ),
-            entity_store=InMemoryEntityStore(),
-            subgraph_reader=InMemorySubgraphReader(),
+            entity_store=graph_repo,
+            subgraph_reader=graph_repo,
             llm_gateway=InstrumentedLLMGateway(
                 DeterministicLLMGateway(routing=model_routing),
                 provider="deterministic",
@@ -355,7 +355,12 @@ def get_assertion_store(container: ContainerDep) -> AssertionStore:
     return container.assertion_store
 
 
+def get_subgraph_reader(container: ContainerDep) -> SubgraphReader:
+    return container.subgraph_reader
+
+
 IngestDocumentDep = Annotated[IngestDocumentUseCase, Depends(get_ingest_document_use_case)]
 UploadDocumentDep = Annotated[UploadDocumentUseCase, Depends(get_upload_document_use_case)]
 DeleteDocumentDep = Annotated[DeleteDocumentUseCase, Depends(get_delete_document_use_case)]
 AssertionStoreDep = Annotated[AssertionStore, Depends(get_assertion_store)]
+SubgraphReaderDep = Annotated[SubgraphReader, Depends(get_subgraph_reader)]
