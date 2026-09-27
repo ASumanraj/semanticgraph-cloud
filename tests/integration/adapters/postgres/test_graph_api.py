@@ -13,7 +13,6 @@ Acceptance criteria:
 from __future__ import annotations
 
 import base64
-import os
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse
 from uuid import uuid4
@@ -95,16 +94,18 @@ def clean_db(migrated_postgres: str):
 
 
 @pytest.fixture
-def postgres_api_client(postgres_admin_url: str, clean_db):
-    os.environ["DATABASE_URL"] = postgres_admin_url
-    os.environ["SEMANTICGRAPH_ADAPTERS"] = "postgres"
+def postgres_api_client(postgres_admin_url: str, clean_db, monkeypatch):
     default_container.cache_clear()
+    monkeypatch.setenv("DATABASE_URL", postgres_admin_url)
+    monkeypatch.setenv("SEMANTICGRAPH_ADAPTERS", "postgres")
 
-    app = create_app()
-    with TestClient(app) as client:
-        yield client
-
-    default_container.cache_clear()
+    try:
+        app = create_app()
+        with TestClient(app) as client:
+            yield client
+    finally:
+        monkeypatch.undo()
+        default_container.cache_clear()
 
 
 class TestPostgresGraphAPI:
