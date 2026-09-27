@@ -12,6 +12,8 @@
 - `tests/integration/adapters/api/**`
 - `src/semanticgraph/application/use_cases/ingest_document.py` (added 2026-09-25, see slice 2 review)
 - `tests/unit/use_cases/**` (added 2026-09-25)
+- `src/semanticgraph/application/ports/outbound/subgraph_reader.py` and `src/semanticgraph/adapters/outbound/inmemory/graph_repository.py` (added 2026-09-27, an overview read, see slice 3 decisions)
+- `frontend/src/components/GraphExplorer.tsx` and its Playwright spec (added 2026-09-27; T-111 is done and no ticket holds these)
 
 **Blocked by** T-217 should land first if both are claimed (shared file, see its Notes) · **Blocks** —
 
@@ -227,3 +229,33 @@ assertions all go together), but it inflates assertion counts and breaks "retry-
 it touches `ingest_document.py`, so it starts after T-218.
 
 Slice 2 accepted. Slice 3 (HTTP route) may begin once PR #20 is merged.
+
+## Slice 3 decisions — 2026-09-27
+
+Reading `GraphExplorer.tsx` before slice 3 shows the acceptance line "needs no change if the route path
+matches" is **false**, so the scope above is extended. What the component actually does:
+
+- It calls `GET /api/v1/graph` with **no query parameter and no `X-Tenant-ID` header**. The header is the
+  existing `CurrentTenantDep` (`dependencies.py`), so the call would be rejected with 422 today.
+  `DocumentUpload.tsx` sends `X-Tenant-ID` from `NEXT_PUBLIC_TENANT_ID`; the graph fetch must do the same.
+- It passes `data.nodes` and `data.edges` straight to React Flow, which needs `id`, `position` and `data` on
+  nodes, and `id`, `source`, `target` on edges. The API has no positions.
+
+Decisions:
+
+1. **The API stays UI-agnostic.** Response: `{nodes: [{id, name, entity_type, kind, provenance:
+   {chunk_id, start_offset, end_offset, quote}}], edges: [{id, source, target, edge_type, weight,
+   valid_from, valid_to, provenance}], truncated: bool}`. The component maps it to React Flow nodes and
+   edges and computes a deterministic layout client-side. Nothing UI-library-shaped goes in the API.
+2. **`query` is optional.** With a query: the existing `search_subgraph` (seed match, then `depth` hops).
+   Without one: a bounded overview of the tenant's most recent entities and the edges among them, via a new
+   reader method (with an in-memory equivalent). An empty result is a real 200 with empty lists.
+3. **Limits.** `depth` default 2, clamped to 3; entities and edges each capped (say 200 and 400); `query`
+   length capped; `truncated` says when a cap cut the result.
+4. **Tenant is the existing header dependency, not real auth.** The header is unsigned; verified auth is
+   Stage 5 and out of scope. The tenant must never come from a query parameter. Isolation is proved at the
+   HTTP layer with two tenants, and the test says plainly that it proves scoping by header, not authentication.
+5. **Evidence is the point.** Selecting a node in the explorer shows its exact quote and its chunk id from
+   `provenance`. That is the product's differentiator and is cheap to show.
+6. **Frontend follows `frontend/AGENTS.md`:** read the relevant guide in `node_modules/next/dist/docs/`
+   before writing any frontend code; the Next.js version has breaking changes.
