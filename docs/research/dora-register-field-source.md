@@ -292,3 +292,15 @@ from contract knowledge, and it competes with established TPRM tooling rather th
 - ESMA, *2025 Report on quality and use of data* (29.5.2026) — https://www.esma.europa.eu/sites/default/files/2026-05/ESMA92-2024897840-14578_Report_on_quality_and_use_of_data_2025.pdf
 - DORA GRC blog, 2026 reporting update `[secondary]` — https://doragrc.com/blog/dora-register-of-information-2026-reporting-update
 - fscom, lessons from the 2025 RoI cycle `[secondary]` — https://fscom.co/blog/preparing-for-the-2026-dora-reporting-deadline-lessons-from-2025-every-firm-should-know/
+
+---
+
+## Update 2026-09-27 — clause-gap tools now exist
+
+This note said no tool reports which Article 30 clauses are missing from a contract. That no longer holds:
+Vendorica's product page says its AI clause analysis "only keeps quotes it can verify verbatim", that
+"Reviewers confirm or override, sign-off locks the position of record", and that gaps feed an org-wide
+register "where remediation is tracked to closure" (raw page read 2026-09-27). Others claim similar
+clause-gap checks (Luxgap, Regulativ.ai, 3rdRisk). These are vendor claims. See
+[`evidence-first-temporal-contract-graph-prior-art.md`](evidence-first-temporal-contract-graph-prior-art.md)
+sections 8 and 9.

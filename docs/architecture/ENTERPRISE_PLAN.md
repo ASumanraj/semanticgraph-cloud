@@ -159,6 +159,12 @@ Per your direction — developer-platform/API first, then mid-market, then regul
 Sell the outcome, an auditable record of what documents say with the evidence, the validity
 window and a reversible decision history, and treat the graph as an implementation detail.
 
+> **Status 2026-09-27:** the developer-platform wedge and the contract workflow are hypotheses under
+> test, not settled choices. `docs/research/contract-ai-market-and-customer-one.md` (T-907) found the
+> builder segment has the weakest business evidence and that a customer is not yet chosen;
+> `docs/research/evidence-first-temporal-contract-graph-prior-art.md` maps the prior art. Read "unserved"
+> below as "not found served in the sources checked".
+
 This is the wedge the market research independently identified as unserved, and it matches your
 sequencing instinct. The contracts ontology pack matters strategically: both Cognee and Vectara
 sell human engineers alongside their software, which means their gross margin is partly services.

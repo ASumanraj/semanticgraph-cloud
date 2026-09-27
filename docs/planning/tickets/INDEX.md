@@ -61,7 +61,7 @@ unranked `GET /api/v1/graph`.
 **Beside it, each disjoint from the lane:**
 [T-111](T-111-frontend-stop-misrepresenting-the-product.md) (`frontend/**`, done),
 [T-213](T-213-ci-isolation-step-must-fail-on-failure.md)
-(`ci.yml`, done; PR #16 awaiting merge), [T-220](T-220-alembic-env-imports-audit-models.md) (`alembic/env.py`, open), [T-905](T-905-gleif-coverage-spike.md), [T-906](T-906-batch-versus-interactive-ingestion.md),
+(`ci.yml`, done), [T-220](T-220-alembic-env-imports-audit-models.md) (done), [T-905](T-905-gleif-coverage-spike.md), [T-906](T-906-batch-versus-interactive-ingestion.md),
 [T-900](T-900-verify-whyhow-ai.md), [T-901](T-901-temporal-cloud-cost.md) (all `docs/**` or
 `evals/**`), and [T-600](T-600-split-infra-stacks.md) (`infra/**`).
 
@@ -69,6 +69,14 @@ unranked `GET /api/v1/graph`.
 [T-907](T-907-contract-ai-market-and-customer-one.md) (market research, done) chose no customer;
 [T-908](T-908-dora-register-field-source-check.md) (done) removed the DORA-register segment as customer
 one: about 14% of its mandatory fields come from contracts.
+
+**Positioning research, 2026-09-27.** [`research/evidence-first-temporal-contract-graph-prior-art.md`](../../research/evidence-first-temporal-contract-graph-prior-art.md)
+found prior art for each of the four guarantees and none documenting all four together over a contract
+portfolio (a dated, narrow finding, not a "first" claim). It also found DORA Art. 30 clause-gap tools already
+sold. Two docs-only tickets test whether the combination matters: [T-223](T-223-buyer-workflow-interviews.md)
+(real recent workflows with buyers) and [T-224](T-224-neutral-contract-lifecycle-benchmark.md) (a neutral
+event-level benchmark). The wedge in `ENTERPRISE_PLAN.md` Part 0.2 is a hypothesis under test, not a settled
+choice. [T-222](T-222-assertions-must-be-idempotent-on-retry.md) (assertion retry-safety) follows T-218.
 
 Two agents at once need separate git worktrees; they share one checkout otherwise, and a
 branch switch by one silently moves the other's commits.

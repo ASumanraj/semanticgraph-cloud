@@ -56,3 +56,12 @@ database-enforced isolation is invisible next to a SOC 2 certificate.
 Decision: do not pick a customer yet. Run four free checks first (T-908 covers the first two),
 then five interviews per segment with the falsifiers written in the synthesis. Claims that were
 not verified are listed there under "Evidence gaps".
+
+## Update 2026-09-27
+
+A follow-up prior-art and use-case pass is in
+[`research/evidence-first-temporal-contract-graph-prior-art.md`](../../research/evidence-first-temporal-contract-graph-prior-art.md).
+It does not change this ticket's decision (no customer yet). It adds a dated history, the "find every
+affected contract" events, a ranked use-case table, and one correction: DORA Art. 30 clause-gap checking
+is sold today. The validation tickets that follow are [T-223](T-223-buyer-workflow-interviews.md) and
+[T-224](T-224-neutral-contract-lifecycle-benchmark.md).
