@@ -304,3 +304,35 @@ in either order. Consider having the fast-suite step in `ci.yml` fail on unexpec
   set, so the route drops them and reports `truncated` even though no cap was hit.
 - `graph.py` repeats `hasattr(x, "value")` unwrapping and duplicates the edge filtering across both branches;
   a small mapper function would remove about half the file.
+
+## Review, slice 3 fix verified — 2026-09-30
+
+Reviewed PR #20 at `8d514a1`. Reproduced, not read off the report:
+
+- **The leak is fixed.** `postgres_api_client` now uses `monkeypatch.setenv`, clears the container cache
+  before and after, and restores in `finally`. The two scenarios that failed before now pass: the new
+  Postgres graph test followed by `tests/integration/control` gives 23 passed (was 4 passed, 19 skipped),
+  and the Postgres graph test followed by the in-memory graph API tests gives 10 passed (was a hang).
+- **Full suite:** 436 passed, 1 skipped, 2 deselected, with 0 skipped from `tests/integration/control`
+  (was 416 passed, 21 skipped). My one skip is `tests/live/test_gemini_smoke.py`, an environment-dependent
+  live test; agy reported a different single skip (the SQLite fallback). Both are environment-dependent.
+  `ruff check .` and `ruff format --check .` clean. Report's 87-passed order-independence runs not repeated
+  in full; my two targeted cross-order runs above cover the failure that was found.
+- **CI** run 36302221636: green on both jobs.
+
+**Out of scope but accepted:** `tests/conftest.py` gained an autouse fixture that re-enables the
+`semanticgraph` logger after every test. It is a workaround, not a fix: without it, the existing
+log-assertion test `test_hosted_model_dependencies_logged_and_visible` fails after the new Postgres graph
+tests run (reproduced). The cause is `alembic/env.py` calling `fileConfig(config.config_file_name)` with
+Python's default `disable_existing_loggers=True`, so any in-process migration disables the application
+loggers. I confirmed that `fileConfig(..., disable_existing_loggers=False)` alone makes the same run pass
+with the fixture removed. Filed as [T-225](T-225-stop-alembic-disabling-app-loggers.md).
+
+**Also noticed, not blocking:** the branch was rewritten since slice 3 was first reviewed (`2c589bd` is
+now `f3969dc`) and ends with two commits that have the same message (`0e89801`, `8d514a1`); squash on
+merge. `frontend/playwright-report/index.html` and `frontend/test-results/.last-run.json` are tracked
+generated files that are not ignored, so every E2E run dirties the tree and PR #20 carries a one-line
+change to one; also in T-225.
+
+Slice 3 accepted. Merge PR #20, then T-218's acceptance is met except the last line (`GraphExplorer`
+confirmation, done in this PR): set Status to done after the merge.
