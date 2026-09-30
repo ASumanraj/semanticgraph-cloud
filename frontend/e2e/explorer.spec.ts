@@ -45,14 +45,21 @@ test.describe('Graph Explorer', () => {
     await expect(explorerPage.nodes.first()).toBeVisible({ timeout: 10_000 });
 
     // 5. Click a node to inspect provenance
-    await explorerPage.selectFirstNode();
-
-    // 6. Verify evidence provenance in the properties panel
-    await expect(page.getByText('Grounded Provenance')).toBeVisible({ timeout: 5_000 });
-    await expect(page.getByText('Chunk ID')).toBeVisible();
-    await expect(explorerPage.quoteElement).toBeVisible();
-    const quoteText = await explorerPage.quoteElement.textContent();
-    expect(quoteText).toContain('Acme Corporation');
+    // When previous tests or multiple documents populated nodes, find the Acme Corporation node
+    const nodeCount = await explorerPage.nodes.count();
+    let found = false;
+    for (let i = 0; i < nodeCount; i++) {
+      await explorerPage.nodes.nth(i).click();
+      await expect(page.getByText('Grounded Provenance')).toBeVisible({ timeout: 5_000 });
+      await expect(page.getByText('Chunk ID')).toBeVisible();
+      await expect(explorerPage.quoteElement).toBeVisible();
+      const quoteText = await explorerPage.quoteElement.textContent();
+      if (quoteText && quoteText.includes('Acme Corporation')) {
+        found = true;
+        break;
+      }
+    }
+    expect(found).toBe(true);
 
     // 7. Capture screenshot for visual proof
     await page.screenshot({ path: 'e2e/screenshots/graph-explorer-provenance.png', fullPage: true });
