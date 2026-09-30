@@ -107,6 +107,7 @@ export function DocumentUpload() {
       
       {!file ? (
         <div
+          id="document-upload-dropzone"
           role="button"
           tabIndex={0}
           aria-label="Upload document dropzone"

@@ -9,16 +9,28 @@ export class GraphExplorerPage {
   readonly propertiesPanel: Locator;
   readonly quoteElement: Locator;
   readonly chunkIdElement: Locator;
+  readonly searchInput: Locator;
+  readonly clearSearchButton: Locator;
+  readonly errorState: Locator;
+  readonly retryButton: Locator;
+  readonly truncatedBanner: Locator;
+  readonly truncatedCounter: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.canvas = page.locator('.react-flow');
     this.nodes = page.locator('.react-flow__node');
     this.edges = page.locator('.react-flow__edge');
-    this.emptyState = page.getByText('No graph data available');
+    this.emptyState = page.getByText(/No graph yet/i);
     this.propertiesPanel = page.getByText('Properties');
     this.quoteElement = page.locator('blockquote');
     this.chunkIdElement = page.locator('text=Chunk ID');
+    this.searchInput = page.getByPlaceholder('Search entities...');
+    this.clearSearchButton = page.getByRole('button', { name: 'Clear search' });
+    this.errorState = page.getByText("Couldn't load the graph");
+    this.retryButton = page.getByRole('button', { name: 'Retry' });
+    this.truncatedBanner = page.getByText('Showing the first 200 entities. Narrow your search to see more.');
+    this.truncatedCounter = page.getByText('Showing 200 entities');
   }
 
   async goto() {
@@ -32,5 +44,9 @@ export class GraphExplorerPage {
   async selectNode(name: string) {
     const node = this.page.locator('.react-flow__node', { hasText: name });
     await node.first().click();
+  }
+
+  noMatchHeading(query: string): Locator {
+    return this.page.getByText(new RegExp(`No entities match .${query}.`, 'i'));
   }
 }

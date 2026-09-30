@@ -61,7 +61,145 @@ test.describe('Graph Explorer', () => {
     }
     expect(found).toBe(true);
 
-    // 7. Capture screenshot for visual proof
+    // 6. Capture screenshot for visual proof
     await page.screenshot({ path: 'e2e/screenshots/graph-explorer-provenance.png', fullPage: true });
+  });
+
+  test('search that matches nothing shows no-match state and never "No graph yet"', async ({ page }) => {
+    const explorerPage = new GraphExplorerPage(page);
+    await explorerPage.goto();
+
+    // Intercept graph search query that returns empty nodes
+    await page.route('**/api/v1/graph?*query=NonExistentEntityXYZ*', (route) => {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ nodes: [], edges: [], truncated: false }),
+      });
+    });
+
+    await explorerPage.searchInput.fill('NonExistentEntityXYZ');
+
+    // Assert no-match heading with query and clear search button are visible
+    await expect(explorerPage.noMatchHeading('NonExistentEntityXYZ')).toBeVisible({ timeout: 5000 });
+    await expect(explorerPage.clearSearchButton).toBeVisible();
+
+    // Assert "No graph yet" text is NEVER shown
+    await expect(page.getByText('No graph yet')).not.toBeVisible();
+
+    // Click "Clear search" and verify search input is reset
+    await explorerPage.clearSearchButton.click();
+    await expect(explorerPage.searchInput).toHaveValue('');
+  });
+
+  test('failed request shows error state with Retry and keeps previous graph visible behind it', async ({
+    page,
+  }) => {
+    const explorerPage = new GraphExplorerPage(page);
+
+    // Provide initial graph with 2 nodes
+    await page.route('**/api/v1/graph*', (route) => {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          nodes: [
+            { id: '11111111-1111-1111-1111-111111111111', name: 'Alpha Corp', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
+            { id: '22222222-2222-2222-2222-222222222222', name: 'Beta LLC', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
+          ],
+          edges: [],
+          truncated: false,
+        }),
+      });
+    });
+
+    await explorerPage.goto();
+    await expect(explorerPage.nodes.first()).toBeVisible({ timeout: 5000 });
+    expect(await explorerPage.nodes.count()).toBe(2);
+
+    // Subsequent search request fails with HTTP 500
+    await page.route('**/api/v1/graph?*query=FailSearch*', (route) => {
+      return route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ detail: 'Internal Server Error' }),
+      });
+    });
+
+    await explorerPage.searchInput.fill('FailSearch');
+
+    // Assert error state overlay is visible with Retry button
+    await expect(explorerPage.errorState).toBeVisible({ timeout: 5000 });
+    await expect(explorerPage.retryButton).toBeVisible();
+
+    // Assert previous graph is STILL visible behind the error overlay
+    await expect(explorerPage.canvas).toBeVisible();
+    expect(await explorerPage.nodes.count()).toBe(2);
+
+    // Restore working route
+    await page.route('**/api/v1/graph?*query=FailSearch*', (route) => {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          nodes: [
+            { id: '11111111-1111-1111-1111-111111111111', name: 'Alpha Corp', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
+          ],
+          edges: [],
+          truncated: false,
+        }),
+      });
+    });
+
+    // Click Retry and verify recovery
+    await explorerPage.retryButton.click();
+    await expect(explorerPage.errorState).not.toBeVisible({ timeout: 5000 });
+    await expect(explorerPage.nodes.first()).toBeVisible();
+  });
+
+  test('truncated banner appears only when API says truncated', async ({ page }) => {
+    const explorerPage = new GraphExplorerPage(page);
+
+    // 1. Mock response with truncated: true
+    await page.route('**/api/v1/graph*', (route) => {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          nodes: [
+            { id: '11111111-1111-1111-1111-111111111111', name: 'Alpha Corp', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
+            { id: '22222222-2222-2222-2222-222222222222', name: 'Beta LLC', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
+          ],
+          edges: [],
+          truncated: true,
+        }),
+      });
+    });
+
+    await explorerPage.goto();
+    await expect(explorerPage.truncatedBanner).toBeVisible({ timeout: 5000 });
+    await expect(explorerPage.truncatedCounter).toBeVisible();
+
+    // 2. Mock response with truncated: false
+    await page.route('**/api/v1/graph*', (route) => {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          nodes: [
+            { id: '11111111-1111-1111-1111-111111111111', name: 'Alpha Corp', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
+            { id: '22222222-2222-2222-2222-222222222222', name: 'Beta LLC', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
+          ],
+          edges: [],
+          truncated: false,
+        }),
+      });
+    });
+
+    await page.reload();
+    await expect(explorerPage.nodes.first()).toBeVisible({ timeout: 5000 });
+    await expect(explorerPage.truncatedBanner).not.toBeVisible();
+    await expect(explorerPage.truncatedCounter).not.toBeVisible();
+    await expect(page.getByText('2 nodes active · 0 edges')).toBeVisible();
   });
 });
