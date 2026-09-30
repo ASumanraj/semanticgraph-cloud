@@ -5,7 +5,7 @@ from __future__ import annotations
 from uuid import UUID
 
 from semanticgraph.domain.models.entities import TenantId
-from semanticgraph.domain.provenance.models import Fact
+from semanticgraph.domain.provenance.models import Assertion, Fact
 
 
 class InMemoryAssertionStore:
@@ -14,6 +14,44 @@ class InMemoryAssertionStore:
     def __init__(self) -> None:
         # tenant_id -> {fact_id: Fact}
         self._facts: dict[UUID, dict[UUID, Fact]] = {}
+
+    @staticmethod
+    def _assertions_match(x: Assertion, y: Assertion) -> bool:
+        if x.id == y.id:
+            return True
+        x_doc = x.document_id.value if hasattr(x.document_id, "value") else x.document_id
+        y_doc = y.document_id.value if hasattr(y.document_id, "value") else y.document_id
+        x_chunk = (
+            x.chunk_id.value
+            if hasattr(x.chunk_id, "value")
+            else (
+                x.chunk_id
+                or (
+                    x.spans[0].chunk_id.value
+                    if (x.spans and hasattr(x.spans[0].chunk_id, "value"))
+                    else (x.spans[0].chunk_id if x.spans else None)
+                )
+            )
+        )
+        y_chunk = (
+            y.chunk_id.value
+            if hasattr(y.chunk_id, "value")
+            else (
+                y.chunk_id
+                or (
+                    y.spans[0].chunk_id.value
+                    if (y.spans and hasattr(y.spans[0].chunk_id, "value"))
+                    else (y.spans[0].chunk_id if y.spans else None)
+                )
+            )
+        )
+        if x_doc is not None and y_doc is not None and x_doc != y_doc:
+            return False
+        if x_chunk is not None and y_chunk is not None and x_chunk != y_chunk:
+            return False
+        x_spans = sorted((s.start_offset, s.end_offset, s.quote) for s in x.spans)
+        y_spans = sorted((s.start_offset, s.end_offset, s.quote) for s in y.spans)
+        return x_spans == y_spans
 
     async def save_fact(self, tenant_id: TenantId, fact: Fact) -> None:
         """Persists a Fact together with its mandatory Assertions and EvidenceSpans."""
@@ -28,9 +66,14 @@ class InMemoryAssertionStore:
         if existing is not None:
             existing.claim = fact.claim
             for a in fact.assertions:
-                if not any(x.id == a.id for x in existing.assertions):
+                if not any(self._assertions_match(x, a) for x in existing.assertions):
                     existing.assertions.append(a)
         else:
+            unique_assertions: list[Assertion] = []
+            for a in fact.assertions:
+                if not any(self._assertions_match(x, a) for x in unique_assertions):
+                    unique_assertions.append(a)
+            fact.assertions = unique_assertions
             tenant_facts[fact.id] = fact
 
     async def get_fact(self, tenant_id: TenantId, fact_id: UUID) -> Fact | None:

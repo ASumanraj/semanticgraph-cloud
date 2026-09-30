@@ -142,16 +142,35 @@ class IngestDocumentUseCase:
                     fact_id = uuid5(NAMESPACE_URL, f"{command.tenant_id.value}:{claim}")
                     a.document_id = command.document_id
                     a.fact_id = fact_id
+
+                    chunk_id_val = chunk.id.value if hasattr(chunk.id, "value") else str(chunk.id)
+                    spans_key = ";".join(
+                        f"{s.start_offset}:{s.end_offset}:{s.quote}" for s in a.spans
+                    )
+                    assertion_key = (
+                        f"{command.tenant_id.value}:{fact_id}:"
+                        f"{command.document_id}:{chunk_id_val}:{spans_key}"
+                    )
+                    stable_assertion_id = uuid5(NAMESPACE_URL, assertion_key)
+                    a.id = stable_assertion_id
+
+                    prov_chunk_id = (
+                        chunk.id if isinstance(chunk.id, ChunkId) else ChunkId(value=chunk.id)
+                    )
                     domain_assertion = ProvenanceAssertion(
-                        id=a.id,
+                        id=stable_assertion_id,
                         tenant_id=command.tenant_id,
                         claim=claim,
                         document_id=command.document_id,
-                        chunk_id=a.chunk_id or (a.spans[0].chunk_id if a.spans else None),
+                        chunk_id=prov_chunk_id,
                         fact_id=fact_id,
                         spans=[
                             ProvenanceEvidenceSpan(
-                                chunk_id=s.chunk_id,
+                                chunk_id=(
+                                    s.chunk_id
+                                    if isinstance(s.chunk_id, ChunkId)
+                                    else ChunkId(value=s.chunk_id)
+                                ),
                                 start_offset=s.start_offset,
                                 end_offset=s.end_offset,
                                 quote=s.quote,

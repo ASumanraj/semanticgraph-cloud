@@ -21,12 +21,22 @@ from semanticgraph.application.use_cases.ingest_document import (
     IngestDocumentUseCase,
 )
 from semanticgraph.domain.models.entities import (
+    ChunkId,
     Edge,
     EvidenceSpan,
     Ontology,
     RawEntity,
     SemanticChunk,
     TenantId,
+)
+from semanticgraph.domain.provenance.models import (
+    Assertion as ProvenanceAssertion,
+)
+from semanticgraph.domain.provenance.models import (
+    EvidenceSpan as ProvenanceSpan,
+)
+from semanticgraph.domain.provenance.models import (
+    Fact,
 )
 
 # --- Tests ---
@@ -287,3 +297,136 @@ class TestIngestDocumentUseCase:
         """Constructing IngestDocumentUseCase with missing dependencies must raise TypeError."""
         with pytest.raises(TypeError):
             IngestDocumentUseCase()  # type: ignore[call-arg]
+
+    @pytest.mark.asyncio
+    async def test_ingest_document_called_twice_is_idempotent_in_assertion_store(
+        self, use_case, assertion_store, tenant_id, ontology
+    ):
+        """Calling IngestDocumentUseCase twice with identical command leaves
+
+        facts and assertions unchanged in InMemoryAssertionStore (idempotent on retry).
+        """
+        doc_id = uuid4()
+        command = IngestDocumentCommand(
+            tenant_id=tenant_id,
+            document_id=doc_id,
+            document_bytes=b"Apple acquired Beats Electronics in 2014.",
+            ontology=ontology,
+            filename="apple.txt",
+        )
+
+        # Run 1
+        await use_case.execute(command)
+        facts_run1 = await assertion_store.get_live_facts(tenant_id)
+        assert len(facts_run1) == 1
+        assert len(facts_run1[0].assertions) == 1
+        assertion_id_1 = facts_run1[0].assertions[0].id
+
+        # Run 2 (retry)
+        await use_case.execute(command)
+        facts_run2 = await assertion_store.get_live_facts(tenant_id)
+        assert len(facts_run2) == 1
+        assert len(facts_run2[0].assertions) == 1
+        assert facts_run2[0].assertions[0].id == assertion_id_1
+
+    @pytest.mark.asyncio
+    async def test_two_different_documents_same_claim_one_fact_two_assertions(
+        self, use_case, assertion_store, tenant_id, ontology
+    ):
+        """Two documents asserting the same claim yield one fact with two assertions.
+
+        Deleting one leaves the fact alive with one assertion (Rule 4).
+        """
+        doc1_id = uuid4()
+        doc2_id = uuid4()
+        cmd1 = IngestDocumentCommand(
+            tenant_id=tenant_id,
+            document_id=doc1_id,
+            document_bytes=b"Apple acquired Beats Electronics in 2014.",
+            ontology=ontology,
+            filename="doc1.txt",
+        )
+        cmd2 = IngestDocumentCommand(
+            tenant_id=tenant_id,
+            document_id=doc2_id,
+            document_bytes=b"Apple acquired Beats Electronics in 2014.",
+            ontology=ontology,
+            filename="doc2.txt",
+        )
+
+        await use_case.execute(cmd1)
+        await use_case.execute(cmd2)
+
+        live_facts = await assertion_store.get_live_facts(tenant_id)
+        assert len(live_facts) == 1
+        assert len(live_facts[0].assertions) == 2
+
+        # Delete assertion 1
+        a1_id = live_facts[0].assertions[0].id
+        await assertion_store.delete_assertion(tenant_id, a1_id)
+
+        live_facts_after = await assertion_store.get_live_facts(tenant_id)
+        assert len(live_facts_after) == 1
+        assert len(live_facts_after[0].assertions) == 1
+
+        # Delete assertion 2 -> fact is dead
+        a2_id = live_facts_after[0].assertions[0].id
+        await assertion_store.delete_assertion(tenant_id, a2_id)
+        assert len(await assertion_store.get_live_facts(tenant_id)) == 0
+
+
+class TestInMemoryAssertionStoreUnit:
+    @pytest.mark.asyncio
+    async def test_save_fact_deduplicates_matching_assertions_without_duplicate_count(
+        self, tenant_id
+    ):
+        """Direct unit test: InMemoryAssertionStore.save_fact does not duplicate assertions
+
+        when saved repeatedly with matching (document_id, chunk_id, spans) or matching id.
+        """
+        store = InMemoryAssertionStore()
+        chunk_id = ChunkId(uuid4())
+        doc_id = uuid4()
+        span = ProvenanceSpan(
+            chunk_id=chunk_id,
+            start_offset=0,
+            end_offset=5,
+            quote="Apple",
+        )
+        a1 = ProvenanceAssertion(
+            tenant_id=tenant_id,
+            spans=[span],
+            document_id=doc_id,
+            chunk_id=chunk_id,
+            claim="Apple claim",
+        )
+        fact1 = Fact(
+            tenant_id=tenant_id,
+            claim="Apple claim",
+            assertions=[a1],
+        )
+
+        await store.save_fact(tenant_id, fact1)
+        res1 = await store.get_fact(tenant_id, fact1.id)
+        assert res1 is not None
+        assert len(res1.assertions) == 1
+
+        # Re-save with another assertion object having different random ID
+        # but same doc, chunk, spans
+        a2 = ProvenanceAssertion(
+            tenant_id=tenant_id,
+            spans=[span],
+            document_id=doc_id,
+            chunk_id=chunk_id,
+            claim="Apple claim",
+        )
+        fact2 = Fact(
+            id=fact1.id,
+            tenant_id=tenant_id,
+            claim="Apple claim",
+            assertions=[a2],
+        )
+        await store.save_fact(tenant_id, fact2)
+        res2 = await store.get_fact(tenant_id, fact1.id)
+        assert res2 is not None
+        assert len(res2.assertions) == 1

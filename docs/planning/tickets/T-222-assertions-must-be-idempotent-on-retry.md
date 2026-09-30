@@ -35,8 +35,8 @@ span-verification behaviour untouched.
 
 ## Acceptance
 
-- [ ] Ingesting the same document twice leaves `facts`, `assertions` and `evidence_spans` unchanged after the second run, proven with raw SQL on a real Postgres (not the store's own reader)
-- [ ] The test fails on `main` before the fix
-- [ ] Two different documents asserting the same claim still give one fact with two assertions (Rule 4 unaffected), and deleting one leaves the fact alive
-- [ ] The in-memory adapter behaves the same, with a unit test
-- [ ] Full suite green under a real Postgres, `ruff check .` clean
+- [x] Ingesting the same document twice leaves `facts`, `assertions` and `evidence_spans` unchanged after the second run, proven with raw SQL on a real Postgres (not the store's own reader)
+- [x] The test fails on `main` before the fix
+- [x] Two different documents asserting the same claim still give one fact with two assertions (Rule 4 unaffected), and deleting one leaves the fact alive
+- [x] The in-memory adapter behaves the same, with a unit test
+- [x] Full suite green under a real Postgres, `ruff check .` clean
