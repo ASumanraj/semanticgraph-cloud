@@ -1,6 +1,6 @@
 # T-222 · Retrying ingestion adds a second assertion per fact
 
-**Stage** 3 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-222-idempotent-assertions`
+**Stage** 3 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-222-idempotent-assertions`
 
 **Scope**
 - `src/semanticgraph/application/use_cases/ingest_document.py`
@@ -40,3 +40,13 @@ span-verification behaviour untouched.
 - [x] Two different documents asserting the same claim still give one fact with two assertions (Rule 4 unaffected), and deleting one leaves the fact alive
 - [x] The in-memory adapter behaves the same, with a unit test
 - [x] Full suite green under a real Postgres, `ruff check .` clean
+
+## Review, verified and merged — 2026-09-30
+
+Reviewed PR #21 (`d59df29`), merged. Reproduced: three of the new tests (the raw-SQL retry test and two
+unit tests) fail against the previous source and pass on the fix; the two-document Rule 4 tests pass both
+ways, as intended. Full suite 441 passed, 1 skipped (live Gemini smoke test); Postgres integration
+directory 62 passed, 0 skipped; `ruff` clean; CI run 36683827728 green. Non-blocking: both stores repeat
+`hasattr(x, "value")` unwrapping that a small helper would halve. Untested gap: re-ingesting the *same*
+document id with *changed* text would probably leave old entities and assertions beside the new ones
+(chunk ids come from document id and position); check before building an "update a document" feature.

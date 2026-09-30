@@ -1,6 +1,6 @@
 # T-225 · Migrations silently disable the application loggers; generated test output is tracked
 
-**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-225-alembic-logger-and-generated-files`
+**Stage** 2 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-225-alembic-logger-and-generated-files`
 
 **Scope**
 - `alembic/env.py`
@@ -47,3 +47,14 @@ dirty and unrelated PRs pick up diffs in them. The spec also writes screenshots 
 - [x] Full suite green under a real Postgres, 0 skipped from `tests/integration/control`, `ruff check .` clean
 - [x] A fresh `npm run test:e2e` leaves `git status` clean
 - [x] CI green
+
+## Review, verified and merged — 2026-09-30
+
+Reviewed PR #22 (`427921f`), merged. With the `conftest.py` workaround removed in both runs, the Postgres
+graph tests followed by `test_hosted_model_dependencies_logged_and_visible` give 10 passed with
+`disable_existing_loggers=False` and 1 failed without it, so the `env.py` change is the cause. A local
+`npx playwright test` (2 passed) left `git status` clean. Full suite 436 passed, 1 skipped; `ruff` clean;
+CI run 36689281396 green. Two changes beyond the ticket, accepted: `workers: 1` in
+`playwright.config.ts`, and the explorer spec now clicks nodes until one's quote contains "Acme
+Corporation" (still fails if none does). The real cause is that the upload and explorer specs share one
+in-memory backend and tenant with no cleanup; a per-test tenant id would fix it properly.
