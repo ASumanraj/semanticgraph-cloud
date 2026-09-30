@@ -97,26 +97,40 @@ export function DocumentUpload() {
   };
 
   return (
-    <div className="w-full h-full flex flex-col relative z-10">
-      <h2 className="text-2xl font-bold mb-6 text-white tracking-tight">Upload Document</h2>
+    <div className="w-full flex flex-col">
+      <div className="mb-4">
+        <h2 className="text-xl md:text-2xl font-semibold text-text tracking-tight">Upload Document</h2>
+        <p className="text-xs md:text-sm text-muted mt-1">
+          Upload a contract or document to extract entities and relationships linked to exact source text.
+        </p>
+      </div>
       
       {!file ? (
         <div
-          className={`flex-1 flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all duration-300 backdrop-blur-md ${
+          role="button"
+          tabIndex={0}
+          aria-label="Upload document dropzone"
+          className={`flex flex-col items-center justify-center border border-dashed rounded-lg p-8 md:p-12 text-center cursor-pointer transition-all duration-200 focus-visible:ring-2 focus-visible:ring-teal focus-visible:outline-none ${
             isDragging 
-              ? "border-blue-400 bg-blue-500/10 shadow-[0_0_30px_rgba(59,130,246,0.3)]" 
-              : "border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10"
+              ? "border-teal bg-teal/5 shadow-[0_0_20px_rgba(45,212,191,0.15)]" 
+              : "border-border bg-page hover:border-teal/50 hover:bg-panel/40"
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              fileInputRef.current?.click();
+            }
+          }}
         >
-          <div className={`p-4 rounded-full mb-4 transition-colors duration-300 ${isDragging ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 text-zinc-400'}`}>
-            <UploadCloud className="w-10 h-10" />
+          <div className="p-3.5 rounded-full mb-3 bg-panel text-teal border border-border inline-flex items-center justify-center">
+            <UploadCloud className="w-7 h-7" />
           </div>
-          <p className="text-zinc-200 font-medium text-lg mb-2">Click or drag document here</p>
-          <p className="text-sm text-zinc-500">Supports PDF, DOCX, TXT</p>
+          <p className="text-text font-medium text-base mb-1">Click or drag document here</p>
+          <p className="text-xs text-muted">Supports PDF, DOCX, TXT</p>
           <input
             type="file"
             className="hidden"
@@ -125,24 +139,25 @@ export function DocumentUpload() {
           />
         </div>
       ) : (
-        <div className="flex flex-col space-y-6 flex-1 justify-center">
-          <div className="flex items-center justify-between p-5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-blue-500/20 rounded-xl">
-                <FileIcon className="w-8 h-8 text-blue-400" />
+        <div className="flex flex-col space-y-4">
+          <div className="flex items-center justify-between p-4 bg-page rounded-lg border border-border">
+            <div className="flex items-center space-x-3 min-w-0">
+              <div className="p-2.5 bg-panel text-cyan rounded-lg border border-border shrink-0">
+                <FileIcon className="w-6 h-6" />
               </div>
-              <div>
-                <p className="font-medium text-white line-clamp-1">{file.name}</p>
-                <p className="text-sm text-zinc-400">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+              <div className="min-w-0">
+                <p className="font-medium text-text text-sm truncate">{file.name}</p>
+                <p className="text-xs text-muted">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
               </div>
             </div>
             {!isUploading && !uploadComplete && (
               <button
+                type="button"
                 onClick={() => {
                   setFile(null);
                   setErrorMessage(null);
                 }}
-                className="p-2 text-zinc-400 hover:text-red-400 transition-colors rounded-full hover:bg-white/10"
+                className="p-2 text-muted hover:text-error hover:bg-panel rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal focus-visible:outline-none"
                 disabled={isUploading}
                 aria-label="Remove selected file"
               >
@@ -150,26 +165,27 @@ export function DocumentUpload() {
               </button>
             )}
             {uploadComplete && (
-              <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+              <CheckCircle2 className="w-5 h-5 text-teal shrink-0" />
             )}
           </div>
 
           {errorMessage && (
-            <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
-              <AlertCircle className="w-5 h-5 shrink-0" />
+            <div className="flex items-center gap-2 p-3 bg-error/10 border border-error/30 rounded-lg text-error text-xs">
+              <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{errorMessage}</span>
             </div>
           )}
           
           <button
+            type="button"
             onClick={uploadDocument}
             disabled={isUploading || uploadComplete}
-            className={`w-full py-4 px-6 rounded-xl font-medium text-white shadow-lg transition-all duration-300 ${
+            className={`w-full py-3.5 px-6 rounded-lg font-semibold text-page transition-all focus-visible:ring-2 focus-visible:ring-teal focus-visible:outline-none ${
               uploadComplete 
-                ? "bg-emerald-500/80 hover:bg-emerald-500/80 cursor-default" 
+                ? "bg-teal cursor-default flex items-center justify-center gap-2" 
                 : isUploading
-                  ? "bg-blue-600/50 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-500 hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:-translate-y-0.5"
+                  ? "bg-teal/50 text-page/70 cursor-not-allowed"
+                  : "bg-teal hover:opacity-95 active:scale-[0.99] shadow-[0_0_15px_rgba(45,212,191,0.2)]"
             }`}
           >
             {uploadComplete ? "Upload Complete!" : isUploading ? "Processing..." : "Extract Knowledge"}
