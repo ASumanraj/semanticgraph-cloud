@@ -1,6 +1,6 @@
 # T-222 · Retrying ingestion adds a second assertion per fact
 
-**Stage** 3 · **Type** work · **Status** open · **Owner** — · **Branch** `t-222-idempotent-assertions`
+**Stage** 3 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-222-idempotent-assertions`
 
 **Scope**
 - `src/semanticgraph/application/use_cases/ingest_document.py`
