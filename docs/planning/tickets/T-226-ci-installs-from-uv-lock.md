@@ -1,6 +1,6 @@
 # T-226 · CI installs from `uv.lock`, so the lockfile guarantees what CI tests
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-226-ci-installs-from-uv-lock`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-226-ci-installs-from-uv-lock`
 
 **Scope**
 - `.github/workflows/ci.yml`
