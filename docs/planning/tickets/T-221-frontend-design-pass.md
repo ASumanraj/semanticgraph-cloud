@@ -45,19 +45,34 @@ describes the pipeline must match what the running system does.
    panel for the selected node or edge. Edge selection is new behaviour (React Flow supports it): show edge
    type, weight, valid from/to and quote. Show the `truncated` notice only when the response says so, and
    the empty state when there are no nodes.
-3. **Motion, restrained and on purpose.** Use `framer-motion` (already installed) for: the properties
-   panel sliding in on selection, node and edge fade-in on first load, and page-level transitions; CSS for
-   hover, focus and loading states. Keep durations short (about 150-250 ms), animate only `transform` and
-   `opacity`, and honour `prefers-reduced-motion`. No decorative looping animation.
-4. **Accessibility basics.** Text contrast of at least 4.5:1 against its background (check edges and muted
+3. **Interactions that explain the data.** All of these use only what the API already returns:
+   - Hovering a node brightens it and its connected edges and dims the rest (client-side, from the edges
+     in the response).
+   - Clicking a node or an edge opens the properties panel with its quote and chunk id.
+   - Double-clicking a node loads its neighbourhood with `GET /api/v1/graph?query=<name>&depth=1`; the
+     new nodes ease in from the clicked node. Show a loading and an error state.
+   - Search-as-you-type (debounced) and the depth control reload the graph, and nodes glide to their new
+     positions instead of jumping.
+   - Entity-type filter chips with counts, applied on the client.
+   - Keyboard: `/` focuses search, arrow keys move between connected nodes, `Esc` clears the selection.
+   - After an upload, the entities that appeared get a short "new" accent so the link between the upload
+     and the graph is visible.
+   - Edges are static; animate only on hover and selection. Remove the always-on flowing dashes and glow
+     the component has today.
+4. **Motion, restrained and on purpose.** Use `framer-motion` (already installed) for the panel sliding in,
+   nodes easing in, and layout transitions; CSS for hover, focus and loading states. Keep durations short
+   (about 150-250 ms), animate only `transform` and `opacity`, and honour `prefers-reduced-motion`. No
+   looping decorative animation and no physics layout that never settles.
+5. **Accessibility basics.** Text contrast of at least 4.5:1 against its background (check edges and muted
    text on `#050810`), visible focus rings, keyboard selection of nodes, and labels on the controls.
-5. **Responsive.** The layout works at 1440 and at 390 px width (sidebar collapses, panel becomes a sheet).
-6. Do not change the backend or the API contract. If a screen needs a field that does not exist, file a
+6. **Responsive.** The layout works at 1440 and at 390 px width (sidebar collapses, panel becomes a sheet).
+7. Do not change the backend or the API contract. If a screen needs a field that does not exist, file a
    ticket instead.
 
 ## Acceptance
 
 - [ ] Tokens live in `@theme` and no component hard-codes a colour
+- [ ] Playwright tests, in a real browser against the running API, for: hover highlighting (neighbours emphasised, others dimmed), click-to-inspect showing the exact quote, double-click expansion adding nodes, a type filter hiding nodes, and keyboard navigation
 - [ ] Real-browser Playwright screenshots of the upload screen, the explorer with a selected node, the explorer with a selected edge, the empty state and the truncated notice, at 1440 and at 390 px, attached to the PR and compared with the exported Penpot boards
 - [ ] A test or a written check for each element in the honesty rule's list of API fields, and none for anything outside it
 - [ ] The E2E suite still passes and leaves `git status` clean; the React Flow `nodeTypes`/`edgeTypes` warning is gone
@@ -71,3 +86,12 @@ N"). That is a separate gap (a real-extractor demo) and is not solved here. Do n
 look like real extraction: if the UI can tell, label it; if it cannot, say nothing it cannot support.
 Read `frontend/AGENTS.md` first: this Next.js version has breaking changes and its docs are in
 `node_modules/next/dist/docs/`.
+
+## Parked ideas (need a backend change; do not build here)
+
+Keep these for after [T-223](T-223-buyer-workflow-interviews.md) shows buyers care, each as its own ticket:
+an **as-of time slider** (the API has no as-of parameter, and extracted edges probably have empty
+`valid_from`/`valid_to`, so it would show nothing meaningful today); a **"what would deleting this
+document remove?" preview** (needs a dry-run deletion endpoint; it demonstrates the deletion guarantee
+directly); and **"view in source"** with the quote highlighted in the full chunk (needs a chunk-text
+endpoint).
