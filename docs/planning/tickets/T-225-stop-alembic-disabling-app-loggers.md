@@ -1,6 +1,6 @@
 # T-225 · Migrations silently disable the application loggers; generated test output is tracked
 
-**Stage** 2 · **Type** work · **Status** open · **Owner** — · **Branch** `t-225-alembic-logger-and-generated-files`
+**Stage** 2 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-225-alembic-logger-and-generated-files`
 
 **Scope**
 - `alembic/env.py`
