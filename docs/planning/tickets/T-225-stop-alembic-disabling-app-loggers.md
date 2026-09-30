@@ -38,7 +38,7 @@ dirty and unrelated PRs pick up diffs in them. The spec also writes screenshots 
 
 ## Acceptance
 
-- [ ] With the `conftest.py` fixture removed, the Postgres graph API tests followed by `tests/integration/adapters/api/test_facts_and_deletion_api.py` pass in one process (they fail without the `env.py` fix)
-- [ ] Full suite green under a real Postgres, 0 skipped from `tests/integration/control`, `ruff check .` clean
-- [ ] A fresh `npm run test:e2e` leaves `git status` clean
-- [ ] CI green
+- [x] With the `conftest.py` fixture removed, the Postgres graph API tests followed by `tests/integration/adapters/api/test_facts_and_deletion_api.py` pass in one process (they fail without the `env.py` fix)
+- [x] Full suite green under a real Postgres, 0 skipped from `tests/integration/control`, `ruff check .` clean
+- [x] A fresh `npm run test:e2e` leaves `git status` clean
+- [x] CI green
