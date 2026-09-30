@@ -8,6 +8,8 @@
 - `.gitignore`
 - `frontend/playwright-report/**`
 - `frontend/test-results/**`
+- `frontend/playwright.config.ts`
+- `frontend/e2e/explorer.spec.ts`
 
 **Blocked by** [T-218](T-218-persist-graph-and-expose-it-over-http.md) merging (its PR adds the `conftest.py` workaround and modifies `playwright-report`) · **Blocks** —
 
@@ -35,10 +37,13 @@ dirty and unrelated PRs pick up diffs in them. The spec also writes screenshots 
   fixture from `tests/conftest.py`.
 - `git rm --cached` the two generated files and ignore `playwright-report/`, `test-results/` and
   `e2e/screenshots/` (decide whether the one screenshot worth keeping as evidence goes under `docs/`).
+- Scope extended to `frontend/playwright.config.ts` and `frontend/e2e/explorer.spec.ts`: set `workers: 1`
+  to prevent parallel test workers clobbering the shared backend dev server, and make node selection in
+  `explorer.spec.ts` resilient by inspecting nodes for the expected quote if multiple documents exist.
 
 ## Acceptance
 
 - [x] With the `conftest.py` fixture removed, the Postgres graph API tests followed by `tests/integration/adapters/api/test_facts_and_deletion_api.py` pass in one process (they fail without the `env.py` fix)
 - [x] Full suite green under a real Postgres, 0 skipped from `tests/integration/control`, `ruff check .` clean
 - [x] A fresh `npm run test:e2e` leaves `git status` clean
-- [x] CI green
+- [ ] CI green

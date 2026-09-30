@@ -8,6 +8,7 @@ const pythonExe = process.platform === 'win32'
 
 export default defineConfig({
   testDir: './e2e',
+  workers: 1,
   use: {
     baseURL: 'http://localhost:3000',
     screenshot: 'only-on-failure',
