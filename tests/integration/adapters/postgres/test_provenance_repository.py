@@ -30,15 +30,34 @@ from semanticgraph.adapters.outbound.extraction.contract import (
     ExtractedSpanEvidence,
 )
 from semanticgraph.adapters.outbound.extraction.processor import ExtractionProcessor
+from semanticgraph.adapters.outbound.inmemory import (
+    DeterministicLLMGateway,
+    InMemoryTaskPublisher,
+)
+from semanticgraph.adapters.outbound.postgres.deletion_repository import (
+    PostgresDeletionRepository,
+)
 from semanticgraph.adapters.outbound.postgres.document_repository import (
     PostgresDocumentRepository,
+)
+from semanticgraph.adapters.outbound.postgres.graph_repository import (
+    PostgresEntityStore,
 )
 from semanticgraph.adapters.outbound.postgres.provenance_repository import (
     PostgresProvenanceRepository,
 )
+from semanticgraph.application.use_cases.delete_document import (
+    DeleteDocumentCommand,
+    DeleteDocumentUseCase,
+)
+from semanticgraph.application.use_cases.ingest_document import (
+    IngestDocumentCommand,
+    IngestDocumentUseCase,
+)
 from semanticgraph.domain.models.entities import (
     ChunkId,
     Document,
+    Ontology,
     SemanticChunk,
     TenantId,
 )
@@ -74,12 +93,32 @@ def app_db_url(migrated_postgres: str) -> str:
 def clean_db(migrated_postgres: str):
     with psycopg.connect(migrated_postgres, autocommit=True) as conn, conn.cursor() as cur:
         cur.execute(
-            "TRUNCATE TABLE evidence_spans, assertions, facts, semantic_chunks, documents CASCADE;"
+            """
+            TRUNCATE TABLE
+                edges,
+                entities,
+                evidence_spans,
+                assertions,
+                facts,
+                semantic_chunks,
+                documents
+            CASCADE;
+            """
         )
     yield
     with psycopg.connect(migrated_postgres, autocommit=True) as conn, conn.cursor() as cur:
         cur.execute(
-            "TRUNCATE TABLE evidence_spans, assertions, facts, semantic_chunks, documents CASCADE;"
+            """
+            TRUNCATE TABLE
+                edges,
+                entities,
+                evidence_spans,
+                assertions,
+                facts,
+                semantic_chunks,
+                documents
+            CASCADE;
+            """
         )
 
 
@@ -100,6 +139,16 @@ def provenance_repo(session_factory) -> PostgresProvenanceRepository:
 @pytest.fixture
 def document_repo(session_factory) -> PostgresDocumentRepository:
     return PostgresDocumentRepository(session_factory=session_factory)
+
+
+@pytest.fixture
+def entity_store(session_factory) -> PostgresEntityStore:
+    return PostgresEntityStore(session_factory=session_factory)
+
+
+@pytest.fixture
+def deletion_repo(session_factory) -> PostgresDeletionRepository:
+    return PostgresDeletionRepository(session_factory=session_factory)
 
 
 @pytest.mark.asyncio
@@ -345,3 +394,188 @@ class TestProvenancePersistenceAndRoundTrip:
 
             res_spans = await session.execute(text("SELECT count(*) FROM evidence_spans;"))
             assert res_spans.scalar() == 0
+
+
+@pytest.mark.asyncio
+class TestIdempotentAssertionsOnRetry:
+    async def test_ingest_document_called_twice_assertions_and_spans_idempotent_raw_sql(
+        self, document_repo, entity_store, provenance_repo, app_db_url: str, clean_db
+    ):
+        """T-222 Acceptance 1 & 2: Ingesting the same document twice leaves facts,
+
+        assertions and evidence_spans unchanged after the second run, proven with
+        raw SQL on a real Postgres (not the store's own reader).
+        """
+        tenant_id = TenantId(uuid4())
+        ontology = Ontology(
+            tenant_id=tenant_id,
+            name="Tech Ontology",
+            allowed_entity_types=["Organization", "Technology"],
+            allowed_edge_types=["DEVELOPS", "USES"],
+        )
+
+        use_case = IngestDocumentUseCase(
+            document_repo=document_repo,
+            entity_store=entity_store,
+            llm_gateway=DeterministicLLMGateway(),
+            task_publisher=InMemoryTaskPublisher(),
+            assertion_store=provenance_repo,
+        )
+
+        doc_id = uuid4()
+        text_content = (
+            "OpenAI developed GPT-4 in San Francisco.\n\n"
+            "Anthropic introduced Claude to enterprise customers."
+        )
+
+        command = IngestDocumentCommand(
+            tenant_id=tenant_id,
+            document_id=doc_id,
+            document_bytes=text_content.encode("utf-8"),
+            ontology=ontology,
+            filename="ai_models.txt",
+        )
+
+        # Run 1
+        await use_case.execute(command)
+
+        with psycopg.connect(app_db_url) as conn, conn.cursor() as cur:
+            cur.execute(
+                "SELECT set_config('app.current_tenant_id', %s, false);",
+                (str(tenant_id.value),),
+            )
+            cur.execute("SELECT count(*) FROM facts;")
+            facts_1 = cur.fetchone()[0]
+            cur.execute("SELECT count(*) FROM assertions;")
+            assertions_1 = cur.fetchone()[0]
+            cur.execute("SELECT count(*) FROM evidence_spans;")
+            spans_1 = cur.fetchone()[0]
+
+            assert (facts_1, assertions_1, spans_1) == (2, 2, 2)
+
+        # Run 2 (retry / re-ingest of identical document)
+        await use_case.execute(command)
+
+        with psycopg.connect(app_db_url) as conn, conn.cursor() as cur:
+            cur.execute(
+                "SELECT set_config('app.current_tenant_id', %s, false);",
+                (str(tenant_id.value),),
+            )
+            cur.execute("SELECT count(*) FROM facts;")
+            facts_2 = cur.fetchone()[0]
+            cur.execute("SELECT count(*) FROM assertions;")
+            assertions_2 = cur.fetchone()[0]
+            cur.execute("SELECT count(*) FROM evidence_spans;")
+            spans_2 = cur.fetchone()[0]
+
+            assert (facts_2, assertions_2, spans_2) == (2, 2, 2)
+
+    async def test_two_different_documents_same_claim_one_fact_two_assertions_delete_one(
+        self,
+        document_repo,
+        entity_store,
+        provenance_repo,
+        deletion_repo,
+        app_db_url: str,
+        clean_db,
+    ):
+        """T-222 Acceptance 3: Two different documents asserting the same claim still
+
+        give one fact with two assertions (Rule 4 unaffected), and deleting one
+        leaves the fact alive.
+        """
+        tenant_id = TenantId(uuid4())
+        ontology = Ontology(
+            tenant_id=tenant_id,
+            name="Tech Ontology",
+            allowed_entity_types=["Organization", "Technology"],
+            allowed_edge_types=["DEVELOPS", "USES"],
+        )
+
+        use_case = IngestDocumentUseCase(
+            document_repo=document_repo,
+            entity_store=entity_store,
+            llm_gateway=DeterministicLLMGateway(),
+            task_publisher=InMemoryTaskPublisher(),
+            assertion_store=provenance_repo,
+        )
+
+        # Two different documents with text that asserts the same claim:
+        doc1_id = uuid4()
+        doc2_id = uuid4()
+        text1 = "OpenAI developed GPT-4 in San Francisco."
+        text2 = "OpenAI developed GPT-4 in San Francisco."
+
+        cmd1 = IngestDocumentCommand(
+            tenant_id=tenant_id,
+            document_id=doc1_id,
+            document_bytes=text1.encode("utf-8"),
+            ontology=ontology,
+            filename="doc1.txt",
+        )
+        cmd2 = IngestDocumentCommand(
+            tenant_id=tenant_id,
+            document_id=doc2_id,
+            document_bytes=text2.encode("utf-8"),
+            ontology=ontology,
+            filename="doc2.txt",
+        )
+
+        await use_case.execute(cmd1)
+        await use_case.execute(cmd2)
+
+        with psycopg.connect(app_db_url) as conn, conn.cursor() as cur:
+            cur.execute(
+                "SELECT set_config('app.current_tenant_id', %s, false);",
+                (str(tenant_id.value),),
+            )
+            cur.execute("SELECT count(*) FROM facts;")
+            facts_count = cur.fetchone()[0]
+            cur.execute("SELECT count(*) FROM assertions;")
+            assertions_count = cur.fetchone()[0]
+            cur.execute("SELECT count(*) FROM evidence_spans;")
+            spans_count = cur.fetchone()[0]
+
+            # 1 fact, 2 assertions (one per document), 2 evidence spans
+            assert facts_count == 1
+            assert assertions_count == 2
+            assert spans_count == 2
+
+        # Delete document 1 via DeleteDocumentUseCase
+        delete_use_case = DeleteDocumentUseCase(deletion_repo=deletion_repo)
+        await delete_use_case.execute(
+            DeleteDocumentCommand(tenant_id=tenant_id, document_id=doc1_id)
+        )
+
+        # The fact is still alive with 1 assertion from document 2
+        with psycopg.connect(app_db_url) as conn, conn.cursor() as cur:
+            cur.execute(
+                "SELECT set_config('app.current_tenant_id', %s, false);",
+                (str(tenant_id.value),),
+            )
+            cur.execute("SELECT count(*) FROM facts;")
+            facts_after = cur.fetchone()[0]
+            cur.execute("SELECT count(*) FROM assertions;")
+            assertions_after = cur.fetchone()[0]
+            cur.execute("SELECT count(*) FROM evidence_spans;")
+            spans_after = cur.fetchone()[0]
+
+            assert facts_after == 1
+            assert assertions_after == 1
+            assert spans_after == 1
+
+        # Delete document 2 -> fact is no longer alive
+        await delete_use_case.execute(
+            DeleteDocumentCommand(tenant_id=tenant_id, document_id=doc2_id)
+        )
+        with psycopg.connect(app_db_url) as conn, conn.cursor() as cur:
+            cur.execute(
+                "SELECT set_config('app.current_tenant_id', %s, false);",
+                (str(tenant_id.value),),
+            )
+            cur.execute("SELECT count(*) FROM facts;")
+            assert cur.fetchone()[0] == 0
+            cur.execute("SELECT count(*) FROM assertions;")
+            assert cur.fetchone()[0] == 0
+            cur.execute("SELECT count(*) FROM evidence_spans;")
+            assert cur.fetchone()[0] == 0

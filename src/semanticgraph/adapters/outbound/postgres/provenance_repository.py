@@ -84,6 +84,26 @@ class PostgresProvenanceRepository:
                 if not assertion.spans:
                     raise ValueError("Assertion must hold at least one EvidenceSpan")
 
+                doc_id = (
+                    assertion.document_id.value
+                    if hasattr(assertion.document_id, "value")
+                    else assertion.document_id
+                )
+                chunk_id = (
+                    assertion.chunk_id.value
+                    if hasattr(assertion.chunk_id, "value")
+                    else (
+                        assertion.chunk_id
+                        or (
+                            assertion.spans[0].chunk_id.value
+                            if hasattr(assertion.spans[0].chunk_id, "value")
+                            else assertion.spans[0].chunk_id
+                        )
+                    )
+                )
+                if doc_id is None:
+                    doc_id = chunk_id
+
                 res_assert = await session.execute(
                     select(SQLAssertion).where(
                         SQLAssertion.id == assertion.id,
@@ -91,23 +111,55 @@ class PostgresProvenanceRepository:
                     )
                 )
                 sql_assertion = res_assert.scalars().first()
+                if not sql_assertion and doc_id and chunk_id:
+                    res_candidates = await session.execute(
+                        select(SQLAssertion).where(
+                            SQLAssertion.tenant_id == tenant_id.value,
+                            SQLAssertion.fact_id == fact.id,
+                            SQLAssertion.document_id == doc_id,
+                            SQLAssertion.chunk_id == chunk_id,
+                        )
+                    )
+                    candidates = res_candidates.scalars().all()
+                    for cand in candidates:
+                        res_spans = await session.execute(
+                            select(SQLEvidenceSpan).where(
+                                SQLEvidenceSpan.tenant_id == tenant_id.value,
+                                SQLEvidenceSpan.assertion_id == cand.id,
+                            )
+                        )
+                        cand_spans = res_spans.scalars().all()
+                        cand_spans_sig = sorted(
+                            (s.start_offset, s.end_offset, s.quote) for s in cand_spans
+                        )
+                        new_spans_sig = sorted(
+                            (s.start_offset, s.end_offset, s.quote) for s in assertion.spans
+                        )
+                        if cand_spans_sig == new_spans_sig:
+                            sql_assertion = cand
+                            break
+
                 if not sql_assertion:
                     sql_assertion = SQLAssertion(
                         id=assertion.id,
                         tenant_id=tenant_id.value,
                         fact_id=fact.id,
-                        document_id=assertion.document_id or assertion.spans[0].chunk_id.value,
-                        chunk_id=assertion.spans[0].chunk_id.value,
+                        document_id=doc_id,
+                        chunk_id=chunk_id,
                         claim=assertion.claim or fact.claim,
                         extraction_run_id=assertion.extraction_run_id,
                         created_at=assertion.created_at,
                     )
                     session.add(sql_assertion)
+                    await session.flush()
 
                 for span in assertion.spans:
+                    span_chunk_id = (
+                        span.chunk_id.value if hasattr(span.chunk_id, "value") else span.chunk_id
+                    )
                     res_span = await session.execute(
                         select(SQLEvidenceSpan).where(
-                            SQLEvidenceSpan.assertion_id == assertion.id,
+                            SQLEvidenceSpan.assertion_id == sql_assertion.id,
                             SQLEvidenceSpan.start_offset == span.start_offset,
                             SQLEvidenceSpan.end_offset == span.end_offset,
                             SQLEvidenceSpan.tenant_id == tenant_id.value,
@@ -117,13 +169,14 @@ class PostgresProvenanceRepository:
                     if not sql_span:
                         sql_span = SQLEvidenceSpan(
                             tenant_id=tenant_id.value,
-                            assertion_id=assertion.id,
-                            chunk_id=span.chunk_id.value,
+                            assertion_id=sql_assertion.id,
+                            chunk_id=span_chunk_id,
                             start_offset=span.start_offset,
                             end_offset=span.end_offset,
                             quote=span.quote,
                         )
                         session.add(sql_span)
+            await session.flush()
 
     async def get_fact(self, tenant_id: TenantId, fact_id: UUID) -> Fact | None:
         """Retrieves a Fact with all its Assertions and EvidenceSpans."""
