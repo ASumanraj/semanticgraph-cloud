@@ -33,10 +33,10 @@ that no longer matches the lock ("To update the lockfile, run `uv lock`"), which
 
 ## Acceptance
 
-- [ ] Both jobs install with `uv sync --locked`, with no `pip install -e ".[dev]"` left in `ci.yml`
-- [ ] A deliberately stale lock (a `pyproject.toml` dependency bound changed without `uv lock`) turns the install step red, shown by a run, then reverted
-- [ ] A green run on the PR with "Isolation proofs" and "Control-plane proofs" still passing with the same counts, and the frontend E2E step still green
-- [ ] `ruff check .` clean
+- [x] Both jobs install with `uv sync --locked`, with no `pip install -e ".[dev]"` left in `ci.yml`
+- [x] A deliberately stale lock (a `pyproject.toml` dependency bound changed without `uv lock`) turns the install step red, shown by a run, then reverted
+- [x] A green run on the PR with "Isolation proofs" and "Control-plane proofs" still passing with the same counts, and the frontend E2E step still green
+- [x] `ruff check .` clean
 
 ## Notes
 
