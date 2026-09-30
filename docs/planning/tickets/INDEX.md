@@ -170,3 +170,5 @@ a ticket.
 - 2026-09-21: `uv.lock` stays untracked while CI installs with pip. (Superseded 2026-09-23: T-219 committed it; still open whether to keep it tracked.)
 - 2026-09-21: Gemini is used on public or synthetic data only until paid terms are confirmed (T-215).
 - 2026-09-21: T-904 wave 1 approved as a 10-document pilot capped at 40 paid reviewer hours.
+- 2026-09-30: `uv.lock` stays tracked and CI installs from it with `uv sync --locked` ([T-226](T-226-ci-installs-from-uv-lock.md)); a dependency change without a regenerated lock fails CI.
+- 2026-09-30: agents and reviewer use separate git worktrees. The implementing agent keeps `S:\semanticgraph-cloud`; the reviewer works in `C:\sgr` (detached, own `.venv`); docs are edited in `S:\sg-docs`.
