@@ -1,6 +1,6 @@
 # T-221 · Frontend design pass: tokens, the graph explorer, and restrained motion
 
-**Stage** 3 · **Type** work · **Status** open · **Owner** — · **Branch** `t-221-frontend-design-pass`
+**Stage** 3 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-221-frontend-design-pass`
 
 **Scope**
 - `frontend/**`
