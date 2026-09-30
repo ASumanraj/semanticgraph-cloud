@@ -1,6 +1,6 @@
 # T-218 · Persist the extracted graph to Postgres and expose it over HTTP
 
-**Stage** 3 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-218-postgres-graph-and-route`
+**Stage** 3 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-218-postgres-graph-and-route`
 
 **Scope**
 - `alembic/versions/**` (one new revision — take a turn per `README.md`)
@@ -78,12 +78,12 @@ nothing is implemented.
 
 ## Acceptance
 
-- [ ] `entities`/`edges` tables exist via one Alembic migration, `tenant_id` leads every composite index, FORCE RLS + non-owner app role, matching the pattern in `test_tenant_isolation.py`
-- [ ] `PostgresEntityStore` and `PostgresSubgraphReader` are wired into `Container.postgres()`, replacing both in-memory adapters
-- [ ] Ingesting a real document through the HTTP API, then querying `GET /api/v1/graph`, returns the entities and edges actually extracted from it — proven against a real Postgres, not the in-memory profile
-- [ ] Tenant isolation proven the same way `test_tenant_isolation.py` proves it for other tables: zero rows with no tenant context, tenant A cannot read tenant B's entities/edges
-- [ ] `frontend/src/components/GraphExplorer.tsx` needs no change if the route path matches what it already calls — confirm this before merging, don't silently rename the endpoint
-- [ ] Full suite green under `DATABASE_URL` set (see T-216 — write this ticket's tests assuming that fix has landed), `ruff check .` clean
+- [x] `entities`/`edges` tables exist via one Alembic migration, `tenant_id` leads every composite index, FORCE RLS + non-owner app role, matching the pattern in `test_tenant_isolation.py`
+- [x] `PostgresEntityStore` and `PostgresSubgraphReader` are wired into `Container.postgres()`, replacing both in-memory adapters
+- [x] Ingesting a real document through the HTTP API, then querying `GET /api/v1/graph`, returns the entities and edges actually extracted from it — proven against a real Postgres, not the in-memory profile
+- [x] Tenant isolation proven the same way `test_tenant_isolation.py` proves it for other tables: zero rows with no tenant context, tenant A cannot read tenant B's entities/edges
+- [x] `frontend/src/components/GraphExplorer.tsx` needs no change if the route path matches what it already calls — confirm this before merging, don't silently rename the endpoint
+- [x] Full suite green under `DATABASE_URL` set (see T-216 — write this ticket's tests assuming that fix has landed), `ruff check .` clean
 
 ## Notes
 

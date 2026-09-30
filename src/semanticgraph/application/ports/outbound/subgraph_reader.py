@@ -22,6 +22,15 @@ class SubgraphReader(Protocol):
         """Retrieves an ego-graph or connected subgraph around query entities."""
         ...
 
+    async def get_overview(
+        self, tenant_id: TenantId, limit_entities: int = 200, limit_edges: int = 400
+    ) -> tuple[list[RawEntity | GoldenRecord], list[Edge]]:
+        """Returns a bounded overview of the tenant's most recent entities
+
+        and the edges among them.
+        """
+        ...
+
 
 # Alias for consistency with port naming
 SubgraphReaderPort = SubgraphReader
