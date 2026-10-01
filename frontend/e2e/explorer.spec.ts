@@ -474,10 +474,15 @@ test.describe('Graph Explorer', () => {
       truncated: false,
     };
 
-    const saveScreenshots = async (filename: string) => {
+    const saveScreenshots = async (filename: string, targetLocator?: any) => {
       const p1 = path.join(screenshotDir, filename);
       const p2 = path.join(docsScreenshotDir, filename);
-      await page.screenshot({ path: p1, fullPage: true });
+      if (targetLocator) {
+        await targetLocator.scrollIntoViewIfNeeded();
+      } else {
+        await explorerPage.container.scrollIntoViewIfNeeded();
+      }
+      await explorerPage.container.screenshot({ path: p1 });
       fs.copyFileSync(p1, p2);
     };
 
@@ -495,15 +500,18 @@ test.describe('Graph Explorer', () => {
       await explorerPage.goto();
       await expect(explorerPage.nodes.first()).toBeVisible({ timeout: 5000 });
       await explorerPage.selectNode('Acme Corporation');
-      await expect(page.getByText('Grounded Provenance')).toBeVisible();
+      await expect(page.getByText('Grounded Provenance').first()).toBeVisible();
+      await expect(page.locator('.react-flow__node', { hasText: 'Acme Corporation' })).toBeVisible();
+      await expect(page.getByText('Chunk ID').first()).toBeVisible();
       await page.waitForTimeout(300); // allow framer-motion slide-in to settle
-      await saveScreenshots(`${vp.name}-selected-node.png`);
+      await saveScreenshots(`${vp.name}-selected-node.png`, page.locator('.react-flow__node', { hasText: 'Acme Corporation' }));
 
       // State 2: selected-edge
       await explorerPage.selectFirstEdge();
-      await expect(page.getByText('PARTNERSHIP_WITH')).toBeVisible();
+      await expect(page.getByText('PARTNERSHIP_WITH').first()).toBeVisible();
+      await expect(page.getByText('Edge Type')).toBeVisible();
       await page.waitForTimeout(300);
-      await saveScreenshots(`${vp.name}-selected-edge.png`);
+      await saveScreenshots(`${vp.name}-selected-edge.png`, page.getByText('PARTNERSHIP_WITH').first());
 
       // State 3: empty-state (no query and no nodes)
       await page.route('**/api/v1/graph*', (route) => {
@@ -515,7 +523,8 @@ test.describe('Graph Explorer', () => {
       });
       await explorerPage.goto();
       await expect(page.getByRole('heading', { name: 'No graph yet' })).toBeVisible({ timeout: 5000 });
-      await saveScreenshots(`${vp.name}-empty-state.png`);
+      await expect(page.getByText('Upload a contract. Entities and relationships extracted from it appear here')).toBeVisible();
+      await saveScreenshots(`${vp.name}-empty-state.png`, page.getByRole('heading', { name: 'No graph yet' }));
 
       // State 4: no-match-state (query matches nothing)
       await page.route('**/api/v1/graph?*query=MissingQuery*', (route) => {
@@ -527,7 +536,8 @@ test.describe('Graph Explorer', () => {
       });
       await explorerPage.searchInput.fill('MissingQuery');
       await expect(explorerPage.noMatchHeading('MissingQuery')).toBeVisible({ timeout: 5000 });
-      await saveScreenshots(`${vp.name}-no-match-state.png`);
+      await expect(page.getByText('Try searching for a different keyword')).toBeVisible();
+      await saveScreenshots(`${vp.name}-no-match-state.png`, explorerPage.noMatchHeading('MissingQuery'));
 
       // State 5: error-state
       await page.route('**/api/v1/graph?*query=ErrorQuery*', (route) => {
@@ -539,7 +549,9 @@ test.describe('Graph Explorer', () => {
       });
       await explorerPage.searchInput.fill('ErrorQuery');
       await expect(explorerPage.errorState).toBeVisible({ timeout: 5000 });
-      await saveScreenshots(`${vp.name}-error-state.png`);
+      await expect(page.getByRole('heading', { name: "Couldn't load the graph" })).toBeVisible();
+      await expect(explorerPage.retryButton).toBeVisible();
+      await saveScreenshots(`${vp.name}-error-state.png`, explorerPage.errorState);
 
       // State 6: truncated-notice
       await page.route('**/api/v1/graph*', (route) => {
@@ -554,7 +566,115 @@ test.describe('Graph Explorer', () => {
       });
       await explorerPage.goto();
       await expect(explorerPage.truncatedBanner).toBeVisible({ timeout: 5000 });
-      await saveScreenshots(`${vp.name}-truncated-notice.png`);
+      await expect(page.getByText('Showing the first 200 entities. Narrow your search to see more.')).toBeVisible();
+      await saveScreenshots(`${vp.name}-truncated-notice.png`, explorerPage.truncatedBanner);
+
+      // Full viewport screenshot at 1440x900 showing no scroll needed
+      if (vp.name === '1440') {
+        const vpPath1 = path.join(screenshotDir, '1440-viewport-no-scroll.png');
+        const vpPath2 = path.join(docsScreenshotDir, '1440-viewport-no-scroll.png');
+        await page.screenshot({ path: vpPath1, fullPage: false });
+        fs.copyFileSync(vpPath1, vpPath2);
+      }
+    }
+  });
+
+  test('live API end-to-end: upload document, hover highlighting, and double-click expansion without page.route mocks', async ({
+    page,
+  }) => {
+    const uploadPage = new DocumentUploadPage(page);
+    const explorerPage = new GraphExplorerPage(page);
+
+    await uploadPage.goto();
+
+    // 1. Upload document through the real UI against the real running backend
+    const [uploadResponse] = await Promise.all([
+      page.waitForResponse(
+        (res) =>
+          res.url().includes('/api/v1/documents/ingest') && res.request().method() === 'POST',
+        { timeout: 15_000 }
+      ),
+      uploadPage.uploadFile(
+        'e2e-live-contract.txt',
+        'Acme Corporation entered a joint partnership with Cyberdyne Systems in 2029.'
+      ),
+    ]);
+    expect(uploadResponse.status()).toBe(200);
+
+    // 2. Wait for upload confirmation and graph to render
+    await expect(page.getByText('Upload Complete!')).toBeVisible({ timeout: 10_000 });
+    await expect(explorerPage.nodes.first()).toBeVisible({ timeout: 15_000 });
+
+    // 3. Live hover highlighting
+    const firstNode = explorerPage.nodes.first();
+    await expect(firstNode).toBeVisible();
+    await firstNode.hover({ force: true });
+    await expect(firstNode).toHaveCSS('opacity', '1');
+
+    // 4. Live double-click expansion without page.route mocks
+    const [expandResponse] = await Promise.all([
+      page.waitForResponse(
+        (res) => res.url().includes('/api/v1/graph') && res.url().includes('query=') && res.status() === 200,
+        { timeout: 10_000 }
+      ),
+      firstNode.dblclick({ force: true }),
+    ]);
+    expect(expandResponse.status()).toBe(200);
+    await expect(page.getByTestId('expand-error')).not.toBeVisible();
+  });
+
+  test('API contract: real /api/v1/graph response keys match mock payloads and ApiNode/ApiEdge domain schemas', async ({
+    page,
+  }) => {
+    const response = await page.request.get('/api/v1/graph', {
+      headers: {
+        'X-Tenant-ID': '00000000-0000-0000-0000-000000000001',
+      },
+    });
+    expect(response.status()).toBe(200);
+    const data = await response.json();
+
+    expect(data).toHaveProperty('nodes');
+    expect(data).toHaveProperty('edges');
+    expect(data).toHaveProperty('truncated');
+    expect(Array.isArray(data.nodes)).toBe(true);
+    expect(Array.isArray(data.edges)).toBe(true);
+    expect(typeof data.truncated).toBe('boolean');
+
+    for (const node of data.nodes) {
+      expect(node).toHaveProperty('id');
+      expect(node).toHaveProperty('name');
+      expect(node).toHaveProperty('entity_type');
+      expect(node).toHaveProperty('kind');
+      expect(typeof node.id).toBe('string');
+      expect(typeof node.name).toBe('string');
+      expect(typeof node.entity_type).toBe('string');
+      expect(typeof node.kind).toBe('string');
+
+      if (node.provenance) {
+        expect(node.provenance).toHaveProperty('chunk_id');
+        expect(node.provenance).toHaveProperty('start_offset');
+        expect(node.provenance).toHaveProperty('end_offset');
+        expect(node.provenance).toHaveProperty('quote');
+      }
+    }
+
+    for (const edge of data.edges) {
+      expect(edge).toHaveProperty('id');
+      expect(edge).toHaveProperty('source');
+      expect(edge).toHaveProperty('target');
+      expect(edge).toHaveProperty('edge_type');
+      expect(typeof edge.id).toBe('string');
+      expect(typeof edge.source).toBe('string');
+      expect(typeof edge.target).toBe('string');
+      expect(typeof edge.edge_type).toBe('string');
+
+      if (edge.provenance) {
+        expect(edge.provenance).toHaveProperty('chunk_id');
+        expect(edge.provenance).toHaveProperty('start_offset');
+        expect(edge.provenance).toHaveProperty('end_offset');
+        expect(edge.provenance).toHaveProperty('quote');
+      }
     }
   });
 });

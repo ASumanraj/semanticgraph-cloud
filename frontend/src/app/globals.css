@@ -54,3 +54,10 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Read-only graph: hide connection handles so nodes look like clean cards */
+.react-flow__handle {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

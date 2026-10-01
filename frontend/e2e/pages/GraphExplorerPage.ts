@@ -2,6 +2,7 @@ import { Page, Locator } from '@playwright/test';
 
 export class GraphExplorerPage {
   readonly page: Page;
+  readonly container: Locator;
   readonly canvas: Locator;
   readonly nodes: Locator;
   readonly edges: Locator;
@@ -20,6 +21,7 @@ export class GraphExplorerPage {
 
   constructor(page: Page) {
     this.page = page;
+    this.container = page.locator('[data-testid="graph-explorer"]');
     this.canvas = page.locator('.react-flow');
     this.nodes = page.locator('.react-flow__node');
     this.edges = page.locator('.react-flow__edge');
@@ -48,9 +50,8 @@ export class GraphExplorerPage {
   }
 
   async selectFirstEdge() {
-    const edge = this.edges.first();
-    await edge.scrollIntoViewIfNeeded();
-    await edge.click({ force: true });
+    const edgeElement = this.page.locator('.react-flow__edge-text, .react-flow__edge path, .react-flow__edge').first();
+    await edgeElement.dispatchEvent('click');
   }
 
   async selectNode(name: string) {

@@ -28,6 +28,7 @@ import {
   AlertCircle,
   Filter,
   X,
+  Info,
 } from "lucide-react";
 import {
   AnimatePresence,
@@ -275,6 +276,7 @@ export function GraphExplorer() {
           id: edge.id,
           source: edge.source,
           target: edge.target,
+          type: "straight",
           label: edge.edge_type,
           data: {
             edge_type: edge.edge_type,
@@ -432,6 +434,7 @@ export function GraphExplorer() {
           e.source === hoveredNodeId || e.target === hoveredNodeId;
         return {
           ...e,
+          type: "straight",
           style: {
             ...e.style,
             opacity: isConnected ? 1 : 0.15,
@@ -446,6 +449,7 @@ export function GraphExplorer() {
 
       return {
         ...e,
+        type: "straight",
         style: {
           ...e.style,
           opacity: 1,
@@ -667,6 +671,7 @@ export function GraphExplorer() {
             id: ee.id,
             source: ee.source,
             target: ee.target,
+            type: "straight",
             label: ee.edge_type,
             data: {
               edge_type: ee.edge_type,
@@ -765,11 +770,11 @@ export function GraphExplorer() {
 
   return (
     <div
-      className="flex flex-col lg:flex-row w-full lg:h-[760px] border border-border rounded-lg overflow-hidden bg-page shadow-2xl relative"
+      className="flex flex-col lg:flex-row w-full h-full min-h-[520px] lg:min-h-0 border border-border rounded-lg overflow-hidden bg-page shadow-2xl relative"
       data-testid="graph-explorer"
     >
       {/* ---- Left Sidebar (288px) ---- */}
-      <div className="w-full lg:w-[288px] shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-panel p-5 flex flex-col gap-5 text-muted z-10">
+      <div className="w-full lg:w-[288px] shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-panel p-3.5 lg:p-5 flex flex-col gap-2.5 lg:gap-5 text-muted z-10 overflow-y-auto">
         <div>
           <h3 className="text-base font-bold text-text tracking-tight">
             Graph Controls
@@ -830,6 +835,40 @@ export function GraphExplorer() {
           </div>
         </div>
 
+        {/* Double-click Hint with Cross-Document Tooltip */}
+        <div
+          data-testid="expand-hint-card"
+          className="relative group bg-page/50 p-2.5 rounded-lg border border-border text-xs flex items-start gap-2"
+        >
+          <Info className="w-3.5 h-3.5 text-teal shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <span className="text-text text-[11px] font-medium block">
+              Double-click node to expand
+            </span>
+            <span
+              className="text-[10px] text-muted flex items-center gap-1 cursor-help group-hover:text-teal transition-colors"
+              title="Queries by name (ILIKE). All same-name entities across documents are included as seeds."
+            >
+              <span>Cross-document seed notice</span>
+              <span className="w-3 h-3 rounded-full border border-muted/50 inline-flex items-center justify-center text-[9px] font-bold">
+                i
+              </span>
+            </span>
+          </div>
+          <div
+            role="tooltip"
+            data-testid="expand-hint-tooltip"
+            className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 p-2.5 bg-panel border border-border rounded-lg shadow-xl text-[11px] text-text leading-relaxed pointer-events-none"
+          >
+            <div className="font-semibold text-teal mb-0.5">
+              Cross-Document Expansion
+            </div>
+            Expansion queries the API by entity name using ILIKE. Because raw
+            entities are stored per mention, entities sharing this name across
+            all documents will be included as seeds.
+          </div>
+        </div>
+
         {/* Entity-type filter chips */}
         {typeCounts.size > 0 && (
           <div className="space-y-1.5" data-testid="type-filters">
@@ -864,7 +903,7 @@ export function GraphExplorer() {
         )}
 
         {/* Graph Metrics */}
-        <div className="bg-page/60 p-3.5 rounded-lg border border-border space-y-2 text-xs mt-auto">
+        <div className="bg-page/60 p-2.5 lg:p-3.5 rounded-lg border border-border space-y-1.5 lg:space-y-2 text-xs mt-2 lg:mt-auto hidden sm:block">
           <div className="text-[11px] font-semibold text-text uppercase tracking-wider">
             {isTruncated
               ? "Showing 200 entities"
@@ -886,7 +925,7 @@ export function GraphExplorer() {
       </div>
 
       {/* ---- Main Canvas ---- */}
-      <div className="flex-1 relative bg-page flex flex-col min-w-0 w-full h-[520px] lg:h-full">
+      <div className="flex-1 relative bg-page flex flex-col min-w-0 w-full min-h-[440px] lg:h-full">
         {/* Loading Indicator */}
         {isLoading && (
           <div className="absolute top-4 right-4 z-20 px-3 py-1 bg-panel/90 border border-border rounded-lg text-xs text-muted flex items-center gap-1.5 shadow">
@@ -1024,6 +1063,9 @@ export function GraphExplorer() {
                 onNodeDoubleClick={onNodeDoubleClick}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
+                nodesConnectable={false}
+                elementsSelectable={true}
+                defaultEdgeOptions={{ type: "straight" }}
                 fitView
               >
                 <Background
@@ -1117,6 +1159,33 @@ export function GraphExplorer() {
                       <span className="text-xs font-mono text-muted">
                         {selectedNode.data?.kind || "not recorded"}
                       </span>
+                    </div>
+
+                    <div className="pt-2 border-t border-border/50">
+                      <div className="relative group flex items-center justify-between text-[11px]">
+                        <span className="text-muted flex items-center gap-1.5 font-medium">
+                          <Info className="w-3 h-3 text-teal shrink-0" />
+                          Double-click to expand
+                        </span>
+                        <span
+                          className="text-[10px] font-mono text-teal cursor-help underline decoration-dotted"
+                          title="Expansion queries the API by name using ILIKE. All same-name entities across documents are included as seeds."
+                        >
+                          cross-doc notice (?)
+                        </span>
+                        <div
+                          role="tooltip"
+                          className="absolute right-0 bottom-full mb-2 hidden group-hover:block z-50 w-60 p-2.5 bg-panel border border-border rounded-lg shadow-xl text-[11px] text-text leading-relaxed pointer-events-none"
+                        >
+                          <div className="font-semibold text-teal mb-0.5">
+                            Cross-Document Expansion
+                          </div>
+                          Expansion queries the API by entity name using ILIKE.
+                          Because raw entities are stored per mention, entities
+                          sharing this name across all documents will be included
+                          as seeds.
+                        </div>
+                      </div>
                     </div>
                   </div>
 
