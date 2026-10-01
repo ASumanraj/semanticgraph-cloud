@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Locator } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
 import { DocumentUploadPage } from './pages/DocumentUploadPage';
@@ -474,7 +474,7 @@ test.describe('Graph Explorer', () => {
       truncated: false,
     };
 
-    const saveScreenshots = async (filename: string, targetLocator?: any) => {
+    const saveScreenshots = async (filename: string, targetLocator?: Locator) => {
       const p1 = path.join(screenshotDir, filename);
       const p2 = path.join(docsScreenshotDir, filename);
       if (targetLocator) {

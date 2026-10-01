@@ -341,9 +341,6 @@
   .mt-5 {
     margin-top: calc(var(--spacing) * 5);
   }
-  .mt-auto {
-    margin-top: auto;
-  }
   .mr-0 {
     margin-right: 0px;
   }
@@ -457,6 +454,9 @@
   }
   .min-h-\[260px\] {
     min-height: 260px;
+  }
+  .min-h-\[440px\] {
+    min-height: 440px;
   }
   .min-h-\[500px\] {
     min-height: 500px;
@@ -633,9 +633,6 @@
   .gap-4 {
     gap: calc(var(--spacing) * 4);
   }
-  .gap-5 {
-    gap: calc(var(--spacing) * 5);
-  }
   .gap-6 {
     gap: calc(var(--spacing) * 6);
   }
@@ -648,11 +645,6 @@
     --tw-space-y-reverse: 0;
     margin-block-start: calc(calc(var(--spacing) * 1.5) * var(--tw-space-y-reverse));
     margin-block-end: calc(calc(var(--spacing) * 1.5) * calc(1 - var(--tw-space-y-reverse)));
-  }
-  :where(.space-y-2 > :not(:last-child)) {
-    --tw-space-y-reverse: 0;
-    margin-block-start: calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse));
-    margin-block-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse)));
   }
   :where(.space-y-3 > :not(:last-child)) {
     --tw-space-y-reverse: 0;
@@ -939,9 +931,6 @@
   }
   .p-4 {
     padding: calc(var(--spacing) * 4);
-  }
-  .p-5 {
-    padding: calc(var(--spacing) * 5);
   }
   .p-6 {
     padding: calc(var(--spacing) * 6);
@@ -1429,6 +1418,9 @@
     .lg\:col-span-2 {
       grid-column: span 2 / span 2;
     }
+    .lg\:mt-auto {
+      margin-top: auto;
+    }
     .lg\:flex {
       display: flex;
     }
@@ -1459,6 +1451,14 @@
     .lg\:items-center {
       align-items: center;
     }
+    .lg\:gap-5 {
+      gap: calc(var(--spacing) * 5);
+    }
+    :where(.lg\:space-y-2 > :not(:last-child)) {
+      --tw-space-y-reverse: 0;
+      margin-block-start: calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse));
+      margin-block-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse)));
+    }
     .lg\:overflow-hidden {
       overflow: hidden;
     }
@@ -1477,6 +1477,12 @@
     .lg\:border-l {
       border-left-style: var(--tw-border-style);
       border-left-width: 1px;
+    }
+    .lg\:p-3\.5 {
+      padding: calc(var(--spacing) * 3.5);
+    }
+    .lg\:p-5 {
+      padding: calc(var(--spacing) * 5);
     }
   }
   @media (width >= 80rem) {
