@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import fs from 'fs';
+import path from 'path';
 import { DocumentUploadPage } from './pages/DocumentUploadPage';
 import { GraphExplorerPage } from './pages/GraphExplorerPage';
 
@@ -28,24 +30,11 @@ test.describe('Graph Explorer', () => {
     // 2. Wait for upload confirmation
     await expect(page.getByText('Upload Complete!')).toBeVisible({ timeout: 10_000 });
 
-    // 3. Reload explorer page so GraphExplorer fetches the extracted graph
-    const [graphResponse] = await Promise.all([
-      page.waitForResponse(
-        (res) => res.url().includes('/api/v1/graph') && res.request().method() === 'GET',
-        { timeout: 15_000 }
-      ),
-      page.reload(),
-    ]);
+    // 3. The upload completion dispatches document-uploaded event which auto-fetches graph
+    // Wait for nodes to appear on canvas
+    await expect(explorerPage.nodes.first()).toBeVisible({ timeout: 15_000 });
 
-    expect(graphResponse.status()).toBe(200);
-    const graphData = await graphResponse.json();
-    expect(graphData.nodes.length).toBeGreaterThan(0);
-
-    // 4. Assert nodes are rendered on the canvas
-    await expect(explorerPage.nodes.first()).toBeVisible({ timeout: 10_000 });
-
-    // 5. Click a node to inspect provenance
-    // When previous tests or multiple documents populated nodes, find the Acme Corporation node
+    // 4. Click a node to inspect provenance
     const nodeCount = await explorerPage.nodes.count();
     let found = false;
     for (let i = 0; i < nodeCount; i++) {
@@ -61,15 +50,249 @@ test.describe('Graph Explorer', () => {
     }
     expect(found).toBe(true);
 
-    // 6. Capture screenshot for visual proof
+    // 5. Capture screenshot for visual proof
+    fs.mkdirSync('e2e/screenshots', { recursive: true });
     await page.screenshot({ path: 'e2e/screenshots/graph-explorer-provenance.png', fullPage: true });
+  });
+
+  test('hover highlights the node and its neighbours and dims the rest', async ({ page }) => {
+    const explorerPage = new GraphExplorerPage(page);
+
+    // Mock graph with 3 nodes: Alpha connected to Beta; Gamma is isolated
+    await page.route('**/api/v1/graph*', (route) => {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          nodes: [
+            { id: 'node-alpha', name: 'Alpha Corp', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
+            { id: 'node-beta', name: 'Beta LLC', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
+            { id: 'node-gamma', name: 'Gamma Inc', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
+          ],
+          edges: [
+            {
+              id: 'edge-alpha-beta',
+              source: 'node-alpha',
+              target: 'node-beta',
+              edge_type: 'PARTNERS_WITH',
+              weight: 0.9,
+            },
+          ],
+          truncated: false,
+        }),
+      });
+    });
+
+    await explorerPage.goto();
+    await expect(explorerPage.nodes.first()).toBeVisible({ timeout: 5000 });
+    expect(await explorerPage.nodes.count()).toBe(3);
+
+    // Hover over Alpha Corp
+    await explorerPage.hoverNode('Alpha Corp');
+
+    const nodeAlpha = page.locator('.react-flow__node', { hasText: 'Alpha Corp' });
+    const nodeBeta = page.locator('.react-flow__node', { hasText: 'Beta LLC' });
+    const nodeGamma = page.locator('.react-flow__node', { hasText: 'Gamma Inc' });
+
+    // Alpha (hovered) and Beta (neighbour) maintain opacity 1
+    await expect(nodeAlpha).toHaveCSS('opacity', '1');
+    await expect(nodeBeta).toHaveCSS('opacity', '1');
+
+    // Gamma (isolated) is dimmed to opacity 0.25
+    await expect(nodeGamma).toHaveCSS('opacity', '0.25');
+
+    // Edge between Alpha and Beta is highlighted (opacity 1)
+    const edge = explorerPage.edges.first();
+    await expect(edge).toHaveCSS('opacity', '1');
+
+    // Move mouse away to canvas pane
+    await page.mouse.move(10, 10);
+    await expect(nodeGamma).toHaveCSS('opacity', '1');
+  });
+
+  test('keyboard navigation (/ focuses search, arrows move between connected nodes, Esc clears)', async ({
+    page,
+  }) => {
+    const explorerPage = new GraphExplorerPage(page);
+
+    await page.route('**/api/v1/graph*', (route) => {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          nodes: [
+            {
+              id: 'node-1',
+              name: 'Alpha Corp',
+              entity_type: 'ORGANIZATION',
+              kind: 'raw_entity',
+              provenance: { chunk_id: 'chk-1', start_offset: 0, end_offset: 10, quote: 'Alpha Corp quote' },
+            },
+            {
+              id: 'node-2',
+              name: 'Beta LLC',
+              entity_type: 'ORGANIZATION',
+              kind: 'raw_entity',
+              provenance: { chunk_id: 'chk-2', start_offset: 15, end_offset: 23, quote: 'Beta LLC quote' },
+            },
+          ],
+          edges: [
+            {
+              id: 'edge-1-2',
+              source: 'node-1',
+              target: 'node-2',
+              edge_type: 'COLLABORATES_WITH',
+            },
+          ],
+          truncated: false,
+        }),
+      });
+    });
+
+    await explorerPage.goto();
+    await expect(explorerPage.nodes.first()).toBeVisible({ timeout: 5000 });
+
+    // 1. Pressing '/' focuses search input
+    await page.keyboard.press('/');
+    await expect(explorerPage.searchInput).toBeFocused();
+
+    // 2. Pressing Escape blurs search
+    await page.keyboard.press('Escape');
+    await expect(explorerPage.searchInput).not.toBeFocused();
+
+    // 3. Click first node to select Alpha Corp
+    await explorerPage.selectNode('Alpha Corp');
+    await expect(page.getByText('Alpha Corp quote')).toBeVisible();
+
+    // 4. Pressing Arrow key navigates to connected node Beta LLC
+    await page.keyboard.press('ArrowRight');
+    await expect(page.getByText('Beta LLC quote')).toBeVisible();
+
+    // 5. Pressing Escape clears selection
+    await page.keyboard.press('Escape');
+    await expect(page.getByText('Selection Details')).toBeVisible();
+  });
+
+  test('entity-type filter chips with counts operate client-side', async ({ page }) => {
+    const explorerPage = new GraphExplorerPage(page);
+
+    await page.route('**/api/v1/graph*', (route) => {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          nodes: [
+            { id: '1', name: 'Alpha Corp', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
+            { id: '2', name: 'Beta LLC', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
+            { id: '3', name: 'Jane Doe', entity_type: 'PERSON', kind: 'raw_entity' },
+          ],
+          edges: [],
+          truncated: false,
+        }),
+      });
+    });
+
+    await explorerPage.goto();
+    await expect(explorerPage.nodes.first()).toBeVisible({ timeout: 5000 });
+
+    // Assert filter chips with counts are displayed
+    const orgChip = explorerPage.typeFilterChip('ORGANIZATION');
+    const personChip = explorerPage.typeFilterChip('PERSON');
+    await expect(orgChip).toBeVisible();
+    await expect(personChip).toBeVisible();
+    await expect(orgChip).toContainText('2');
+    await expect(personChip).toContainText('1');
+
+    // Initially all 3 nodes visible
+    expect(await explorerPage.nodes.count()).toBe(3);
+
+    // Toggle PERSON chip off
+    await personChip.click();
+
+    // Only 2 nodes remain visible on canvas
+    await expect(page.locator('.react-flow__node', { hasText: 'Jane Doe' })).not.toBeVisible();
+    expect(await explorerPage.nodes.count()).toBe(2);
+    await expect(page.getByText('2 nodes active · 0 edges')).toBeVisible();
+
+    // Toggle PERSON chip back on
+    await personChip.click();
+    await expect(page.locator('.react-flow__node', { hasText: 'Jane Doe' })).toBeVisible();
+    expect(await explorerPage.nodes.count()).toBe(3);
+  });
+
+  test('double-click expands node neighbourhood using query route with loading and error states', async ({
+    page,
+  }) => {
+    const explorerPage = new GraphExplorerPage(page);
+
+    // Initial graph with 1 node
+    await page.route('**/api/v1/graph?*depth=2*', (route) => {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          nodes: [
+            { id: 'node-seed', name: 'Alpha Seed', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
+          ],
+          edges: [],
+          truncated: false,
+        }),
+      });
+    });
+
+    // Expand response when double clicking Alpha Seed
+    await page.route('**/api/v1/graph?*query=Alpha+Seed*depth=1*', (route) => {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          nodes: [
+            { id: 'node-seed', name: 'Alpha Seed', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
+            { id: 'node-expanded-1', name: 'Expanded Partner', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
+          ],
+          edges: [
+            {
+              id: 'edge-expanded',
+              source: 'node-seed',
+              target: 'node-expanded-1',
+              edge_type: 'AFFILIATED_WITH',
+            },
+          ],
+          truncated: false,
+        }),
+      });
+    });
+
+    await explorerPage.goto();
+    await expect(explorerPage.nodes.first()).toBeVisible({ timeout: 5000 });
+    expect(await explorerPage.nodes.count()).toBe(1);
+
+    // Double click to expand
+    await explorerPage.doubleClickNode('Alpha Seed');
+
+    // New node appeared on canvas
+    await expect(page.locator('.react-flow__node', { hasText: 'Expanded Partner' })).toBeVisible({
+      timeout: 5000,
+    });
+    expect(await explorerPage.nodes.count()).toBe(2);
+
+    // Test expand error state on second expansion
+    await page.route('**/api/v1/graph?*query=Expanded+Partner*depth=1*', (route) => {
+      return route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ detail: 'Expansion failed' }),
+      });
+    });
+
+    await explorerPage.doubleClickNode('Expanded Partner');
+    await expect(explorerPage.expandError).toBeVisible({ timeout: 5000 });
   });
 
   test('search that matches nothing shows no-match state and never "No graph yet"', async ({ page }) => {
     const explorerPage = new GraphExplorerPage(page);
     await explorerPage.goto();
 
-    // Intercept graph search query that returns empty nodes
     await page.route('**/api/v1/graph?*query=NonExistentEntityXYZ*', (route) => {
       return route.fulfill({
         status: 200,
@@ -79,15 +302,10 @@ test.describe('Graph Explorer', () => {
     });
 
     await explorerPage.searchInput.fill('NonExistentEntityXYZ');
-
-    // Assert no-match heading with query and clear search button are visible
     await expect(explorerPage.noMatchHeading('NonExistentEntityXYZ')).toBeVisible({ timeout: 5000 });
     await expect(explorerPage.clearSearchButton).toBeVisible();
-
-    // Assert "No graph yet" text is NEVER shown
     await expect(page.getByText('No graph yet')).not.toBeVisible();
 
-    // Click "Clear search" and verify search input is reset
     await explorerPage.clearSearchButton.click();
     await expect(explorerPage.searchInput).toHaveValue('');
   });
@@ -97,7 +315,6 @@ test.describe('Graph Explorer', () => {
   }) => {
     const explorerPage = new GraphExplorerPage(page);
 
-    // Provide initial graph with 2 nodes
     await page.route('**/api/v1/graph*', (route) => {
       return route.fulfill({
         status: 200,
@@ -117,7 +334,6 @@ test.describe('Graph Explorer', () => {
     await expect(explorerPage.nodes.first()).toBeVisible({ timeout: 5000 });
     expect(await explorerPage.nodes.count()).toBe(2);
 
-    // Subsequent search request fails with HTTP 500
     await page.route('**/api/v1/graph?*query=FailSearch*', (route) => {
       return route.fulfill({
         status: 500,
@@ -127,12 +343,10 @@ test.describe('Graph Explorer', () => {
     });
 
     await explorerPage.searchInput.fill('FailSearch');
-
-    // Assert error state overlay is visible with Retry button
     await expect(explorerPage.errorState).toBeVisible({ timeout: 5000 });
     await expect(explorerPage.retryButton).toBeVisible();
 
-    // Assert previous graph is STILL visible behind the error overlay
+    // Previous graph is still visible behind error overlay
     await expect(explorerPage.canvas).toBeVisible();
     expect(await explorerPage.nodes.count()).toBe(2);
 
@@ -151,7 +365,6 @@ test.describe('Graph Explorer', () => {
       });
     });
 
-    // Click Retry and verify recovery
     await explorerPage.retryButton.click();
     await expect(explorerPage.errorState).not.toBeVisible({ timeout: 5000 });
     await expect(explorerPage.nodes.first()).toBeVisible();
@@ -160,7 +373,6 @@ test.describe('Graph Explorer', () => {
   test('truncated banner appears only when API says truncated', async ({ page }) => {
     const explorerPage = new GraphExplorerPage(page);
 
-    // 1. Mock response with truncated: true
     await page.route('**/api/v1/graph*', (route) => {
       return route.fulfill({
         status: 200,
@@ -168,7 +380,6 @@ test.describe('Graph Explorer', () => {
         body: JSON.stringify({
           nodes: [
             { id: '11111111-1111-1111-1111-111111111111', name: 'Alpha Corp', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
-            { id: '22222222-2222-2222-2222-222222222222', name: 'Beta LLC', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
           ],
           edges: [],
           truncated: true,
@@ -180,7 +391,6 @@ test.describe('Graph Explorer', () => {
     await expect(explorerPage.truncatedBanner).toBeVisible({ timeout: 5000 });
     await expect(explorerPage.truncatedCounter).toBeVisible();
 
-    // 2. Mock response with truncated: false
     await page.route('**/api/v1/graph*', (route) => {
       return route.fulfill({
         status: 200,
@@ -188,7 +398,6 @@ test.describe('Graph Explorer', () => {
         body: JSON.stringify({
           nodes: [
             { id: '11111111-1111-1111-1111-111111111111', name: 'Alpha Corp', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
-            { id: '22222222-2222-2222-2222-222222222222', name: 'Beta LLC', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
           ],
           edges: [],
           truncated: false,
@@ -200,6 +409,152 @@ test.describe('Graph Explorer', () => {
     await expect(explorerPage.nodes.first()).toBeVisible({ timeout: 5000 });
     await expect(explorerPage.truncatedBanner).not.toBeVisible();
     await expect(explorerPage.truncatedCounter).not.toBeVisible();
-    await expect(page.getByText('2 nodes active · 0 edges')).toBeVisible();
+  });
+
+  test('captures responsive screenshots at 1440, 1280, and 390 for all 6 required states', async ({
+    page,
+  }) => {
+    test.setTimeout(90_000);
+    const explorerPage = new GraphExplorerPage(page);
+    const screenshotDir = path.resolve(__dirname, 'screenshots');
+    const docsScreenshotDir = path.resolve(__dirname, '..', '..', 'docs', 'design', 'screenshots');
+    fs.mkdirSync(screenshotDir, { recursive: true });
+    fs.mkdirSync(docsScreenshotDir, { recursive: true });
+
+    const viewports = [
+      { name: '1440', width: 1440, height: 900 },
+      { name: '1280', width: 1280, height: 800 },
+      { name: '390', width: 390, height: 844 },
+    ];
+
+    const standardGraphData = {
+      nodes: [
+        {
+          id: 'node-alpha',
+          name: 'Acme Corporation',
+          entity_type: 'ORGANIZATION',
+          kind: 'raw_entity',
+          provenance: {
+            chunk_id: '9f8b4a2e-5c1d-4e3a-b7f6-8c2d1e0a9b8c',
+            start_offset: 0,
+            end_offset: 16,
+            quote: 'Acme Corporation entered a joint partnership with Cyberdyne Systems in 2029.',
+          },
+        },
+        {
+          id: 'node-beta',
+          name: 'Cyberdyne Systems',
+          entity_type: 'ORGANIZATION',
+          kind: 'raw_entity',
+          provenance: {
+            chunk_id: '9f8b4a2e-5c1d-4e3a-b7f6-8c2d1e0a9b8c',
+            start_offset: 50,
+            end_offset: 67,
+            quote: 'joint partnership with Cyberdyne Systems in 2029.',
+          },
+        },
+      ],
+      edges: [
+        {
+          id: 'edge-partnership',
+          source: 'node-alpha',
+          target: 'node-beta',
+          edge_type: 'PARTNERSHIP_WITH',
+          weight: 0.95,
+          valid_from: '2029-01-01T00:00:00Z',
+          valid_to: null,
+          provenance: {
+            chunk_id: '9f8b4a2e-5c1d-4e3a-b7f6-8c2d1e0a9b8c',
+            start_offset: 27,
+            end_offset: 44,
+            quote: 'entered a joint partnership with',
+          },
+        },
+      ],
+      truncated: false,
+    };
+
+    const saveScreenshots = async (filename: string) => {
+      const p1 = path.join(screenshotDir, filename);
+      const p2 = path.join(docsScreenshotDir, filename);
+      await page.screenshot({ path: p1, fullPage: true });
+      fs.copyFileSync(p1, p2);
+    };
+
+    for (const vp of viewports) {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+
+      // State 1: selected-node
+      await page.route('**/api/v1/graph*', (route) => {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(standardGraphData),
+        });
+      });
+      await explorerPage.goto();
+      await expect(explorerPage.nodes.first()).toBeVisible({ timeout: 5000 });
+      await explorerPage.selectNode('Acme Corporation');
+      await expect(page.getByText('Grounded Provenance')).toBeVisible();
+      await page.waitForTimeout(300); // allow framer-motion slide-in to settle
+      await saveScreenshots(`${vp.name}-selected-node.png`);
+
+      // State 2: selected-edge
+      await explorerPage.selectFirstEdge();
+      await expect(page.getByText('PARTNERSHIP_WITH')).toBeVisible();
+      await page.waitForTimeout(300);
+      await saveScreenshots(`${vp.name}-selected-edge.png`);
+
+      // State 3: empty-state (no query and no nodes)
+      await page.route('**/api/v1/graph*', (route) => {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ nodes: [], edges: [], truncated: false }),
+        });
+      });
+      await explorerPage.goto();
+      await expect(page.getByRole('heading', { name: 'No graph yet' })).toBeVisible({ timeout: 5000 });
+      await saveScreenshots(`${vp.name}-empty-state.png`);
+
+      // State 4: no-match-state (query matches nothing)
+      await page.route('**/api/v1/graph?*query=MissingQuery*', (route) => {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ nodes: [], edges: [], truncated: false }),
+        });
+      });
+      await explorerPage.searchInput.fill('MissingQuery');
+      await expect(explorerPage.noMatchHeading('MissingQuery')).toBeVisible({ timeout: 5000 });
+      await saveScreenshots(`${vp.name}-no-match-state.png`);
+
+      // State 5: error-state
+      await page.route('**/api/v1/graph?*query=ErrorQuery*', (route) => {
+        return route.fulfill({
+          status: 500,
+          contentType: 'application/json',
+          body: JSON.stringify({ detail: 'Server Error' }),
+        });
+      });
+      await explorerPage.searchInput.fill('ErrorQuery');
+      await expect(explorerPage.errorState).toBeVisible({ timeout: 5000 });
+      await saveScreenshots(`${vp.name}-error-state.png`);
+
+      // State 6: truncated-notice
+      await page.route('**/api/v1/graph*', (route) => {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            ...standardGraphData,
+            truncated: true,
+          }),
+        });
+      });
+      await explorerPage.goto();
+      await expect(explorerPage.truncatedBanner).toBeVisible({ timeout: 5000 });
+      await saveScreenshots(`${vp.name}-truncated-notice.png`);
+    }
   });
 });

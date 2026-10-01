@@ -15,6 +15,8 @@ export class GraphExplorerPage {
   readonly retryButton: Locator;
   readonly truncatedBanner: Locator;
   readonly truncatedCounter: Locator;
+  readonly expandingIndicator: Locator;
+  readonly expandError: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -31,6 +33,8 @@ export class GraphExplorerPage {
     this.retryButton = page.getByRole('button', { name: 'Retry' });
     this.truncatedBanner = page.getByText('Showing the first 200 entities. Narrow your search to see more.');
     this.truncatedCounter = page.getByText('Showing 200 entities');
+    this.expandingIndicator = page.getByTestId('expanding-indicator');
+    this.expandError = page.getByTestId('expand-error');
   }
 
   async goto() {
@@ -38,12 +42,37 @@ export class GraphExplorerPage {
   }
 
   async selectFirstNode() {
-    await this.nodes.first().click();
+    const node = this.nodes.first();
+    await node.scrollIntoViewIfNeeded();
+    await node.click({ force: true });
+  }
+
+  async selectFirstEdge() {
+    const edge = this.edges.first();
+    await edge.scrollIntoViewIfNeeded();
+    await edge.click({ force: true });
   }
 
   async selectNode(name: string) {
-    const node = this.page.locator('.react-flow__node', { hasText: name });
-    await node.first().click();
+    const node = this.page.locator('.react-flow__node', { hasText: name }).first();
+    await node.scrollIntoViewIfNeeded();
+    await node.click({ force: true });
+  }
+
+  async hoverNode(name: string) {
+    const node = this.page.locator('.react-flow__node', { hasText: name }).first();
+    await node.scrollIntoViewIfNeeded();
+    await node.hover({ force: true });
+  }
+
+  async doubleClickNode(name: string) {
+    const node = this.page.locator('.react-flow__node', { hasText: name }).first();
+    await node.scrollIntoViewIfNeeded();
+    await node.dblclick({ force: true });
+  }
+
+  typeFilterChip(type: string): Locator {
+    return this.page.getByTestId(`type-chip-${type}`);
   }
 
   noMatchHeading(query: string): Locator {

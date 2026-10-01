@@ -14,12 +14,17 @@ const navigation = [
 ];
 
 export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+
+  // Auto-collapse on the explorer page so the canvas gets maximum width,
+  // especially at 1280px where three panels share the horizontal space.
+  const isExplorer = pathname === "/dashboard/explorer";
+  const [userCollapsed, setUserCollapsed] = useState<boolean | null>(null);
+  const collapsed = userCollapsed ?? isExplorer;
 
   return (
     <aside
-      className={`flex flex-col border-r border-border bg-panel text-muted transition-all duration-300 ${
+      className={`hidden lg:flex flex-col border-r border-border bg-panel text-muted transition-all duration-200 ${
         collapsed ? "w-16" : "w-64"
       } h-screen shrink-0`}
     >
@@ -33,7 +38,7 @@ export function Sidebar() {
           </div>
         )}
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={() => setUserCollapsed(!collapsed)}
           className="rounded p-1.5 hover:bg-page hover:text-text transition-colors"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >

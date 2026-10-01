@@ -58,6 +58,9 @@ export function DocumentUpload() {
       }
       
       setUploadComplete(true);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("document-uploaded"));
+      }
       setTimeout(() => {
         setFile(null);
         setUploadComplete(false);
@@ -113,7 +116,7 @@ export function DocumentUpload() {
           aria-label="Upload document dropzone"
           className={`flex flex-col items-center justify-center border border-dashed rounded-lg p-8 md:p-12 text-center cursor-pointer transition-all duration-200 focus-visible:ring-2 focus-visible:ring-teal focus-visible:outline-none ${
             isDragging 
-              ? "border-teal bg-teal/5 shadow-[0_0_20px_rgba(45,212,191,0.15)]" 
+              ? "border-teal bg-teal/5 shadow-[0_0_20px_var(--color-teal)]/15" 
               : "border-border bg-page hover:border-teal/50 hover:bg-panel/40"
           }`}
           onDragOver={handleDragOver}
@@ -186,7 +189,7 @@ export function DocumentUpload() {
                 ? "bg-teal cursor-default flex items-center justify-center gap-2" 
                 : isUploading
                   ? "bg-teal/50 text-page/70 cursor-not-allowed"
-                  : "bg-teal hover:opacity-95 active:scale-[0.99] shadow-[0_0_15px_rgba(45,212,191,0.2)]"
+                  : "bg-teal hover:opacity-95 active:scale-[0.99] shadow-[0_0_15px_var(--color-teal)]/20"
             }`}
           >
             {uploadComplete ? "Upload Complete!" : isUploading ? "Processing..." : "Extract Knowledge"}
