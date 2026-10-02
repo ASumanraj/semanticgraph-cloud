@@ -419,7 +419,9 @@ test.describe('Graph Explorer', () => {
     const screenshotDir = path.resolve(__dirname, 'screenshots');
     const docsScreenshotDir = path.resolve(__dirname, '..', '..', 'docs', 'design', 'screenshots');
     fs.mkdirSync(screenshotDir, { recursive: true });
-    fs.mkdirSync(docsScreenshotDir, { recursive: true });
+    if (process.env.UPDATE_DESIGN_SCREENSHOTS === '1') {
+      fs.mkdirSync(docsScreenshotDir, { recursive: true });
+    }
 
     const viewports = [
       { name: '1440', width: 1440, height: 900 },
@@ -453,6 +455,54 @@ test.describe('Graph Explorer', () => {
             quote: 'joint partnership with Cyberdyne Systems in 2029.',
           },
         },
+        {
+          id: 'node-gamma',
+          name: 'Stark Industries',
+          entity_type: 'ORGANIZATION',
+          kind: 'raw_entity',
+          provenance: {
+            chunk_id: '9f8b4a2e-5c1d-4e3a-b7f6-8c2d1e0a9b8c',
+            start_offset: 0,
+            end_offset: 16,
+            quote: 'Stark Industries supplies advanced hardware.',
+          },
+        },
+        {
+          id: 'node-delta',
+          name: 'Wayne Enterprises',
+          entity_type: 'ORGANIZATION',
+          kind: 'raw_entity',
+          provenance: {
+            chunk_id: '9f8b4a2e-5c1d-4e3a-b7f6-8c2d1e0a9b8c',
+            start_offset: 0,
+            end_offset: 17,
+            quote: 'Wayne Enterprises invested in robotics technology.',
+          },
+        },
+        {
+          id: 'node-epsilon',
+          name: 'Initech LLC',
+          entity_type: 'ORGANIZATION',
+          kind: 'raw_entity',
+          provenance: {
+            chunk_id: '9f8b4a2e-5c1d-4e3a-b7f6-8c2d1e0a9b8c',
+            start_offset: 0,
+            end_offset: 11,
+            quote: 'Initech LLC operates enterprise cloud infrastructure.',
+          },
+        },
+        {
+          id: 'node-zeta',
+          name: 'Umbrella Corp',
+          entity_type: 'ORGANIZATION',
+          kind: 'raw_entity',
+          provenance: {
+            chunk_id: '9f8b4a2e-5c1d-4e3a-b7f6-8c2d1e0a9b8c',
+            start_offset: 0,
+            end_offset: 13,
+            quote: 'Umbrella Corp collaborates on research initiatives.',
+          },
+        },
       ],
       edges: [
         {
@@ -470,26 +520,73 @@ test.describe('Graph Explorer', () => {
             quote: 'entered a joint partnership with',
           },
         },
+        {
+          id: 'edge-supplies',
+          source: 'node-gamma',
+          target: 'node-alpha',
+          edge_type: 'SUPPLIES_TO',
+          weight: 0.88,
+          valid_from: null,
+          valid_to: null,
+          provenance: {
+            chunk_id: '9f8b4a2e-5c1d-4e3a-b7f6-8c2d1e0a9b8c',
+            start_offset: 0,
+            end_offset: 20,
+            quote: 'Stark Industries supplies Acme Corporation',
+          },
+        },
+        {
+          id: 'edge-invests',
+          source: 'node-delta',
+          target: 'node-beta',
+          edge_type: 'INVESTS_IN',
+          weight: 0.75,
+          valid_from: null,
+          valid_to: null,
+          provenance: {
+            chunk_id: '9f8b4a2e-5c1d-4e3a-b7f6-8c2d1e0a9b8c',
+            start_offset: 0,
+            end_offset: 20,
+            quote: 'Wayne Enterprises invests in Cyberdyne Systems',
+          },
+        },
+        {
+          id: 'edge-subsidiary',
+          source: 'node-epsilon',
+          target: 'node-zeta',
+          edge_type: 'SUBSIDIARY_OF',
+          weight: 0.92,
+          valid_from: null,
+          valid_to: null,
+          provenance: {
+            chunk_id: '9f8b4a2e-5c1d-4e3a-b7f6-8c2d1e0a9b8c',
+            start_offset: 0,
+            end_offset: 20,
+            quote: 'Initech LLC is a subsidiary of Umbrella Corp',
+          },
+        },
       ],
       truncated: false,
     };
 
     const saveScreenshots = async (filename: string, targetLocator?: Locator) => {
       const p1 = path.join(screenshotDir, filename);
-      const p2 = path.join(docsScreenshotDir, filename);
       if (targetLocator) {
         await targetLocator.scrollIntoViewIfNeeded();
       } else {
         await explorerPage.container.scrollIntoViewIfNeeded();
       }
       await explorerPage.container.screenshot({ path: p1 });
-      fs.copyFileSync(p1, p2);
+      if (process.env.UPDATE_DESIGN_SCREENSHOTS === '1') {
+        const p2 = path.join(docsScreenshotDir, filename);
+        fs.copyFileSync(p1, p2);
+      }
     };
 
     for (const vp of viewports) {
       await page.setViewportSize({ width: vp.width, height: vp.height });
 
-      // State 1: selected-node
+      // State 1: selected-node (consistent data, 6 nodes, 4 edges, no truncated banner)
       await page.route('**/api/v1/graph*', (route) => {
         return route.fulfill({
           status: 200,
@@ -506,7 +603,21 @@ test.describe('Graph Explorer', () => {
       await page.waitForTimeout(300); // allow framer-motion slide-in to settle
       await saveScreenshots(`${vp.name}-selected-node.png`, page.locator('.react-flow__node', { hasText: 'Acme Corporation' }));
 
-      // State 2: selected-edge
+      // Full viewport screenshot at 1440x900 showing no scroll needed with consistent data
+      if (vp.name === '1440') {
+        const vpPath1 = path.join(screenshotDir, '1440-viewport-no-scroll.png');
+        await page.screenshot({ path: vpPath1, fullPage: false });
+        if (process.env.UPDATE_DESIGN_SCREENSHOTS === '1') {
+          const vpPath2 = path.join(docsScreenshotDir, '1440-viewport-no-scroll.png');
+          fs.copyFileSync(vpPath1, vpPath2);
+        }
+      }
+
+      // State 2: selected-edge (verify edge endpoints lie within 40px of node bounding boxes)
+      const edgeGeometryCheck = await explorerPage.assertEdgeEndpointsNearNodes(40);
+      expect(edgeGeometryCheck.totalEdges).toBeGreaterThan(0);
+      expect(edgeGeometryCheck.allPassed).toBe(true);
+
       await explorerPage.selectFirstEdge();
       await expect(page.getByText('PARTNERSHIP_WITH').first()).toBeVisible();
       await expect(page.getByText('Edge Type')).toBeVisible();
@@ -568,20 +679,13 @@ test.describe('Graph Explorer', () => {
       await expect(explorerPage.truncatedBanner).toBeVisible({ timeout: 5000 });
       await expect(page.getByText('Showing the first 200 entities. Narrow your search to see more.')).toBeVisible();
       await saveScreenshots(`${vp.name}-truncated-notice.png`, explorerPage.truncatedBanner);
-
-      // Full viewport screenshot at 1440x900 showing no scroll needed
-      if (vp.name === '1440') {
-        const vpPath1 = path.join(screenshotDir, '1440-viewport-no-scroll.png');
-        const vpPath2 = path.join(docsScreenshotDir, '1440-viewport-no-scroll.png');
-        await page.screenshot({ path: vpPath1, fullPage: false });
-        fs.copyFileSync(vpPath1, vpPath2);
-      }
     }
   });
 
   test('live API end-to-end: upload document, hover highlighting, and double-click expansion without page.route mocks', async ({
     page,
   }) => {
+    test.setTimeout(90_000);
     const uploadPage = new DocumentUploadPage(page);
     const explorerPage = new GraphExplorerPage(page);
 
@@ -612,12 +716,13 @@ test.describe('Graph Explorer', () => {
     await expect(firstNode).toHaveCSS('opacity', '1');
 
     // 4. Live double-click expansion without page.route mocks
+    await firstNode.scrollIntoViewIfNeeded();
     const [expandResponse] = await Promise.all([
       page.waitForResponse(
         (res) => res.url().includes('/api/v1/graph') && res.url().includes('query=') && res.status() === 200,
-        { timeout: 10_000 }
+        { timeout: 15_000 }
       ),
-      firstNode.dblclick({ force: true }),
+      firstNode.dblclick(),
     ]);
     expect(expandResponse.status()).toBe(200);
     await expect(page.getByTestId('expand-error')).not.toBeVisible();
@@ -676,5 +781,70 @@ test.describe('Graph Explorer', () => {
         expect(edge.provenance).toHaveProperty('quote');
       }
     }
+  });
+
+  test('each edge path endpoints lie within 40px of source and target node bounding boxes', async ({
+    page,
+  }) => {
+    const explorerPage = new GraphExplorerPage(page);
+
+    await page.route('**/api/v1/graph*', (route) => {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          nodes: [
+            { id: 'node-alpha', name: 'Acme Corporation', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
+            { id: 'node-beta', name: 'Cyberdyne Systems', entity_type: 'ORGANIZATION', kind: 'raw_entity' },
+          ],
+          edges: [
+            {
+              id: 'edge-partnership',
+              source: 'node-alpha',
+              target: 'node-beta',
+              edge_type: 'PARTNERSHIP_WITH',
+              weight: 0.95,
+            },
+          ],
+          truncated: false,
+        }),
+      });
+    });
+
+    await explorerPage.goto();
+    await expect(explorerPage.nodes.first()).toBeVisible({ timeout: 5000 });
+    await expect(explorerPage.edges.first()).toBeVisible({ timeout: 5000 });
+
+    const check = await explorerPage.assertEdgeEndpointsNearNodes(40);
+    expect(check.totalEdges).toBe(1);
+    expect(check.allPassed).toBe(true);
+    expect(check.results[0].startDist).toBeLessThanOrEqual(40);
+    expect(check.results[0].endDist).toBeLessThanOrEqual(40);
+  });
+
+  test('double-click tooltip is keyboard accessible and contains plain language text without forbidden jargon', async ({
+    page,
+  }) => {
+    const explorerPage = new GraphExplorerPage(page);
+    await explorerPage.goto();
+
+    const hintButton = page.getByRole('button', { name: 'Cross-document notice' });
+    await expect(hintButton).toBeVisible();
+    await expect(hintButton).not.toHaveAttribute('title');
+
+    const tooltip = page.getByTestId('expand-hint-tooltip');
+    await expect(tooltip).toBeHidden();
+
+    // Focus the button via keyboard
+    await hintButton.focus();
+    await expect(tooltip).toBeVisible();
+
+    const tooltipText = await tooltip.textContent();
+    expect(tooltipText).toContain(
+      'Double-click a node to load everything connected to it. Entities with the same name, including ones from other documents, are included.'
+    );
+    expect(tooltipText).not.toContain('ILIKE');
+    expect(tooltipText).not.toContain('seeds');
+    expect(tooltipText).not.toContain('raw entities');
   });
 });

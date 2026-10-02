@@ -845,27 +845,24 @@ export function GraphExplorer() {
             <span className="text-text text-[11px] font-medium block">
               Double-click node to expand
             </span>
-            <span
-              className="text-[10px] text-muted flex items-center gap-1 cursor-help group-hover:text-teal transition-colors"
-              title="Queries by name (ILIKE). All same-name entities across documents are included as seeds."
+            <button
+              type="button"
+              aria-describedby="expand-hint-tooltip"
+              className="text-[10px] text-muted flex items-center gap-1 cursor-help hover:text-teal focus:text-teal focus:outline-none focus-visible:ring-1 focus-visible:ring-teal/50 rounded transition-colors text-left"
             >
-              <span>Cross-document seed notice</span>
+              <span>Cross-document notice</span>
               <span className="w-3 h-3 rounded-full border border-muted/50 inline-flex items-center justify-center text-[9px] font-bold">
                 i
               </span>
-            </span>
+            </button>
           </div>
           <div
+            id="expand-hint-tooltip"
             role="tooltip"
             data-testid="expand-hint-tooltip"
-            className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 p-2.5 bg-panel border border-border rounded-lg shadow-xl text-[11px] text-text leading-relaxed pointer-events-none"
+            className="absolute left-0 bottom-full mb-2 hidden group-hover:block group-focus-within:block z-50 w-64 p-2.5 bg-panel border border-border rounded-lg shadow-xl text-[11px] text-text leading-relaxed pointer-events-none"
           >
-            <div className="font-semibold text-teal mb-0.5">
-              Cross-Document Expansion
-            </div>
-            Expansion queries the API by entity name using ILIKE. Because raw
-            entities are stored per mention, entities sharing this name across
-            all documents will be included as seeds.
+            Double-click a node to load everything connected to it. Entities with the same name, including ones from other documents, are included.
           </div>
         </div>
 
@@ -1167,23 +1164,19 @@ export function GraphExplorer() {
                           <Info className="w-3 h-3 text-teal shrink-0" />
                           Double-click to expand
                         </span>
-                        <span
-                          className="text-[10px] font-mono text-teal cursor-help underline decoration-dotted"
-                          title="Expansion queries the API by name using ILIKE. All same-name entities across documents are included as seeds."
+                        <button
+                          type="button"
+                          aria-describedby="node-expand-tooltip"
+                          className="text-[10px] text-teal hover:underline focus:underline focus:outline-none cursor-help"
                         >
-                          cross-doc notice (?)
-                        </span>
+                          cross-doc notice
+                        </button>
                         <div
+                          id="node-expand-tooltip"
                           role="tooltip"
-                          className="absolute right-0 bottom-full mb-2 hidden group-hover:block z-50 w-60 p-2.5 bg-panel border border-border rounded-lg shadow-xl text-[11px] text-text leading-relaxed pointer-events-none"
+                          className="absolute right-0 bottom-full mb-2 hidden group-hover:block group-focus-within:block z-50 w-64 p-2.5 bg-panel border border-border rounded-lg shadow-xl text-[11px] text-text leading-relaxed pointer-events-none"
                         >
-                          <div className="font-semibold text-teal mb-0.5">
-                            Cross-Document Expansion
-                          </div>
-                          Expansion queries the API by entity name using ILIKE.
-                          Because raw entities are stored per mention, entities
-                          sharing this name across all documents will be included
-                          as seeds.
+                          Double-click a node to load everything connected to it. Entities with the same name, including ones from other documents, are included.
                         </div>
                       </div>
                     </div>

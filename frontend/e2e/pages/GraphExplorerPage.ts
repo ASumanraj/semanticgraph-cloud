@@ -79,4 +79,70 @@ export class GraphExplorerPage {
   noMatchHeading(query: string): Locator {
     return this.page.getByText(new RegExp(`No entities match .${query}.`, 'i'));
   }
+
+  /**
+   * Asserts that each edge path's endpoints lie within maxDistancePx of its
+   * source and target node bounding boxes (not just that the edge element exists).
+   */
+  async assertEdgeEndpointsNearNodes(maxDistancePx = 40) {
+    const check = await this.page.evaluate((maxDist) => {
+      const edges = Array.from(document.querySelectorAll('.react-flow__edge'));
+      const nodes = Array.from(document.querySelectorAll('.react-flow__node')) as HTMLElement[];
+
+      function distToBox(px: number, py: number, box: DOMRect) {
+        const dx = Math.max(box.left - px, 0, px - box.right);
+        const dy = Math.max(box.top - py, 0, py - box.bottom);
+        return Math.sqrt(dx * dx + dy * dy);
+      }
+
+      if (edges.length === 0) {
+        return { totalEdges: 0, results: [], allPassed: false, error: 'No edges found in DOM' };
+      }
+
+      const results = edges.map((edge, idx) => {
+        const path = edge.querySelector('path.react-flow__edge-path') as SVGPathElement | null;
+        if (!path) {
+          return { index: idx, pass: false, error: 'No path.react-flow__edge-path element found' };
+        }
+        const totalLen = path.getTotalLength();
+        if (totalLen <= 0) {
+          return { index: idx, pass: false, error: `Edge path length is ${totalLen}` };
+        }
+        const p0 = path.getPointAtLength(0);
+        const p1 = path.getPointAtLength(totalLen);
+        const ctm = path.getScreenCTM();
+        if (!ctm) {
+          return { index: idx, pass: false, error: 'Could not obtain ScreenCTM matrix' };
+        }
+        const startScreen = p0.matrixTransform(ctm);
+        const endScreen = p1.matrixTransform(ctm);
+
+        let startDist = Infinity;
+        let endDist = Infinity;
+        for (const node of nodes) {
+          const box = node.getBoundingClientRect();
+          const ds = distToBox(startScreen.x, startScreen.y, box);
+          const de = distToBox(endScreen.x, endScreen.y, box);
+          if (ds < startDist) startDist = ds;
+          if (de < endDist) endDist = de;
+        }
+
+        return {
+          index: idx,
+          startDist,
+          endDist,
+          pass: startDist <= maxDist && endDist <= maxDist,
+        };
+      });
+
+      return {
+        totalEdges: edges.length,
+        results,
+        allPassed: results.every((r) => r.pass),
+      };
+    }, maxDistancePx);
+
+    return check;
+  }
 }
+

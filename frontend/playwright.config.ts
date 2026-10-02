@@ -6,8 +6,8 @@ const pythonExe = process.platform === 'win32'
   ? `"${path.join(rootDir, '.venv', 'Scripts', 'python.exe')}"`
   : `"${path.join(rootDir, '.venv', 'bin', 'python')}"`;
 
-const backendPort = process.env.BACKEND_PORT || '8008';
-const frontendPort = process.env.PORT || '3030';
+const backendPort = process.env.BACKEND_PORT || '8000';
+const frontendPort = process.env.PORT || '3000';
 
 export default defineConfig({
   testDir: './e2e',
