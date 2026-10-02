@@ -40,6 +40,10 @@ Also run these as concrete offers, each with a pass criterion set **before** the
    compliance-certificate history. Pass: the reviewer agrees our answer for the covenant level at the test
    date and the superseding text.
 
+The interview guide, screening questions, outreach text, recording template and the proposed
+pass/fail rules are in [`docs/research/t223-interview-guide.md`](../../research/t223-interview-guide.md).
+The rules there are **proposed** and need the founder's approval before the first interview.
+
 ## Acceptance
 
 - [ ] A one-page interview guide and the pass/fail criteria written and committed before any interview

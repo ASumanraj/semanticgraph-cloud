@@ -79,6 +79,7 @@ event-level benchmark). The wedge in `ENTERPRISE_PLAN.md` Part 0.2 is a hypothes
 choice. [T-222](T-222-assertions-must-be-idempotent-on-retry.md) (assertion retry-safety) follows T-218.
 [T-225](T-225-stop-alembic-disabling-app-loggers.md) (`alembic/env.py` logger config, tracked generated Playwright files) follows T-218's merge.
 [T-221](T-221-frontend-design-pass.md) (`frontend/**`, design tokens, graph explorer, restrained motion) waits on the reviewer's look at the Penpot boards.
+[T-227](T-227-cuad-capped-extraction-measurement.md) (`evals/cuad/**`, a capped measurement of Gemini extraction on CUAD, scoring fixed first) and the [T-223 interview guide](../../research/t223-interview-guide.md) are the next two items; no new feature ticket starts before interviews give a signal.
 
 Two agents at once need separate git worktrees; they share one checkout otherwise, and a
 branch switch by one silently moves the other's commits.
