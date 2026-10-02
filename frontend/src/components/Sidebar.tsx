@@ -14,27 +14,32 @@ const navigation = [
 ];
 
 export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+
+  // Auto-collapse on the explorer page so the canvas gets maximum width,
+  // especially at 1280px where three panels share the horizontal space.
+  const isExplorer = pathname === "/dashboard/explorer";
+  const [userCollapsed, setUserCollapsed] = useState<boolean | null>(null);
+  const collapsed = userCollapsed ?? isExplorer;
 
   return (
     <aside
-      className={`flex flex-col border-r border-gray-800 bg-[#0A0A0A] text-gray-300 transition-all duration-300 ${
+      className={`hidden lg:flex flex-col border-r border-border bg-panel text-muted transition-all duration-200 ${
         collapsed ? "w-16" : "w-64"
       } h-screen shrink-0`}
     >
-      <div className="flex h-14 items-center justify-between border-b border-gray-800 px-4">
+      <div className="flex h-14 items-center justify-between border-b border-border px-4">
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-indigo-600 flex items-center justify-center text-xs font-bold text-white">
+            <div className="w-6 h-6 rounded bg-teal flex items-center justify-center text-xs font-bold text-page">
               SG
             </div>
-            <span className="text-sm font-semibold text-white tracking-wide">SemanticGraph</span>
+            <span className="text-sm font-semibold text-text tracking-wide">SemanticGraph</span>
           </div>
         )}
         <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="rounded p-1.5 hover:bg-gray-800 hover:text-white transition-colors"
+          onClick={() => setUserCollapsed(!collapsed)}
+          className="rounded p-1.5 hover:bg-page hover:text-text transition-colors"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
@@ -48,16 +53,16 @@ export function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
-              className={`group flex items-center rounded-md px-2.5 py-2 text-sm font-medium transition-colors ${
+              className={`group flex items-center rounded-lg px-2.5 py-2 text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30"
-                  : "text-gray-400 hover:bg-gray-800/50 hover:text-gray-100"
+                  ? "bg-teal/15 text-teal border border-teal/30"
+                  : "text-muted hover:bg-page hover:text-text"
               }`}
               title={collapsed ? item.name : undefined}
             >
               <item.icon
                 className={`flex-shrink-0 ${collapsed ? "mr-0" : "mr-3"} ${
-                  isActive ? "text-indigo-400" : "text-gray-400 group-hover:text-gray-300"
+                  isActive ? "text-teal" : "text-muted group-hover:text-text"
                 }`}
                 size={18}
               />

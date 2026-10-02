@@ -58,6 +58,9 @@ export function DocumentUpload() {
       }
       
       setUploadComplete(true);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("document-uploaded"));
+      }
       setTimeout(() => {
         setFile(null);
         setUploadComplete(false);
@@ -97,26 +100,43 @@ export function DocumentUpload() {
   };
 
   return (
-    <div className="w-full h-full flex flex-col relative z-10">
-      <h2 className="text-2xl font-bold mb-6 text-white tracking-tight">Upload Document</h2>
-      
+    <div className="w-full">
       {!file ? (
         <div
-          className={`flex-1 flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all duration-300 backdrop-blur-md ${
+          id="document-upload-dropzone"
+          role="button"
+          tabIndex={0}
+          aria-label="Upload document dropzone"
+          className={`flex items-center justify-between gap-3 border rounded-lg px-3.5 py-2 cursor-pointer transition-all duration-200 focus-visible:ring-2 focus-visible:ring-teal focus-visible:outline-none ${
             isDragging 
-              ? "border-blue-400 bg-blue-500/10 shadow-[0_0_30px_rgba(59,130,246,0.3)]" 
-              : "border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10"
+              ? "border-teal bg-teal/10 shadow-[0_0_20px_var(--color-teal)]/15" 
+              : "border-border bg-page hover:border-teal/50 hover:bg-panel/60"
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              fileInputRef.current?.click();
+            }
+          }}
         >
-          <div className={`p-4 rounded-full mb-4 transition-colors duration-300 ${isDragging ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 text-zinc-400'}`}>
-            <UploadCloud className="w-10 h-10" />
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="p-1.5 rounded bg-panel text-teal border border-border shrink-0">
+              <UploadCloud className="w-4 h-4" />
+            </div>
+            <span className="text-text font-medium text-xs truncate">
+              Click or drag document here
+            </span>
+            <span className="text-[11px] text-muted hidden md:inline">
+              (Supports PDF, DOCX, TXT)
+            </span>
           </div>
-          <p className="text-zinc-200 font-medium text-lg mb-2">Click or drag document here</p>
-          <p className="text-sm text-zinc-500">Supports PDF, DOCX, TXT</p>
+          <span className="px-2.5 py-1 bg-panel border border-border text-teal text-[11px] font-semibold rounded shrink-0 pointer-events-none">
+            Choose File
+          </span>
           <input
             type="file"
             className="hidden"
@@ -125,54 +145,59 @@ export function DocumentUpload() {
           />
         </div>
       ) : (
-        <div className="flex flex-col space-y-6 flex-1 justify-center">
-          <div className="flex items-center justify-between p-5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-blue-500/20 rounded-xl">
-                <FileIcon className="w-8 h-8 text-blue-400" />
-              </div>
-              <div>
-                <p className="font-medium text-white line-clamp-1">{file.name}</p>
-                <p className="text-sm text-zinc-400">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-              </div>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-2 bg-page rounded-lg border border-border">
+          <div className="flex items-center space-x-2.5 min-w-0 flex-1">
+            <div className="p-1.5 bg-panel text-cyan rounded border border-border shrink-0">
+              <FileIcon className="w-4 h-4" />
+            </div>
+            <div className="min-w-0 flex-1 flex items-baseline gap-2">
+              <p className="font-medium text-text text-xs truncate">{file.name}</p>
+              <p className="text-[10px] text-muted shrink-0">({(file.size / 1024 / 1024).toFixed(2)} MB)</p>
             </div>
             {!isUploading && !uploadComplete && (
               <button
+                type="button"
                 onClick={() => {
                   setFile(null);
                   setErrorMessage(null);
                 }}
-                className="p-2 text-zinc-400 hover:text-red-400 transition-colors rounded-full hover:bg-white/10"
-                disabled={isUploading}
+                className="p-1 text-muted hover:text-error hover:bg-panel rounded transition-colors"
                 aria-label="Remove selected file"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
-            )}
-            {uploadComplete && (
-              <CheckCircle2 className="w-6 h-6 text-emerald-400" />
             )}
           </div>
 
           {errorMessage && (
-            <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
-              <AlertCircle className="w-5 h-5 shrink-0" />
-              <span>{errorMessage}</span>
+            <div className="flex items-center gap-1.5 text-error text-[11px] px-2 py-0.5 bg-error/10 border border-error/30 rounded">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">{errorMessage}</span>
             </div>
           )}
-          
+
           <button
+            type="button"
             onClick={uploadDocument}
             disabled={isUploading || uploadComplete}
-            className={`w-full py-4 px-6 rounded-xl font-medium text-white shadow-lg transition-all duration-300 ${
+            className={`py-1.5 px-4 rounded font-semibold text-xs text-page shrink-0 transition-all focus-visible:ring-2 focus-visible:ring-teal focus-visible:outline-none ${
               uploadComplete 
-                ? "bg-emerald-500/80 hover:bg-emerald-500/80 cursor-default" 
+                ? "bg-teal cursor-default flex items-center gap-1.5" 
                 : isUploading
-                  ? "bg-blue-600/50 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-500 hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:-translate-y-0.5"
+                  ? "bg-teal/50 cursor-not-allowed"
+                  : "bg-teal hover:opacity-95 active:scale-[0.99] shadow-[0_0_15px_var(--color-teal)]/20"
             }`}
           >
-            {uploadComplete ? "Upload Complete!" : isUploading ? "Processing..." : "Extract Knowledge"}
+            {uploadComplete ? (
+              <>
+                <CheckCircle2 className="w-3.5 h-3.5 text-page" />
+                <span>Upload Complete!</span>
+              </>
+            ) : isUploading ? (
+              "Processing..."
+            ) : (
+              "Extract Knowledge"
+            )}
           </button>
         </div>
       )}
