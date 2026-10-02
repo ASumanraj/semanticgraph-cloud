@@ -398,10 +398,10 @@ def main() -> None:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Command: metadata
-    parser.add_parser("metadata", help="Print CUAD dataset metadata and disclaimers")
+    subparsers.add_parser("metadata", help="Print CUAD dataset metadata and disclaimers")
 
     # Command: mappings
-    parser.add_parser("mappings", help="Print question-to-category mapping table")
+    subparsers.add_parser("mappings", help="Print question-to-category mapping table")
 
     # Command: download
     parser_down = subparsers.add_parser(
@@ -577,16 +577,22 @@ def main() -> None:
         extractor = GeminiLLMGateway(config=config, usage_ledger=usage_ledger)
         harness = CUADEvalHarness(extractor=extractor)
 
-        print(f"\nModel ID: {config.model_id} (source: {model_source})")
+        has_api_key = bool(config.api_key and config.api_key.strip())
+        print(f"\nGEMINI_API_KEY: {'present and non-empty' if has_api_key else 'MISSING or empty'}")
+        print(f"Tier: {config.tier.value}")
+        print(f"Model ID: {config.model_id} (source: {model_source})")
         print(
-            f"Stated Pricing ({config.price_version} schedule): "
+            f"Price line ({config.price_version}): "
             f"${input_rate_per_m:.2f}/1M input, ${output_rate_per_m:.2f}/1M output, "
             f"${cache_read_rate_per_m:.4f}/1M cache read"
         )
         print(
             f"Limits: {args.max_contracts} contracts, {args.max_calls} max calls, "
-            f"USD {args.max_spend_usd} (tier: {config.tier.value})"
+            f"USD {args.max_spend_usd}"
         )
+        if not has_api_key:
+            print("Error: GEMINI_API_KEY is missing or empty.")
+            sys.exit(1)
 
         total_provider_attempts = 0
 
