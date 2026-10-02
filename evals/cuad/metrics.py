@@ -57,6 +57,7 @@ class CUADEvaluationReport:
     total_contracts: int
     evaluated_questions: list[str]
     unsupported_questions: dict[str, str]
+    failed_contracts: int = 0
     citation: str = CUAD_CITATION
     licence: str = CUAD_LICENCE
     dataset_checksum: str = MASTER_CLAUSES_CSV_SHA256
@@ -72,6 +73,7 @@ class CUADEvaluationReport:
             "licence": self.licence,
             "dataset_checksum": self.dataset_checksum,
             "total_contracts": self.total_contracts,
+            "failed_contracts": self.failed_contracts,
             "evaluated_questions": self.evaluated_questions,
             "unsupported_questions": self.unsupported_questions,
             "disclaimers": self.disclaimers,
@@ -91,19 +93,27 @@ class CUADEvaluationReport:
             f"Citation: {self.citation}",
             f"Dataset Checksum (SHA-256): {self.dataset_checksum}",
             f"Total Contracts Evaluated: {self.total_contracts}",
+            f"Failed Contracts: {self.failed_contracts}",
             "",
             header,
-            "-" * 80,
+            "-" * 88,
         ]
         for cat in sorted(self.category_metrics.keys()):
             m = self.category_metrics[cat]
-            row = (
-                f"{m.category:<30} | {m.precision:>6.2f} | {m.recall:>6.2f} | {m.f1:>6.2f} | "
-                f"{m.true_positives:>4} | {m.false_positives:>4} | "
-                f"{m.false_negatives:>4} | {m.support:>7}"
-            )
+            if m.support == 0:
+                row = (
+                    f"{m.category:<30} | {'not evaluated':^24} | "
+                    f"{m.true_positives:>4} | {m.false_positives:>4} | "
+                    f"{m.false_negatives:>4} | {m.support:>7}"
+                )
+            else:
+                row = (
+                    f"{m.category:<30} | {m.precision:>6.2f} | {m.recall:>6.2f} | {m.f1:>6.2f} | "
+                    f"{m.true_positives:>4} | {m.false_positives:>4} | "
+                    f"{m.false_negatives:>4} | {m.support:>7}"
+                )
             lines.append(row)
-        lines.append("-" * 80)
+        lines.append("-" * 88)
         lines.append("Note: Per T-909 requirements, scores are reported strictly per category.")
         lines.append("No blended number is reported to ensure category weaknesses are not hidden.")
         return "\n".join(lines)
@@ -118,8 +128,9 @@ def normalize_text(text: str) -> str:
 def text_matches(predicted: str, ground_truth: str, threshold: float = 0.5) -> bool:
     """Determines whether a predicted span matches a ground truth annotation.
 
-    Matches if exact match, or token Jaccard similarity meets threshold, or
-    one is a substantial substring of the other.
+    Matches if exact match or if token-level F1 similarity meets threshold.
+    Substring matching is explicitly excluded to prevent short generic
+    predictions from matching long clauses.
     """
     pred_norm = normalize_text(predicted)
     gt_norm = normalize_text(ground_truth)
@@ -127,21 +138,20 @@ def text_matches(predicted: str, ground_truth: str, threshold: float = 0.5) -> b
     if not pred_norm or not gt_norm:
         return False
 
-    if pred_norm == gt_norm or pred_norm in gt_norm or gt_norm in pred_norm:
+    if pred_norm == gt_norm:
         return True
 
-    # Token overlap check
+    # Token overlap check (Token-level F1)
     pred_tokens = set(pred_norm.split())
     gt_tokens = set(gt_norm.split())
 
     if not pred_tokens or not gt_tokens:
         return False
 
-    intersection = pred_tokens.intersection(gt_tokens)
-    union = pred_tokens.union(gt_tokens)
-    jaccard = len(intersection) / len(union)
+    intersection = len(pred_tokens.intersection(gt_tokens))
+    f1 = 2.0 * intersection / (len(pred_tokens) + len(gt_tokens))
 
-    return jaccard >= threshold
+    return f1 >= threshold
 
 
 def compute_category_metrics(
@@ -156,9 +166,9 @@ def compute_category_metrics(
             true_positives=0,
             false_positives=0,
             false_negatives=0,
-            precision=1.0,
-            recall=1.0,
-            f1=1.0,
+            precision=0.0,
+            recall=0.0,
+            f1=0.0,
             support=0,
         )
 
