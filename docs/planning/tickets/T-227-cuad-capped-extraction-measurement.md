@@ -7,6 +7,7 @@
 - `tests/unit/evals/**`
 - `docs/research/**` (the results note only)
 - `.gitignore` (for the downloaded contract texts and the raw predictions)
+- `pyproject.toml` and `uv.lock` (added 2026-10-04: declare `openai` and `python-dotenv` in the dev extras, then `uv lock`)
 
 **Blocked by** — · **Blocks** any statement about extraction quality made to a buyer
 
@@ -121,3 +122,32 @@ model on the free tier. The results note says so.
 4. **Then the 30-contract run** exactly as designed, under the 600-call cap, and the results note, which names
    the model and states that it is an open model hosted by NVIDIA, **not Gemini or Claude**, that its figures
    say nothing about those models, and the terms above.
+
+## Review 2026-10-04 (probe and offline checks)
+
+Verified independently on `770bce4`: the three offline sanity tests pass on the real downloaded texts and the
+shuffled test fails on the original scoring code (so it catches the pooled-scoring defect); agy's loader fix is
+real and important: seven of the 14 scored categories (Anti-Assignment, Cap On Liability, Change Of Control,
+Exclusivity, Non-Compete, Termination For Convenience, Uncapped Liability) have Yes/No answer columns, and
+before the fix their "labels" were the literal words Yes and No. That defect came from T-909 and was missed
+by its review. Remaining work before the 30-contract run:
+
+1. **The probe is not yet a fair result.** `max_tokens=2048` starves a reasoning model of output after its
+   thinking tokens (the 4 "empty outputs" of 10), and a 25 s per-chunk timeout with an abort after two
+   timeouts may explain the two models reported as unresponsive; only one of five models was really
+   evaluated. Raise the output budget (or turn thinking off where the model supports it), lengthen the
+   timeout (for example 90 s), re-probe all five on the same 10 chunks, and report each failure type.
+   **Bar set before the re-probe: at least 95% of chunks return schema-valid output for the model to be
+   used.** If no model reaches it, stop and report; do not run the 30-contract sample on a model that fails
+   one chunk in three.
+2. **Failed or empty chunks must never be scored silently.** Retry them once with a larger budget; if a
+   chunk still fails, exclude its contract from scoring and report how many contracts and chunks were
+   excluded. A recall number deflated by harness failures is not a result.
+3. **The sanity tests must run in CI.** They currently skip without the downloaded data. Commit a tiny
+   fixture (a few rows of labels and short text, CC BY 4.0 with attribution) so oracle, shuffled and empty
+   tests always run; keep the real-data version as an extra. Add an assertion that no loaded label is the
+   literal text "yes" or "no".
+4. **Declare `openai` and `python-dotenv`** (imported by `evals/cuad/nvidia.py`, present only transitively)
+   in the dev extras and regenerate `uv.lock`.
+5. **Remove the fallback to the misspelled `NVIDIA_API_KE`.** The founder fixes `.env`; the code reads
+   `NVIDIA_API_KEY` only.
