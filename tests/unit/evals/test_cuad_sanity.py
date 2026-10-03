@@ -1,9 +1,12 @@
 """Offline sanity tests for CUAD evaluation scoring (T-227 Amendment).
 
 Validates evaluation scoring logic without model calls:
-1. Oracle run: Contract's own ground truth as predictions scores 1.0 for support > 0.
-2. Shuffled run: Using another contract's labels as predictions scores near 0.
-3. Empty run: Empty predictions yields recall 0.0 for every category with support > 0.
+1. No loaded label equals literal 'yes' or 'no' (validating Yes/No boolean parsing).
+2. Oracle run: Contract's own ground truth as predictions scores 1.0 for support > 0.
+3. Shuffled run: Using another contract's labels as predictions scores near 0.
+4. Empty run: Empty predictions yields recall 0.0 for every category with support > 0.
+
+Runs reliably in CI using committed tiny fixture; also tests real dataset when present.
 """
 
 from __future__ import annotations
@@ -17,8 +20,21 @@ from evals.cuad.metrics import compute_category_metrics
 
 
 @pytest.fixture(scope="module")
+def ci_fixture_annotations() -> list[CUADContractAnnotation]:
+    """Loads committed tiny CUAD fixture for guaranteed CI execution without downloading data."""
+    fixture_dir = Path(__file__).parent / "fixtures" / "tiny_cuad"
+    csv_path = fixture_dir / "master_clauses.csv"
+    assert csv_path.exists(), f"Tiny CUAD fixture missing at {csv_path}"
+
+    categories = get_all_cuad_target_categories()
+    annotations = load_master_clauses_csv(csv_path, categories)
+    assert len(annotations) >= 3, "CI fixture must contain at least 3 contracts"
+    return annotations
+
+
+@pytest.fixture(scope="module")
 def real_sample_annotations() -> list[CUADContractAnnotation]:
-    """Loads a small fixed subset (5 contracts) from the real CUAD dataset."""
+    """Loads a small fixed subset (5 contracts) from real CUAD dataset if downloaded."""
     data_dir = Path("evals/cuad/data/CUAD_v1")
     csv_path = data_dir / "master_clauses.csv"
     txt_dir = data_dir / "full_contract_txt"
@@ -34,11 +50,28 @@ def real_sample_annotations() -> list[CUADContractAnnotation]:
     return matched[:5]
 
 
-def test_oracle_run_scores_one(real_sample_annotations: list[CUADContractAnnotation]) -> None:
+def test_no_loaded_label_is_boolean_yes_or_no(
+    ci_fixture_annotations: list[CUADContractAnnotation],
+) -> None:
+    """T-227 Review: Verify no parsed ground truth label is the literal text 'yes' or 'no'."""
+    categories = get_all_cuad_target_categories()
+    for ann in ci_fixture_annotations:
+        for cat in categories:
+            for label in ann.get_ground_truth(cat):
+                clean = label.strip().lower()
+                assert clean not in (
+                    "yes",
+                    "no",
+                ), f"Literal boolean '{label}' found in {cat} for {ann.filename}"
+
+
+def test_oracle_run_scores_one(
+    ci_fixture_annotations: list[CUADContractAnnotation],
+) -> None:
     """T-227 Sanity: Oracle run (own labels) scores 1.0 for categories with support > 0."""
     categories = get_all_cuad_target_categories()
 
-    for ann in real_sample_annotations:
+    for ann in ci_fixture_annotations:
         for cat in categories:
             gt = ann.get_ground_truth(cat)
             metrics = compute_category_metrics(cat, predictions=gt, ground_truth=gt)
@@ -52,12 +85,12 @@ def test_oracle_run_scores_one(real_sample_annotations: list[CUADContractAnnotat
 
 
 def test_empty_run_has_zero_recall(
-    real_sample_annotations: list[CUADContractAnnotation],
+    ci_fixture_annotations: list[CUADContractAnnotation],
 ) -> None:
     """T-227 Sanity: Empty run yields recall = 0.0 and TP = 0 for support > 0."""
     categories = get_all_cuad_target_categories()
 
-    for ann in real_sample_annotations:
+    for ann in ci_fixture_annotations:
         for cat in categories:
             gt = ann.get_ground_truth(cat)
             metrics = compute_category_metrics(cat, predictions=[], ground_truth=gt)
@@ -69,11 +102,11 @@ def test_empty_run_has_zero_recall(
 
 
 def test_shuffled_run_scores_near_zero(
-    real_sample_annotations: list[CUADContractAnnotation],
+    ci_fixture_annotations: list[CUADContractAnnotation],
 ) -> None:
     """T-227 Sanity: Shuffled run (another contract's labels) scores near 0."""
     categories = get_all_cuad_target_categories()
-    n = len(real_sample_annotations)
+    n = len(ci_fixture_annotations)
     assert n >= 3, "Need at least 3 contracts for shuffled evaluation"
 
     total_tp = 0
@@ -82,8 +115,8 @@ def test_shuffled_run_scores_near_zero(
     for cat in categories:
         cat_tp = 0
         cat_support = 0
-        for i, ann in enumerate(real_sample_annotations):
-            other_ann = real_sample_annotations[(i + 1) % n]
+        for i, ann in enumerate(ci_fixture_annotations):
+            other_ann = ci_fixture_annotations[(i + 1) % n]
             pred = other_ann.get_ground_truth(cat)
             gt = ann.get_ground_truth(cat)
 
@@ -115,3 +148,17 @@ def test_shuffled_run_scores_near_zero(
     assert total_support > 0
     overall_recall = total_tp / total_support
     assert overall_recall < 0.10, f"Expected overall recall < 0.10, got {overall_recall:.4f}"
+
+
+def test_real_data_no_boolean_yes_no(
+    real_sample_annotations: list[CUADContractAnnotation],
+) -> None:
+    """Extra: Real dataset verification that no label is literal 'yes' or 'no'."""
+    categories = get_all_cuad_target_categories()
+    for ann in real_sample_annotations:
+        for cat in categories:
+            for label in ann.get_ground_truth(cat):
+                assert label.strip().lower() not in (
+                    "yes",
+                    "no",
+                ), f"Literal boolean '{label}' in {cat} for {ann.filename}"

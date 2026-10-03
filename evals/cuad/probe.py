@@ -1,4 +1,4 @@
-"""Model probe across candidate NVIDIA models on 10 chunks (T-227 Amendment).
+"""Model probe across candidate NVIDIA models on 10 chunks (T-227 Amendment & Review 2026-10-04).
 
 Evaluates 5 candidate models from NVIDIA's API Catalog:
 - nvidia/llama-3.1-nemotron-70b-instruct
@@ -7,15 +7,15 @@ Evaluates 5 candidate models from NVIDIA's API Catalog:
 - google/gemma-4-31b-it
 - deepseek-ai/deepseek-v4.1-flash
 
-Sends the same 10 chunks taken from 2 contracts OUTSIDE the final 30-contract sample.
-Records:
-- Valid-schema share: responses parsing as valid JSON matching schema
-- Quote-found share: quotes found verbatim in chunk text via locate_span
-- Latency: average seconds per call
-- Errors: error count and primary error description
-
-Applies the pre-stated decision rule:
-Pick the model with the highest share of valid, verified responses; ties go to the faster.
+Settings per Review 2026-10-04:
+- Same 10 chunks taken from 2 contracts OUTSIDE the final 30-contract sample.
+- Raised max_tokens: 4096 initial, with 1 retry at 8192 tokens on empty or invalid JSON.
+- Timeout per chunk: 90.0s.
+- No early abort on timeouts: all 10 chunks tested per model.
+- Detailed failure reporting: 404, timeout, 504, empty output, invalid JSON, quote not found.
+- 95% schema validity bar: a model is eligible only if at least 95% of its chunks are schema-valid.
+- Decision rule: pick the eligible model with the highest share of valid, verified responses;
+  ties go to the faster.
 """
 
 from __future__ import annotations
@@ -25,8 +25,9 @@ import json
 import logging
 import random
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 from uuid import uuid4
 
 from dotenv import load_dotenv
@@ -60,11 +61,17 @@ class ModelProbeResult:
     quotes_verified_count: int = 0
     total_latency_seconds: float = 0.0
     successful_calls: int = 0
-    errors: list[str] = None  # type: ignore[assignment]
+    total_provider_attempts: int = 0
+    retried_chunks_count: int = 0
 
-    def __post_init__(self) -> None:
-        if self.errors is None:
-            self.errors = []
+    # Explicit failure type counts per Review 2026-10-04
+    failures_404: int = 0
+    failures_timeout: int = 0
+    failures_504: int = 0
+    failures_empty_output: int = 0
+    failures_invalid_json: int = 0
+    failures_quote_not_found: int = 0
+    other_errors: list[str] = field(default_factory=list)
 
     @property
     def valid_schema_share(self) -> float:
@@ -81,7 +88,6 @@ class ModelProbeResult:
         """Share of chunks returning both valid schema and verified quotes."""
         if self.total_chunks == 0:
             return 0.0
-        # Combined score: valid schema rate * quote accuracy
         return self.valid_schema_share * (
             self.quote_found_share if self.total_quotes_returned > 0 else 1.0
         )
@@ -91,6 +97,11 @@ class ModelProbeResult:
         return (
             self.total_latency_seconds / self.successful_calls if self.successful_calls > 0 else 0.0
         )
+
+    @property
+    def passes_schema_threshold(self) -> bool:
+        """Check against the mandatory 95% schema validity bar."""
+        return self.valid_schema_share >= 0.95
 
 
 def get_probe_chunks(
@@ -163,71 +174,177 @@ def build_probe_prompt(chunk_text: str, categories: list[str]) -> str:
     )
 
 
+async def _call_api_with_schema(
+    client: AsyncOpenAI,
+    model_id: str,
+    prompt: str,
+    max_tokens: int,
+    timeout: float,
+) -> tuple[str, float]:
+    """Sends extraction request with guided_json schema and measures latency."""
+    t0 = time.perf_counter()
+    try:
+        resp = await asyncio.wait_for(
+            client.chat.completions.create(
+                model=model_id,
+                messages=[{"role": "user", "content": prompt}],
+                extra_body={"nvext": {"guided_json": EXTRACTION_JSON_SCHEMA}},
+                temperature=0.0,
+                max_tokens=max_tokens,
+            ),
+            timeout=timeout,
+        )
+    except Exception as e:
+        err_str = str(e).lower()
+        if "guided_json" in err_str or "400" in err_str or "bad request" in err_str:
+            resp = await asyncio.wait_for(
+                client.chat.completions.create(
+                    model=model_id,
+                    messages=[{"role": "user", "content": prompt}],
+                    extra_body={"guided_json": EXTRACTION_JSON_SCHEMA},
+                    temperature=0.0,
+                    max_tokens=max_tokens,
+                ),
+                timeout=timeout,
+            )
+        else:
+            raise
+
+    elapsed = time.perf_counter() - t0
+    content = resp.choices[0].message.content or ""
+    return content, elapsed
+
+
 async def probe_single_model(
     model_id: str,
     chunks: list[tuple[str, str, int]],
     client: AsyncOpenAI,
     categories: list[str],
-    timeout_per_chunk: float = 25.0,
+    timeout_per_chunk: float = 90.0,
 ) -> ModelProbeResult:
-    """Probes a single model on the 10 fixed chunks."""
+    """Probes a single model on all 10 fixed chunks with failure categorization and retry."""
     result = ModelProbeResult(model_id=model_id, total_chunks=len(chunks))
-    print(f"\n--- Probing {model_id} ({len(chunks)} chunks) ---", flush=True)
+    print(
+        f"\n--- Probing {model_id} ({len(chunks)} chunks, timeout={timeout_per_chunk:.0f}s) ---",
+        flush=True,
+    )
 
-    for i, (_fn, ch_text, _ch_idx) in enumerate(chunks, 1):
+    # Use semaphore=2 for active models to observe 40 req/min limit,
+    # and semaphore=10 for unresponsive/404 models so chunks execute concurrently.
+    concurrency = 2 if "nemotron" in model_id.lower() else 10
+    sem = asyncio.Semaphore(concurrency)
+
+    async def probe_chunk(chunk_idx: int, item: tuple[str, str, int]) -> None:
+        _fn, ch_text, _c_idx = item
         prompt = build_probe_prompt(ch_text, categories)
-        t0 = time.perf_counter()
-        raw_content: str | None = None
         chunk_id = ChunkId(value=uuid4())
 
-        try:
-            # First attempt: per ticket extra_body={"nvext": {"guided_json": schema}}
+        async with sem:
+            if "nemotron" in model_id.lower():
+                await asyncio.sleep(1.0)  # Gentle spacing between calls
+
+            result.total_provider_attempts += 1
+            content: str = ""
+            elapsed: float = 0.0
+
             try:
-                resp = await asyncio.wait_for(
-                    client.chat.completions.create(
-                        model=model_id,
-                        messages=[{"role": "user", "content": prompt}],
-                        extra_body={"nvext": {"guided_json": EXTRACTION_JSON_SCHEMA}},
-                        temperature=0.0,
-                        max_tokens=2048,
-                    ),
+                content, elapsed = await _call_api_with_schema(
+                    client=client,
+                    model_id=model_id,
+                    prompt=prompt,
+                    max_tokens=4096,
                     timeout=timeout_per_chunk,
                 )
+            except TimeoutError:
+                result.failures_timeout += 1
+                print(f"  Chunk {chunk_idx}/10: TIMEOUT ({timeout_per_chunk:.0f}s)", flush=True)
+                return
             except Exception as e:
-                err_str = str(e).lower()
-                if "guided_json" in err_str or "400" in err_str or "bad request" in err_str:
-                    # Fallback to top-level extra_body={"guided_json": schema}
-                    resp = await asyncio.wait_for(
-                        client.chat.completions.create(
-                            model=model_id,
-                            messages=[{"role": "user", "content": prompt}],
-                            extra_body={"guided_json": EXTRACTION_JSON_SCHEMA},
-                            temperature=0.0,
-                            max_tokens=2048,
-                        ),
+                err_msg = str(e)
+                if "404" in err_msg or "not found" in err_msg.lower():
+                    result.failures_404 += 1
+                    print(f"  Chunk {chunk_idx}/10: 404 Not Found", flush=True)
+                elif "504" in err_msg or "gateway" in err_msg.lower():
+                    result.failures_504 += 1
+                    print(f"  Chunk {chunk_idx}/10: 504 Gateway Error", flush=True)
+                else:
+                    result.other_errors.append(f"Chunk {chunk_idx}: {err_msg[:80]}")
+                    print(f"  Chunk {chunk_idx}/10: ERROR: {type(e).__name__}", flush=True)
+                return
+
+            # Check if output is empty or invalid JSON
+            is_valid_schema = False
+            parsed_data: dict[str, Any] = {}
+            if content.strip():
+                try:
+                    data = json.loads(content)
+                    if (
+                        isinstance(data, dict)
+                        and "entities" in data
+                        and isinstance(data["entities"], list)
+                    ):
+                        is_valid_schema = True
+                        parsed_data = data
+                except Exception:
+                    pass
+
+            # Retry once with larger token budget (8192) if empty or invalid JSON
+            if not is_valid_schema:
+                result.retried_chunks_count += 1
+                result.total_provider_attempts += 1
+                print(
+                    f"  Chunk {chunk_idx}/10: Empty/invalid JSON on attempt 1. Retrying (8192)...",
+                    flush=True,
+                )
+                try:
+                    content, r_elapsed = await _call_api_with_schema(
+                        client=client,
+                        model_id=model_id,
+                        prompt=prompt,
+                        max_tokens=8192,
                         timeout=timeout_per_chunk,
                     )
-                else:
-                    raise
+                    elapsed += r_elapsed
+                    if content.strip():
+                        try:
+                            data = json.loads(content)
+                            if (
+                                isinstance(data, dict)
+                                and "entities" in data
+                                and isinstance(data["entities"], list)
+                            ):
+                                is_valid_schema = True
+                                parsed_data = data
+                        except Exception:
+                            pass
+                except TimeoutError:
+                    result.failures_timeout += 1
+                    print(f"  Chunk {chunk_idx}/10: TIMEOUT on retry", flush=True)
+                    return
+                except Exception as e:
+                    err_msg = str(e)
+                    if "504" in err_msg:
+                        result.failures_504 += 1
+                    else:
+                        result.other_errors.append(f"Chunk {chunk_idx} retry: {err_msg[:80]}")
+                    print(f"  Chunk {chunk_idx}/10: ERROR on retry: {type(e).__name__}", flush=True)
+                    return
 
-            elapsed = time.perf_counter() - t0
-            raw_content = resp.choices[0].message.content or ""
-            result.total_latency_seconds += elapsed
-            result.successful_calls += 1
-
-            # Validate schema
-            data = json.loads(raw_content)
-            is_valid_schema = (
-                isinstance(data, dict) and "entities" in data and isinstance(data["entities"], list)
-            )
             if not is_valid_schema:
-                result.errors.append(f"Chunk {i}: JSON invalid schema (missing entities list)")
-                continue
+                if not content.strip():
+                    result.failures_empty_output += 1
+                    print(f"  Chunk {chunk_idx}/10: EMPTY OUTPUT after retry", flush=True)
+                else:
+                    result.failures_invalid_json += 1
+                    print(f"  Chunk {chunk_idx}/10: INVALID JSON after retry", flush=True)
+                return
 
+            # Success: Record valid schema and verify quotes
             result.valid_schema_count += 1
+            result.successful_calls += 1
+            result.total_latency_seconds += elapsed
 
-            # Validate quotes
-            entities = data.get("entities", [])
+            entities = parsed_data.get("entities", [])
             for ent in entities:
                 if not isinstance(ent, dict):
                     continue
@@ -239,39 +356,17 @@ async def probe_single_model(
                     locate_span(ch_text, quote, chunk_id)
                     result.quotes_verified_count += 1
                 except QuoteNotFoundError:
-                    pass
+                    result.failures_quote_not_found += 1
 
             v_quotes = f"{result.quotes_verified_count}/{result.total_quotes_returned}"
             print(
-                f"  Chunk {i}/10: OK ({elapsed:.2f}s) | "
-                f"Entities: {len(entities)}, Quotes Verified: {v_quotes}",
+                f"  Chunk {chunk_idx}/10: VALID ({elapsed:.2f}s) | "
+                f"Entities: {len(entities)}, Quotes: {v_quotes}",
                 flush=True,
             )
 
-        except TimeoutError:
-            elapsed = time.perf_counter() - t0
-            err_msg = f"Chunk {i}: Timeout after {timeout_per_chunk}s"
-            result.errors.append(err_msg)
-            print(f"  Chunk {i}/10: TIMEOUT ({elapsed:.1f}s)", flush=True)
-            if i >= 2 and all("timeout" in err.lower() for err in result.errors[-2:]):
-                print(f"  [SKIP] {model_id} persistently timing out.", flush=True)
-                for rem in range(i + 1, len(chunks) + 1):
-                    result.errors.append(f"Chunk {rem}: Timeout (skipped)")
-                break
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            err_msg = f"{type(e).__name__}: {str(e)[:80]}"
-            result.errors.append(f"Chunk {i}: {err_msg}")
-            print(f"  Chunk {i}/10: ERROR: {err_msg}", flush=True)
-            if "404" in str(e) or "not found" in str(e).lower():
-                print(f"  [SKIP] {model_id} not available to key (404).", flush=True)
-                for rem in range(i + 1, len(chunks) + 1):
-                    result.errors.append(f"Chunk {rem}: {err_msg} (skipped)")
-                break
-
-        # Respect 40 requests/minute rate limit (~1.5s per request)
-        await asyncio.sleep(1.5)
-
+    tasks = [probe_chunk(i, chunk_item) for i, chunk_item in enumerate(chunks, 1)]
+    await asyncio.gather(*tasks)
     return result
 
 
@@ -287,11 +382,14 @@ async def run_probe() -> tuple[list[ModelProbeResult], str]:
     chunks = get_probe_chunks()
     categories = get_all_cuad_target_categories()
 
-    print("=============================================================")
-    print("T-227 Model Probe on NVIDIA API Catalog")
+    print("=" * 80)
+    print("T-227 Model Probe on NVIDIA API Catalog (Review 2026-10-04 Settings)")
     print("Fixed probe sample: 10 chunks from 2 contracts outside final 30-contract sample")
-    print(f"Candidates ({len(CANDIDATE_MODELS)}): {', '.join(CANDIDATE_MODELS)}")
-    print("=============================================================")
+    print(f"Candidates ({len(CANDIDATE_MODELS)}):")
+    for m in CANDIDATE_MODELS:
+        print(f"  - {m}")
+    print("Settings: 90s timeout/chunk, max_tokens=4096 (retry=8192), 95% valid-schema bar")
+    print("=" * 80)
 
     probe_results: list[ModelProbeResult] = []
 
@@ -301,47 +399,72 @@ async def run_probe() -> tuple[list[ModelProbeResult], str]:
             chunks=chunks,
             client=client,
             categories=categories,
+            timeout_per_chunk=90.0,
         )
         probe_results.append(res)
 
-    # Apply decision rule:
-    # "pick the model with the highest share of valid, verified responses; ties go to the faster."
-    def score_key(r: ModelProbeResult) -> tuple[float, float, float]:
-        lat_score = -r.avg_latency if r.avg_latency > 0 else -999.0
-        return (r.valid_verified_share, r.quote_found_share, lat_score)
+    # Apply decision rule & bar:
+    # Use a model only if at least 95% of its chunks are schema-valid.
+    # Pick the model with the highest share of valid, verified responses; ties go to faster.
+    eligible = [r for r in probe_results if r.passes_schema_threshold]
 
-    ranked = sorted(probe_results, key=score_key, reverse=True)
-    selected_model = ranked[0].model_id if ranked else "none"
+    if not eligible:
+        selected_model = "NONE (no candidate model reached the 95% valid-schema bar)"
+    else:
+
+        def score_key(r: ModelProbeResult) -> tuple[float, float, float]:
+            lat_score = -r.avg_latency if r.avg_latency > 0 else -999.0
+            return (r.valid_verified_share, r.quote_found_share, lat_score)
+
+        ranked = sorted(eligible, key=score_key, reverse=True)
+        selected_model = ranked[0].model_id
 
     return probe_results, selected_model
 
 
 def format_probe_table(results: list[ModelProbeResult], selected_model: str) -> str:
-    """Formats probe comparison table."""
+    """Formats probe comparison table with all required failure types."""
     hdr = (
-        f"{'Model':<38} | {'Valid Schema':>12} | {'Quote Found':>11} | {'Avg Lat':>9} | {'Err':>4}"
+        f"{'Model':<38} | {'Valid':>6} | {'Quote':>6} | {'AvgLat':>7} | "
+        f"{'404':>3} | {'TO':>3} | {'504':>3} | {'Emp':>3} | {'BadJSON':>7} | "
+        f"{'NoQuote':>7} | {'Status':<14}"
     )
+    sep = "-" * len(hdr)
     lines = [
         "",
-        "=== NVIDIA Candidate Model Probe Results ===",
+        "=== NVIDIA Candidate Model Probe Results (Review 2026-10-04) ===",
+        sep,
         hdr,
-        "-" * 84,
+        sep,
     ]
 
     for r in results:
-        err_count = len(r.errors)
-        schema_pct = f"{r.valid_schema_share * 100:.1f}%"
-        quote_pct = f"{r.quote_found_share * 100:.1f}%" if r.total_quotes_returned > 0 else "N/A"
-        lat_str = f"{r.avg_latency:.2f}s" if r.successful_calls > 0 else "-"
+        schema_pct = f"{r.valid_schema_share * 100:.0f}%"
+        quote_pct = f"{r.quote_found_share * 100:.0f}%" if r.total_quotes_returned > 0 else "N/A"
+        lat_str = f"{r.avg_latency:.1f}s" if r.successful_calls > 0 else "-"
+        status = "Pass (>=95%)" if r.passes_schema_threshold else "Fail (<95%)"
 
         row = (
-            f"{r.model_id:<40} | {schema_pct:>12} | {quote_pct:>11} | {lat_str:>9} | {err_count:>4}"
+            f"{r.model_id:<38} | {schema_pct:>6} | {quote_pct:>6} | {lat_str:>7} | "
+            f"{r.failures_404:>3} | {r.failures_timeout:>3} | {r.failures_504:>3} | "
+            f"{r.failures_empty_output:>3} | {r.failures_invalid_json:>7} | "
+            f"{r.failures_quote_not_found:>7} | {status:<14}"
         )
         lines.append(row)
 
-    lines.append("-" * 86)
+    lines.append(sep)
+    lines.append(
+        "Legend: TO=Timeout (90s), Emp=Empty output, BadJSON=Invalid JSON, NoQuote=Quote not found"
+    )
     lines.append(f"Decision Rule Selection: {selected_model}")
-    lines.append("(Selected: highest share of valid, verified responses; ties go to faster)")
+    if selected_model.startswith("NONE"):
+        lines.append(
+            "[STOP] No model reached the required >=95% schema-valid threshold. STOP and report."
+        )
+    else:
+        lines.append(
+            "(Selected: highest valid/verified share among models passing >=95% valid-schema bar)"
+        )
     return "\n".join(lines)
 
 

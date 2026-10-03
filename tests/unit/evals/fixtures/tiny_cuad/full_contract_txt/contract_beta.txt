@@ -1,0 +1,9 @@
+# Based on CUAD (Hendrycks et al., NeurIPS 2021, The Atticus Project). CC BY 4.0.
+CONSULTING AGREEMENT
+This Consulting Agreement is dated May 15, 2022 by and between Beta LLC and Omega Ltd.
+Effective Date: June 1, 2022. Expiration Date: May 31, 2025.
+Renewal: The term shall extend for two years upon sixty (60) days advance written notice.
+Governing Law: This agreement shall be governed by the laws of the State of California.
+Liability Cap: liability is capped at five million dollars ($5,000,000).
+Change of Control: change of control requires prior written consent.
+Exclusivity: Consultant is granted exclusive right to distribute products.

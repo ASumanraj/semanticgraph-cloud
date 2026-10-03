@@ -37,6 +37,8 @@ dev = [
     "langchain-community<0.3",
     "langchain-core<0.3",
     "langchain-openai<0.2",
+    "openai>=1.0",
+    "python-dotenv>=1.0",
 ]
 
 [build-system]

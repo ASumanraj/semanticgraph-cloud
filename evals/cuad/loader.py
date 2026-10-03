@@ -111,7 +111,8 @@ def load_master_clauses_csv(
 
     records: list[CUADContractAnnotation] = []
     with csv_path.open(encoding="utf-8", errors="replace") as f:
-        reader = csv.DictReader(f)
+        filtered_lines = [line for line in f if not line.strip().startswith("#")]
+        reader = csv.DictReader(filtered_lines)
         for row in reader:
             parsed = parse_master_clauses_row(row, target_categories)
             records.append(parsed)

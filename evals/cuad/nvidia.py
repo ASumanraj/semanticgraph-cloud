@@ -2,7 +2,7 @@
 
 Evaluation-only adapter (not in src/) for CUAD benchmarks:
 - Uses NVIDIA API Catalog OpenAI-style endpoint: https://integrate.api.nvidia.com/v1
-- Reads key strictly from NVIDIA_API_KEY (with fallback to NVIDIA_API_KE if typo in env)
+- Reads key strictly from NVIDIA_API_KEY
 - Sends structured output request with guided_json
 - Verifies every returned quote deterministically against chunk text via locate_span
 - Counts every provider attempt, backs off on 429 rate limits
@@ -120,13 +120,13 @@ class NVIDIAConfig:
     api_key: str | None = None
     model_id: str = "nvidia/nemotron-3-super-120b-a12b"
     base_url: str = "https://integrate.api.nvidia.com/v1"
-    timeout_seconds: float = 60.0
+    timeout_seconds: float = 90.0
 
     @classmethod
     def from_env(cls, model_id: str | None = None) -> NVIDIAConfig:
         """Loads configuration from environment variables."""
         load_dotenv()
-        api_key = os.environ.get("NVIDIA_API_KEY") or os.environ.get("NVIDIA_API_KE")
+        api_key = os.environ.get("NVIDIA_API_KEY")
         configured_model = (
             model_id or os.environ.get("NVIDIA_MODEL_ID") or "nvidia/nemotron-3-super-120b-a12b"
         )
@@ -174,7 +174,9 @@ class NVIDIALLMGateway(LLMGatewayPort):
             f"Document text:\n{chunk_text}"
         )
 
-    async def _call_completion_with_schema(self, prompt: str) -> tuple[str, int, int]:
+    async def _call_completion_with_schema(
+        self, prompt: str, max_tokens: int = 4096
+    ) -> tuple[str, int, int]:
         """Calls the NVIDIA endpoint requesting structured output via guided_json.
 
         Attempts extra_body={'nvext': {'guided_json': schema}} first per ticket specification.
@@ -188,7 +190,7 @@ class NVIDIALLMGateway(LLMGatewayPort):
                 messages=[{"role": "user", "content": prompt}],
                 extra_body={"nvext": {"guided_json": EXTRACTION_JSON_SCHEMA}},
                 temperature=0.0,
-                max_tokens=2048,
+                max_tokens=max_tokens,
             )
         except Exception as err:
             err_msg = str(err).lower()
@@ -199,7 +201,7 @@ class NVIDIALLMGateway(LLMGatewayPort):
                     messages=[{"role": "user", "content": prompt}],
                     extra_body={"guided_json": EXTRACTION_JSON_SCHEMA},
                     temperature=0.0,
-                    max_tokens=2048,
+                    max_tokens=max_tokens,
                 )
             else:
                 raise
@@ -230,7 +232,9 @@ class NVIDIALLMGateway(LLMGatewayPort):
 
         for attempt in range(1, max_retries + 1):
             try:
-                content, inp_tokens, out_tokens = await self._call_completion_with_schema(prompt)
+                content, inp_tokens, out_tokens = await self._call_completion_with_schema(
+                    prompt, max_tokens=4096
+                )
                 break
             except RateLimitError:
                 if attempt == max_retries:
@@ -245,6 +249,46 @@ class NVIDIALLMGateway(LLMGatewayPort):
                 await asyncio.sleep(delay)
             except Exception:
                 raise
+
+        # Parse JSON output and retry once with larger budget (8192) if empty or invalid
+        data: dict[str, Any] | None = None
+        if content.strip():
+            try:
+                parsed = json.loads(content)
+                if (
+                    isinstance(parsed, dict)
+                    and "entities" in parsed
+                    and isinstance(parsed["entities"], list)
+                ):
+                    data = parsed
+            except Exception:
+                pass
+
+        if data is None:
+            # Retry once with larger token budget (8192)
+            logger.info(
+                "Chunk %s returned empty or invalid output; retrying with max_tokens=8192",
+                chunk.id.value,
+            )
+            content, inp2, out2 = await self._call_completion_with_schema(prompt, max_tokens=8192)
+            inp_tokens += inp2
+            out_tokens += out2
+            try:
+                parsed = json.loads(content)
+                if (
+                    isinstance(parsed, dict)
+                    and "entities" in parsed
+                    and isinstance(parsed["entities"], list)
+                ):
+                    data = parsed
+                else:
+                    raise ValueError("JSON schema missing entities list")
+            except Exception as e:
+                msg = (
+                    f"Failed or empty chunk output from {self.config.model_id} "
+                    f"after retry for chunk {chunk.id.value}"
+                )
+                raise ValueError(msg) from e
 
         # Record usage in ledger if provided (cost is explicitly 0.0 for NVIDIA trial)
         if self.usage_ledger:
@@ -268,13 +312,6 @@ class NVIDIALLMGateway(LLMGatewayPort):
                 await self.usage_ledger.record_event(tenant_id, event)
             except Exception as e:
                 logger.warning("Failed to record usage event: %s", e)
-
-        # Parse JSON output
-        try:
-            data = json.loads(content)
-        except Exception as e:
-            msg = f"Malformed JSON response from {self.config.model_id} for chunk {chunk.id.value}"
-            raise ValueError(msg) from e
 
         entities_data = data.get("entities", [])
         edges_data = data.get("edges", [])
