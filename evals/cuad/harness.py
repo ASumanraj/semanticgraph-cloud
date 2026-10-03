@@ -442,7 +442,19 @@ def main() -> None:
         "--data-dir", type=str, default="evals/cuad/data", help="Data directory with texts and csv"
     )
 
+    # Command: probe
+    subparsers.add_parser(
+        "probe", help="Run model probe across candidate NVIDIA models (T-227 Amendment)"
+    )
+
     args = parser.parse_args()
+
+    if args.command == "probe":
+        from evals.cuad.probe import format_probe_table, run_probe
+
+        results, selected = asyncio.run(run_probe())
+        print(format_probe_table(results, selected))
+        return
 
     if args.command == "metadata":
         from evals.cuad.manifest import get_dataset_metadata

@@ -83,8 +83,10 @@ def parse_master_clauses_row(
             if col in row:
                 raw_answer = row[col]
                 break
-        # Fall back to base category column only if no answer column header was present
-        if raw_answer is None:
+        # Boolean Yes/No indicator: 'No' means absent, 'Yes' means full clause is in base column
+        if raw_answer is not None and raw_answer.strip().lower() in ("yes", "no"):
+            raw_answer = row.get(cat, "") if raw_answer.strip().lower() == "yes" else ""
+        elif raw_answer is None:
             raw_answer = row.get(cat, "")
 
         answers = parse_cuad_answers(raw_answer)
