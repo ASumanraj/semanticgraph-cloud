@@ -1,6 +1,6 @@
 # T-227 · A capped, valid measurement of Gemini clause extraction on CUAD
 
-**Stage** 4 · **Type** work · **Status** open · **Owner** — · **Branch** `t-227-cuad-capped-measurement`
+**Stage** 4 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-227-cuad-capped-measurement`
 
 **Scope**
 - `evals/cuad/**`

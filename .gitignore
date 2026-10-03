@@ -50,3 +50,7 @@ ECC/
 
 # Stray dir from a PowerShell profile write
 Microsoft/
+
+# --- Evaluations / Benchmarks ---
+evals/cuad/data/
+evals/cuad/raw_predictions/

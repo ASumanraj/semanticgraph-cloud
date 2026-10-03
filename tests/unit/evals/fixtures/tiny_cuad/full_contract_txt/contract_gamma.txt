@@ -1,0 +1,8 @@
+# Based on CUAD (Hendrycks et al., NeurIPS 2021, The Atticus Project). CC BY 4.0.
+LICENSE AGREEMENT
+This License Agreement is entered into on September 20, 2023 by and between Gamma Tech and Delta Global.
+Effective Date: October 1, 2023. Expiration Date: September 30, 2026.
+Termination: Gamma Tech may discontinue licensing under section 14 for convenience.
+Governing Law: This agreement shall be construed under the laws of the State of Delaware.
+Liability: liability for breach of confidentiality shall be uncapped under this section.
+Assignment: this Agreement shall not be assigned by either party.
