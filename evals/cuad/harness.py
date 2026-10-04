@@ -39,8 +39,11 @@ from evals.cuad.mapping import (
 from evals.cuad.metrics import (
     CategoryMetrics,
     CUADEvaluationReport,
+    aggregate_category_metrics,
     compute_category_metrics,
+    format_side_by_side_contract,
 )
+from evals.cuad.nvidia import PROMPT_HASH
 
 from semanticgraph.adapters.outbound.inmemory.usage_ledger import InMemoryUsageLedger
 from semanticgraph.adapters.outbound.llm.gemini import (
@@ -325,8 +328,22 @@ class CUADEvalHarness:
                     elif entity.name:
                         quote = entity.name.strip()
 
-                    if quote and quote not in predictions_by_category[cuad_category]:
-                        predictions_by_category[cuad_category].append(quote)
+                    norm_val = entity.name.strip() if entity.name else quote
+                    quote_found = bool(
+                        entity.spans and getattr(entity.spans[0], "start_offset", 0) >= 0
+                    )
+                    pred_item = {
+                        "normalized_value": norm_val,
+                        "verbatim_quote": quote,
+                        "quote_found": quote_found,
+                    }
+                    if not any(
+                        isinstance(p, dict)
+                        and p.get("normalized_value") == norm_val
+                        and p.get("verbatim_quote") == quote
+                        for p in predictions_by_category[cuad_category]
+                    ):
+                        predictions_by_category[cuad_category].append(pred_item)
 
             if idx < len(chunks) - 1:
                 await asyncio.sleep(1.0)
@@ -353,8 +370,8 @@ class CUADEvalHarness:
         on_attempt: Callable[[], None] | None = None,
     ) -> CUADEvaluationReport:
         """Evaluates multiple contracts and produces a per-category evaluation report."""
-        category_metrics_data: dict[str, dict[str, int]] = {
-            cat: {"tp": 0, "fp": 0, "fn": 0, "support": 0} for cat in self.target_categories
+        per_contract_metrics: dict[str, list[CategoryMetrics]] = {
+            cat: [] for cat in self.target_categories
         }
 
         for contract_text, annotation in contracts:
@@ -367,34 +384,12 @@ class CUADEvalHarness:
                     predictions=contract_preds.get(cat, []),
                     ground_truth=annotation.get_ground_truth(cat),
                 )
-                category_metrics_data[cat]["tp"] += metrics.true_positives
-                category_metrics_data[cat]["fp"] += metrics.false_positives
-                category_metrics_data[cat]["fn"] += metrics.false_negatives
-                category_metrics_data[cat]["support"] += metrics.support
+                per_contract_metrics[cat].append(metrics)
 
-        category_metrics: dict[str, CategoryMetrics] = {}
-        for cat, data in category_metrics_data.items():
-            tp = data["tp"]
-            fp = data["fp"]
-            fn = data["fn"]
-            support = data["support"]
-
-            precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
-            recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-            f1 = (
-                (2 * precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
-            )
-
-            category_metrics[cat] = CategoryMetrics(
-                category=cat,
-                true_positives=tp,
-                false_positives=fp,
-                false_negatives=fn,
-                precision=precision,
-                recall=recall,
-                f1=f1,
-                support=support,
-            )
+        category_metrics = {
+            cat: aggregate_category_metrics(cat, per_contract_metrics[cat])
+            for cat in self.target_categories
+        }
 
         supported_q = [m.question_id for m in get_supported_question_mappings()]
         unsupported_q = {m.question_id: m.notes for m in get_unsupported_question_mappings()}
@@ -445,6 +440,13 @@ def build_cli_parser() -> argparse.ArgumentParser:
     # Command: run
     parser_run = subparsers.add_parser(
         "run", help="Run CUAD evaluation with strict caps and cost tracking"
+    )
+    parser_run.add_argument(
+        "--mode",
+        type=str,
+        choices=["dev", "test"],
+        default="dev",
+        help="Evaluation mode: 'dev' (5 development contracts) or 'test' (30 test contracts)",
     )
     parser_run.add_argument(
         "--provider",
@@ -604,10 +606,27 @@ def main() -> None:
             "(Part_III contracts exist as PDFs only in upstream repo)."
         )
 
-        random.seed(args.sample_seed)
-        random.shuffle(contracts_data)
-        sampled = contracts_data[: args.max_contracts]
-        print(f"Sampled {len(sampled)} contracts (seed {args.sample_seed}).")
+        # Sample population: 30 test contracts are fixed with seed 42
+        test_pool = list(contracts_data)
+        random.Random(42).shuffle(test_pool)
+        test_sample_30 = test_pool[:30]
+        test_filenames = {ann.filename for _, ann in test_sample_30}
+
+        if args.mode == "dev":
+            # Dev pool excludes the 30 final test contracts
+            dev_pool = [c for c in contracts_data if c[1].filename not in test_filenames]
+            dev_seed = args.sample_seed if args.sample_seed != 42 else 1337
+            random.Random(dev_seed).shuffle(dev_pool)
+            max_c = min(args.max_contracts, 5) if args.max_contracts == 30 else args.max_contracts
+            sampled = dev_pool[:max_c]
+            max_calls_limit = 150 if args.max_calls == 600 else args.max_calls
+            print(
+                f"Mode: dev (seed {dev_seed}, {len(sampled)} contracts disjoint from test sample)."
+            )
+        else:
+            sampled = test_sample_30[: args.max_contracts]
+            max_calls_limit = args.max_calls
+            print(f"Mode: test (seed {args.sample_seed}, {len(sampled)} contracts).")
 
         contracts: list[tuple[str, CUADContractAnnotation]] = []
         for path, ann in sampled:
@@ -626,17 +645,20 @@ def main() -> None:
             f"(out of {len(annotations)} in master_clauses.csv; "
             "Part III contracts are PDF-only upstream)."
         )
-        print(f"Sampled contracts: {len(sampled)} contracts (seed {args.sample_seed}).")
+        print(f"Evaluation mode: {args.mode}")
+        print(f"Sampled contracts: {len(sampled)} contracts.")
         print(f"Planned chunks for sample: {planned_total_chunks} chunks.")
-        if planned_total_chunks > args.max_calls:
+        print(f"Provider call cap: {max_calls_limit} attempts.")
+        print(f"Prompt SHA-256 Hash: {PROMPT_HASH}")
+        if planned_total_chunks > max_calls_limit:
             print(
                 f"Error: Planned chunks ({planned_total_chunks}) exceed "
-                f"provider call cap ({args.max_calls}). Stopping."
+                f"provider call cap ({max_calls_limit}). Stopping."
             )
             sys.exit(1)
         print(
             f"Cap check: {planned_total_chunks} planned chunks <= "
-            f"{args.max_calls} attempt cap -> FITS within cap."
+            f"{max_calls_limit} attempt cap -> FITS within cap."
         )
 
         eval_tenant_id = TenantId(value=uuid4())
@@ -723,9 +745,9 @@ def main() -> None:
         def on_attempt() -> None:
             nonlocal total_provider_attempts
             total_provider_attempts += 1
-            if total_provider_attempts > args.max_calls:
+            if total_provider_attempts > max_calls_limit:
                 raise CallCapExceededError(
-                    f"Provider call cap of {args.max_calls} attempts reached "
+                    f"Provider call cap of {max_calls_limit} attempts reached "
                     f"(attempt #{total_provider_attempts})."
                 )
 
@@ -742,18 +764,20 @@ def main() -> None:
         predictions_dir.mkdir(parents=True, exist_ok=True)
         jsonl_path = predictions_dir / "predictions.jsonl"
 
-        existing_preds: dict[str, dict[str, list[str]]] = {}
+        existing_preds: dict[str, dict[str, list[Any]]] = {}
         if jsonl_path.exists():
             with jsonl_path.open("r", encoding="utf-8") as f:
                 for line in f:
                     if not line.strip():
                         continue
                     data = json.loads(line)
+                    if data.get("prompt_hash") != PROMPT_HASH:
+                        continue
                     contract_key = data.get("contract") or data.get("filename")
                     if contract_key:
                         existing_preds[contract_key] = data["predictions"]
 
-        all_contract_preds: dict[str, dict[str, list[str]]] = {}
+        all_contract_preds: dict[str, dict[str, list[Any]]] = {}
         excluded_contracts: list[dict[str, Any]] = []
         total_inp, total_out, total_cache, total_cost = 0, 0, 0, 0.0
         elapsed_time = 0.0
@@ -814,7 +838,8 @@ def main() -> None:
                             "model_id": model_id,
                             "max_tokens_used": max_tokens_used,
                             "retry_needed": retry_needed,
-                            "prompt_version": "v1",
+                            "prompt_hash": PROMPT_HASH,
+                            "prompt_version": "2026-10-05-two-mode",
                             "ontology_version": "cuad_v1",
                             "predictions": preds,
                             "tokens": {
@@ -862,9 +887,16 @@ def main() -> None:
             for excl in excluded_contracts:
                 print(f"- {excl['contract']} ({excl['chunks']} chunks): {excl['reason']}")
 
-        category_metrics_data: dict[str, dict[str, int]] = {
-            cat: {"tp": 0, "fp": 0, "fn": 0, "support": 0} for cat in categories
-        }
+        if args.mode == "dev":
+            print("\n" + "=" * 80)
+            print("SIDE-BY-SIDE EVALUATION RESULTS (5 DEVELOPMENT CONTRACTS)")
+            print("=" * 80)
+            for _text, ann in contracts:
+                filename = ann.filename
+                if filename in all_contract_preds:
+                    print(format_side_by_side_contract(filename, ann, all_contract_preds[filename]))
+
+        per_contract_metrics: dict[str, list[CategoryMetrics]] = {cat: [] for cat in categories}
 
         for _text, ann in contracts:
             filename = ann.filename
@@ -878,30 +910,20 @@ def main() -> None:
                     predictions=preds.get(cat, []),
                     ground_truth=ann.get_ground_truth(cat),
                 )
-                category_metrics_data[cat]["tp"] += metrics.true_positives
-                category_metrics_data[cat]["fp"] += metrics.false_positives
-                category_metrics_data[cat]["fn"] += metrics.false_negatives
-                category_metrics_data[cat]["support"] += metrics.support
+                per_contract_metrics[cat].append(metrics)
 
-        category_metrics: dict[str, CategoryMetrics] = {}
-        for cat, data in category_metrics_data.items():
-            tp, fp, fn, support = data["tp"], data["fp"], data["fn"], data["support"]
-            precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
-            recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-            f1 = (
-                (2 * precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
-            )
+        category_metrics = {
+            cat: aggregate_category_metrics(cat, per_contract_metrics[cat]) for cat in categories
+        }
 
-            category_metrics[cat] = CategoryMetrics(
-                category=cat,
-                true_positives=tp,
-                false_positives=fp,
-                false_negatives=fn,
-                precision=precision,
-                recall=recall,
-                f1=f1,
-                support=support,
-            )
+        total_planned_chunks = planned_total_chunks
+        failed_chunks_count = getattr(extractor, "failed_chunks_count", 0)
+        chunk_failure_rate = (
+            failed_chunks_count / total_planned_chunks if total_planned_chunks > 0 else 0.0
+        )
+        contract_exclusion_rate = (
+            len(excluded_contracts) / len(contracts) if len(contracts) > 0 else 0.0
+        )
 
         supported_q = [m.question_id for m in get_supported_question_mappings()]
         unsupported_q = {m.question_id: m.notes for m in get_unsupported_question_mappings()}
@@ -910,6 +932,8 @@ def main() -> None:
             category_metrics=category_metrics,
             total_contracts=evaluated_contracts_count,
             failed_contracts=len(excluded_contracts),
+            chunk_failure_rate=chunk_failure_rate,
+            contract_exclusion_rate=contract_exclusion_rate,
             evaluated_questions=supported_q,
             unsupported_questions=unsupported_q,
         )

@@ -16,7 +16,9 @@ from uuid import uuid4
 
 import pytest
 from evals.cuad.nvidia import (
+    EXTRACTION_PROMPT_TEMPLATE,
     NVIDIA_TRIAL_PRICING,
+    PROMPT_HASH,
     NVIDIAConfig,
     NVIDIALLMGateway,
     verify_nvidia_model_priced,
@@ -270,3 +272,77 @@ async def test_nvidia_failed_chunk_raises_and_increments_counter(
         )
 
     assert gateway.failed_chunks_count == 1
+    assert gateway.contract_retries_needed == 2
+    assert gateway.contract_max_tokens_used == 16384
+
+
+def test_prompt_hash_frozen_and_verified() -> None:
+    """T-227: Verify prompt template hash is stable, non-empty, and covers negative constraints."""
+    import hashlib
+
+    computed_hash = hashlib.sha256(EXTRACTION_PROMPT_TEMPLATE.encode("utf-8")).hexdigest()
+    assert computed_hash == PROMPT_HASH
+    assert len(PROMPT_HASH) == 64
+    assert 'Do NOT extract generic terms like "party"' in EXTRACTION_PROMPT_TEMPLATE
+    assert "Do NOT extract section headings" in EXTRACTION_PROMPT_TEMPLATE
+    assert "verbatim_quote" in EXTRACTION_PROMPT_TEMPLATE
+    assert "normalized_value" in EXTRACTION_PROMPT_TEMPLATE
+
+
+@pytest.mark.asyncio
+async def test_nvidia_chunk_retry_reaches_tier3_success(
+    sample_chunk: SemanticChunk,
+    cuad_sample_ontology: Ontology,
+) -> None:
+    """Tests that chunk failing twice succeeds on third attempt (tier 3: 16384 tokens)."""
+    valid_payload = {
+        "entities": [
+            {
+                "category": "Governing Law",
+                "normalized_value": "Delaware",
+                "verbatim_quote": "Delaware law",
+            }
+        ],
+        "edges": [],
+    }
+    mock_invalid1 = MagicMock()
+    mock_invalid1.choices = [MagicMock(message=MagicMock(content="empty"))]
+    mock_invalid1.usage = MagicMock(prompt_tokens=10, completion_tokens=10)
+
+    mock_invalid2 = MagicMock()
+    mock_invalid2.choices = [MagicMock(message=MagicMock(content="{not json}"))]
+    mock_invalid2.usage = MagicMock(prompt_tokens=10, completion_tokens=10)
+
+    mock_valid = MagicMock()
+    mock_valid.choices = [MagicMock(message=MagicMock(content=json.dumps(valid_payload)))]
+    mock_valid.usage = MagicMock(prompt_tokens=10, completion_tokens=20)
+
+    mock_client = MagicMock()
+    mock_client.chat.completions.create = AsyncMock(
+        side_effect=[mock_invalid1, mock_invalid2, mock_valid]
+    )
+
+    gateway = NVIDIALLMGateway(
+        config=NVIDIAConfig(api_key="test-key"),
+        client=mock_client,
+    )
+    attempts = 0
+
+    def on_attempt() -> None:
+        nonlocal attempts
+        attempts += 1
+
+    entities, edges = await gateway.extract_entities_and_edges(
+        tenant_id=sample_chunk.tenant_id,
+        chunk=sample_chunk,
+        ontology=cuad_sample_ontology,
+        on_attempt=on_attempt,
+    )
+
+    assert len(entities) == 1
+    assert entities[0].name == "Delaware"
+    assert entities[0].entity_type == "Governing Law"
+    assert gateway.contract_retries_needed == 2
+    assert gateway.contract_max_tokens_used == 16384
+    assert attempts == 2
+    assert gateway.failed_chunks_count == 0

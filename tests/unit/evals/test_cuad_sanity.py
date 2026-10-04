@@ -16,7 +16,7 @@ from pathlib import Path
 import pytest
 from evals.cuad.loader import CUADContractAnnotation, load_master_clauses_csv
 from evals.cuad.mapping import get_all_cuad_target_categories
-from evals.cuad.metrics import compute_category_metrics
+from evals.cuad.metrics import NON_SCORED_CATEGORIES, compute_category_metrics
 
 
 @pytest.fixture(scope="module")
@@ -73,6 +73,8 @@ def test_oracle_run_scores_one(
 
     for ann in ci_fixture_annotations:
         for cat in categories:
+            if cat in NON_SCORED_CATEGORIES:
+                continue
             gt = ann.get_ground_truth(cat)
             metrics = compute_category_metrics(cat, predictions=gt, ground_truth=gt)
             if metrics.support > 0:
@@ -92,6 +94,8 @@ def test_empty_run_has_zero_recall(
 
     for ann in ci_fixture_annotations:
         for cat in categories:
+            if cat in NON_SCORED_CATEGORIES:
+                continue
             gt = ann.get_ground_truth(cat)
             metrics = compute_category_metrics(cat, predictions=[], ground_truth=gt)
             if metrics.support > 0:
@@ -99,6 +103,20 @@ def test_empty_run_has_zero_recall(
                 assert metrics.true_positives == 0
                 assert metrics.false_negatives == metrics.support
                 assert metrics.false_positives == 0
+
+
+def test_non_scored_categories_report_not_scored(
+    ci_fixture_annotations: list[CUADContractAnnotation],
+) -> None:
+    """T-227: Renewal Term and Notice Period are reported as not scored automatically."""
+    for ann in ci_fixture_annotations:
+        for cat in NON_SCORED_CATEGORIES:
+            gt = ann.get_ground_truth(cat)
+            metrics = compute_category_metrics(cat, predictions=gt, ground_truth=gt)
+            assert metrics.category_type == "not_scored"
+            assert metrics.precision == 0.0
+            assert metrics.recall == 0.0
+            assert metrics.f1 == 0.0
 
 
 def test_shuffled_run_scores_near_zero(
@@ -113,6 +131,8 @@ def test_shuffled_run_scores_near_zero(
     total_support = 0
 
     for cat in categories:
+        if cat in NON_SCORED_CATEGORIES:
+            continue
         cat_tp = 0
         cat_support = 0
         for i, ann in enumerate(ci_fixture_annotations):
