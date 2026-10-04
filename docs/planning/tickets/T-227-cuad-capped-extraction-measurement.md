@@ -197,3 +197,44 @@ predictions with the real labels shows the **comparison is invalid for most cate
    every contract, so the scoring can be checked by eye before anything is counted.
 6. Optional: modest concurrency (up to 4 requests) to cut the run time, keeping attempt counting exact and the
    rate under 40 requests a minute.
+
+## Review of the development run (5 contracts, seed 1337, prompt hash b63f8a79...)
+
+Checked by the reviewer from `raw_predictions/predictions.jsonl` and `master_clauses.csv`, not from the
+report's prose. Token totals (284,832 in / 209,621 out), 5 contracts and 0 exclusions match the file.
+The prompt was run once and not tuned, so the dev numbers are honest, if low.
+
+**What holds.** All 82 returned quotes occur verbatim in the contract text (reviewer's own whitespace-normalised
+substring check). Dates and governing law are right whenever the model answers; the model answered 8 of 10
+agreement and effective dates and 3 of 5 governing laws.
+
+**What does not hold, and what it changes.**
+1. *The report's prose overstated.* It called Cap On Liability and Uncapped Liability on the first contract
+   "Token-F1 match". Recomputed best token-F1 is 0.45 and 0.36, below the 0.5 bar; the aggregate table is right,
+   the narrative is not. Numbers must be copied from harness output, never paraphrased.
+2. *Parties precision 0.19 is mostly an artefact.* The same party is predicted many times (one contract has 16
+   predictions for 2 parties) and every repeat counts as a false positive; a defined-term alias ("Cisco" for
+   "Cisco Systems, Inc.") also counts as a false positive. Deduplicated and alias-aware, the five contracts give
+   precision 0.80 and recall 0.73 (TP 8, FP 2, FN 3). Role words the prompt forbids ("Distributor", "Client",
+   "Affiliate") were still returned on 3 of 5 contracts. One label is a typo ("Ostenonics") and one is junk
+   ("Stryker and Conformis"); labels are not corrected, the effect is stated.
+3. *Chunking truncates clauses.* The harness cuts the contract into fixed 4000-character windows, so a long
+   clause crossing a boundary is returned cut short (a 206-word label answered by 27 words; a 358-word label by
+   74). That depresses clause span scores and is not what the product's chunker would do.
+4. *`quote_found` is not an independent check.* It is true when a span object exists. The reviewer's check
+   agrees today, but the rate must come from verifying the quote in the text.
+5. *Prompt leak:* the literal template text "YYYY-MM-DD" came back as a date value on one contract. It is
+   dropped by the normaliser; count and report it. The prompt stays frozen.
+6. *Scale.* 5 contracts gave 117 chunks (about 23 per contract), so 30 contracts is about 700 chunks, over the
+   600-attempt cap, and at about 14 s a call roughly 2.7 hours sequentially. Every category has 5 or fewer
+   contracts behind it in the dev set; no category ranking is meaningful at that size.
+7. *Clause recall is the weak spot* on this model: nothing returned for Cap On Liability on 3 of 4 contracts that
+   have one, Exclusivity on 2 of 4, Non-Compete on 1 of 2.
+
+**Decision.** Accept the harness, the two scoring modes and the dev run. Before the one-shot test run:
+chunk on line boundaries (never mid-line, at most 4000 characters), deduplicate parties and treat a defined-term
+alias as the same party, compute `quote_found` by checking the quote in the text and report quote-in-text for
+clause categories too, raise the attempt cap to 900 (zero-price endpoint; the cap is a runaway guard), print
+the planned chunk count before the run, resume rather than restart on a crash, and run the 30 contracts once with the
+frozen prompt hash. Scoring changes can be re-run offline from saved predictions; the prompt and chunking are
+not changed after the run starts. Report k/n beside every rate.
