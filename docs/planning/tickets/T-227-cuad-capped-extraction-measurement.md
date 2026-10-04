@@ -238,3 +238,53 @@ clause categories too, raise the attempt cap to 900 (zero-price endpoint; the ca
 the planned chunk count before the run, resume rather than restart on a crash, and run the 30 contracts once with the
 frozen prompt hash. Scoring changes can be re-run offline from saved predictions; the prompt and chunking are
 not changed after the run starts. Report k/n beside every rate.
+
+## Review of the 30-contract test run (seed 42, prompt hash b63f8a79..., model nemotron-3-super-120b-a12b)
+
+Checked by the reviewer from `raw_predictions/predictions.jsonl` and `master_clauses.csv`, with a separate scoring
+script, not from the report.
+
+**Run integrity: holds.** 35 rows carry the frozen hash (30 test plus the 5 development contracts); test tokens
+(824,799 in / 508,370 out) equal the file total minus the development run; 0 excluded, 0 chunk failures.
+376 chunks were planned (the reviewer's earlier estimate of about 700 was wrong, the development set had one very
+long contract). All 390 returned quotes occur in the contract text by the reviewer's own check.
+
+**Scores: reproduced exactly** for every value and clause category (TP/FP/FN and presence counts). Parties is the
+one place the reviewer's strict version differs by design: exact-name matching gives 0.49 precision / 0.79 recall
+(59 TP, 61 FP, 16 FN); the specified defined-term-alias version gives 0.72 / 0.86 (66 TP, 26 FP, 11 FN). Report both.
+
+**Defect found: `normalize_date` invents dates from partial input** by filling missing parts from today's date
+(`"15"` gives 2026-10-15, `"2018"` gives 2018-10-04, `"March 2018"` gives 2018-03-04). Scores therefore change with
+the day they are computed. It produced 4 spurious predicted dates in this run: Agreement Date FP 11 should be 9
+(precision 0.68) and Effective Date FP 2 should be 0 (13/13). It only inflated false positives. Fix: reject any
+date missing day, month or year, with tests; rescore offline, no re-run.
+
+**Other things that depress the numbers and are not model errors.**
+- 5 of 30 contracts have no Agreement Date label though the text states a date; 2 labels are truncated or junk
+  (`04/30/`, `/[]/2018`). Agreement Date precision is understated for this reason.
+- Parties labels sometimes contain whole sentences or a typo, and two Governing Law "misses" are
+  `england and wales` / `english law` against labels split as `england` and `wales`.
+- Remaining Parties false positives are other entities named in the contract (affiliates, subsidiaries) and a few
+  role words (`affiliate`, `seller`, `agency`, `the`) that the prompt forbids.
+
+**What the measurement supports (n is small; 95% Wilson intervals given where it matters).**
+- Strong enough to show with a human check: dates (agreement-date recall 19/21), governing law (recall 23/29,
+  precision 23/25), parties (alias-aware 0.72 / 0.86), and presence of Anti-Assignment (recall 18/22 = 0.82,
+  [0.62, 0.93]), Termination For Convenience (13/13, lower bound about 0.77), Change Of Control (9/10).
+- Not supported: **Cap On Liability** (presence recall 6/16 = 0.38, [0.18, 0.61]), **Non-Compete** (4/8) and
+  **Uncapped Liability** (4/8): the model returns nothing for most contracts that have the clause. A silent miss is
+  the dangerous direction for a compliance buyer, so these must not be claimed as detected.
+- Precision on clauses is high when the model answers (Cap On Liability 6/6, Anti-Assignment 18/19).
+
+**Limits to state wherever the numbers are used.** (1) One model, a free evaluation-only endpoint whose inputs may
+be used by the provider: it shows what an open 120B model can do with this prompt, not what the production model
+(Sonnet, per the cost plan) would do, and no customer contract may be sent to it. (2) 30 contracts, one run, one
+seed; run-to-run variation was not measured. (3) Two of the 30 (Sibannac, Ediets) were the smoke contracts whose
+mistakes informed the prompt redesign; the prompt was not tuned on them, but they are not clean. (4) The harness
+chunker is a simple line-boundary splitter, not the product's chunker. (5) No comparison with published CUAD
+results is made: different task framing and metric.
+
+**Decision.** Accept the run. Fix the date normaliser, rescore offline, publish a results note
+(`docs/research/`) with both Parties versions, the limits above, and the recommendation that the next
+measurement, if wanted, uses the intended production model under a dollar cap taken from the usage ledger.
+No outreach or deck may quote these figures as product accuracy.
