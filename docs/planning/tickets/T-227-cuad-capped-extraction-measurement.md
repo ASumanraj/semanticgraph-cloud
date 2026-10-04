@@ -151,3 +151,49 @@ by its review. Remaining work before the 30-contract run:
    in the dev extras and regenerate `uv.lock`.
 5. **Remove the fallback to the misspelled `NVIDIA_API_KE`.** The founder fixes `.env`; the code reads
    `NVIDIA_API_KEY` only.
+
+## Measurement design correction 2026-10-05 (after the 3-contract smoke on NVIDIA)
+
+The smoke run (28 chunks, 2 of 3 contracts scored, 1 excluded) scored near zero, and comparing the saved
+predictions with the real labels shows the **comparison is invalid for most categories, not the model weak**:
+
+- **Value categories compare against normalized answers.** For Governing Law the label is `Texas`; for dates
+  it is `11/30/17`; for Parties it is the party names. The harness compares the model's *quote* with those
+  strings, so a correct `30th day of November, 2017` cannot match `11/30/17`.
+- **The model quotes headings and generic words.** Predictions included `Governing Law`, `Effective Date`,
+  `[EXCLUSIVITY]` and `the parties` (15 false positives for Parties in two contracts). The prompt does not
+  tell it to quote the operative clause or to avoid headings and generic mentions.
+- **A contract-level failure rate is too high.** One of three contracts was excluded for one failing chunk.
+  Chunk failure near 1 in 28 would exclude roughly four in ten 15-chunk contracts and bias the sample toward
+  short contracts.
+- **Cost of a run:** about 21 s per call and about 2,600 output tokens per call (reasoning); 450 calls is
+  roughly 2.7 hours.
+
+**Do not run the 30-contract sample until this is fixed and reviewed.** Required changes:
+
+1. **Two scoring modes, per category, written down before any new run.**
+   - *Clause categories* (Anti-Assignment, Cap On Liability, Change Of Control, Exclusivity, Non-Compete,
+     Termination For Convenience, Uncapped Liability): the labels are the clause spans in the base column. A
+     prediction is the clause text the model quotes. Per contract, match by token-level F1 of at least 0.5
+     against a label span (each label used once). Also report **contract-level presence** precision and
+     recall (does the contract contain the clause, did the model return at least one clause).
+   - *Value categories* (Governing Law, Agreement Date, Effective Date, Expiration Date, Parties): the model
+     returns a normalized **value** and a verbatim **quote** as evidence. Compare the value, normalized, with
+     the label's normalized answer: governing law by lower-cased jurisdiction name without "State of"; dates
+     parsed to a calendar date; parties with case, punctuation, parenthetical aliases and corporate suffixes
+     (inc, llc, ltd, corp, co, company) removed. Report the quote-found rate separately.
+   - *Renewal Term and Notice Period To Terminate Renewal* have free-text answers that need human judgement:
+     report them as **not scored automatically**; do not give them a number.
+2. **Fix the prompt.** Use the CUAD question wording (or the descriptions already in `mapping.py`) for each
+   category; require the operative clause or a normalized value; forbid section headings, defined-term labels
+   and generic words such as "party" or "the parties"; return nothing when the clause is absent.
+3. **A development set apart from the test sample.** Choose 5 development contracts with a different seed,
+   excluded from the final 30. Tune the prompt only on them (at most 150 attempts), then **freeze the prompt**,
+   record its hash, and run the 30-contract sample once. Never tune on the test sample.
+4. **Fewer exclusions.** Retry a failing chunk up to two more times (for example 4096, 8192, then 16384
+   tokens, and try disabling thinking if the model supports it). Report the chunk failure rate and the
+   exclusion rate, and state that excluded contracts skew long.
+5. **Side-by-side output.** For each development run, show per category the label next to the prediction for
+   every contract, so the scoring can be checked by eye before anything is counted.
+6. Optional: modest concurrency (up to 4 requests) to cut the run time, keeping attempt counting exact and the
+   rate under 40 requests a minute.
