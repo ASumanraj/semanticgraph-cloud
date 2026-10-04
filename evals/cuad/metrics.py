@@ -24,6 +24,8 @@ from evals.cuad.constants import (
     MASTER_CLAUSES_CSV_SHA256,
 )
 from evals.cuad.normalizers import (
+    extract_party_aliases,
+    is_literal_template_string,
     normalize_date,
     normalize_jurisdiction,
     normalize_party_name,
@@ -74,10 +76,11 @@ class CategoryMetrics:
     presence_precision: float = 0.0
     presence_recall: float = 0.0
     presence_f1: float = 0.0
-    # Value quote-found metrics
+    # Quote-found metrics (tracked for both value and clause categories)
     quotes_found: int = 0
     quotes_total: int = 0
     quote_found_rate: float = 1.0
+    literal_template_strings: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         data: dict[str, Any] = {
@@ -90,6 +93,7 @@ class CategoryMetrics:
             "false_positives": self.false_positives,
             "false_negatives": self.false_negatives,
             "support": self.support,
+            "literal_template_strings": self.literal_template_strings,
         }
         if self.category_type == "clause":
             data.update(
@@ -101,6 +105,9 @@ class CategoryMetrics:
                     "presence_fp": self.presence_fp,
                     "presence_fn": self.presence_fn,
                     "presence_tn": self.presence_tn,
+                    "quote_found_rate": round(self.quote_found_rate, 4),
+                    "quotes_found": self.quotes_found,
+                    "quotes_total": self.quotes_total,
                 }
             )
         elif self.category_type == "value":
@@ -160,9 +167,15 @@ class CUADEvaluationReport:
             f"Total Contracts Evaluated: {self.total_contracts}",
             f"Failed Contracts: {self.failed_contracts}",
         ]
-        if self.contract_exclusion_rate > 0 or self.chunk_failure_rate > 0:
+        if (
+            self.contract_exclusion_rate > 0
+            or self.chunk_failure_rate > 0
+            or self.failed_contracts > 0
+        ):
+            total_sample = self.total_contracts + self.failed_contracts
             lines.append(
-                f"Exclusion Rate: {self.contract_exclusion_rate * 100:.1f}%, "
+                f"Exclusion Rate: {self.contract_exclusion_rate * 100:.1f}% "
+                f"({self.failed_contracts}/{total_sample}), "
                 f"Chunk Failure Rate: {self.chunk_failure_rate * 100:.1f}% "
                 "(Note: excluded contracts skew long)"
             )
@@ -173,10 +186,10 @@ class CUADEvaluationReport:
                 "",
                 "=== VALUE CATEGORIES (Normalized Value Matching) ===",
                 (
-                    f"{'Category':<20} | {'Prec':>6} | {'Recall':>6} | {'F1':>6} | "
-                    f"{'TP':>4} | {'FP':>4} | {'FN':>4} | {'Support':>7} | {'Quote Found':>12}"
+                    f"{'Category':<20} | {'Prec':>12} | {'Recall':>12} | {'F1':>6} | "
+                    f"{'TP':>4} | {'FP':>4} | {'FN':>4} | {'Support':>7} | {'Quote Found':>15}"
                 ),
-                "-" * 88,
+                "-" * 98,
             ]
         )
         for cat in VALUE_CATEGORIES:
@@ -184,21 +197,33 @@ class CUADEvaluationReport:
                 m = self.category_metrics[cat]
                 if m.support == 0:
                     lines.append(
-                        f"{m.category:<20} | {'not evaluated':^24} | "
+                        f"{m.category:<20} | {'not evaluated':^27} | "
                         f"{m.true_positives:>4} | {m.false_positives:>4} | "
-                        f"{m.false_negatives:>4} | {m.support:>7} | {'-':>12}"
+                        f"{m.false_negatives:>4} | {m.support:>7} | {'-':>15}"
                     )
                 else:
+                    tot_pred = m.true_positives + m.false_positives
+                    tot_gt = m.true_positives + m.false_negatives
+                    p_str = (
+                        f"{m.precision:.2f} ({m.true_positives}/{tot_pred})"
+                        if tot_pred > 0
+                        else f"{m.precision:.2f} (0/0)"
+                    )
+                    r_str = (
+                        f"{m.recall:.2f} ({m.true_positives}/{tot_gt})"
+                        if tot_gt > 0
+                        else f"{m.recall:.2f} (0/0)"
+                    )
                     q_str = (
                         f"{m.quote_found_rate * 100:.1f}% ({m.quotes_found}/{m.quotes_total})"
                         if m.quotes_total > 0
                         else "N/A"
                     )
                     lines.append(
-                        f"{m.category:<20} | {m.precision:>6.2f} | "
-                        f"{m.recall:>6.2f} | {m.f1:>6.2f} | "
+                        f"{m.category:<20} | {p_str:>12} | "
+                        f"{r_str:>12} | {m.f1:>6.2f} | "
                         f"{m.true_positives:>4} | {m.false_positives:>4} | "
-                        f"{m.false_negatives:>4} | {m.support:>7} | {q_str:>12}"
+                        f"{m.false_negatives:>4} | {m.support:>7} | {q_str:>15}"
                     )
 
         # 2. Clause Categories Table
@@ -207,27 +232,60 @@ class CUADEvaluationReport:
                 "",
                 "=== CLAUSE CATEGORIES (Token-F1 >= 0.5 Span Match & Contract Presence) ===",
                 (
-                    f"{'Category':<28} | {'SpanP':>6} | {'SpanR':>6} | {'SpanF1':>6} | "
-                    f"{'PresP':>6} | {'PresR':>6} | {'PresF1':>6} | {'Support':>7}"
+                    f"{'Category':<28} | {'SpanP':>12} | {'SpanR':>12} | {'SpanF1':>6} | "
+                    f"{'PresP':>12} | {'PresR':>12} | {'PresF1':>6} | {'Support':>7} | "
+                    f"{'Quote In Text':>15}"
                 ),
-                "-" * 98,
+                "-" * 122,
             ]
         )
         for cat in CLAUSE_CATEGORIES:
             if cat in self.category_metrics:
                 m = self.category_metrics[cat]
+                tot_span_pred = m.true_positives + m.false_positives
+                tot_span_gt = m.true_positives + m.false_negatives
+                sp_str = (
+                    f"{m.precision:.2f} ({m.true_positives}/{tot_span_pred})"
+                    if tot_span_pred > 0
+                    else f"{m.precision:.2f} (0/0)"
+                )
+                sr_str = (
+                    f"{m.recall:.2f} ({m.true_positives}/{tot_span_gt})"
+                    if tot_span_gt > 0
+                    else f"{m.recall:.2f} (0/0)"
+                )
+
+                tot_pres_pred = m.presence_tp + m.presence_fp
+                tot_pres_gt = m.presence_tp + m.presence_fn
+                pp_str = (
+                    f"{m.presence_precision:.2f} ({m.presence_tp}/{tot_pres_pred})"
+                    if tot_pres_pred > 0
+                    else f"{m.presence_precision:.2f} (0/0)"
+                )
+                pr_str = (
+                    f"{m.presence_recall:.2f} ({m.presence_tp}/{tot_pres_gt})"
+                    if tot_pres_gt > 0
+                    else f"{m.presence_recall:.2f} (0/0)"
+                )
+
+                q_str = (
+                    f"{m.quote_found_rate * 100:.1f}% ({m.quotes_found}/{m.quotes_total})"
+                    if m.quotes_total > 0
+                    else "N/A"
+                )
+
                 if m.support == 0:
                     lines.append(
-                        f"{m.category:<28} | {'not evaluated':^22} | "
-                        f"{m.presence_precision:>6.2f} | {m.presence_recall:>6.2f} | "
-                        f"{m.presence_f1:>6.2f} | {m.support:>7}"
+                        f"{m.category:<28} | {'not evaluated':^27} | {'-':^6} | "
+                        f"{pp_str:>12} | {pr_str:>12} | "
+                        f"{m.presence_f1:>6.2f} | {m.support:>7} | {q_str:>15}"
                     )
                 else:
                     lines.append(
-                        f"{m.category:<28} | {m.precision:>6.2f} | "
-                        f"{m.recall:>6.2f} | {m.f1:>6.2f} | "
-                        f"{m.presence_precision:>6.2f} | {m.presence_recall:>6.2f} | "
-                        f"{m.presence_f1:>6.2f} | {m.support:>7}"
+                        f"{m.category:<28} | {sp_str:>12} | "
+                        f"{sr_str:>12} | {m.f1:>6.2f} | "
+                        f"{pp_str:>12} | {pr_str:>12} | "
+                        f"{m.presence_f1:>6.2f} | {m.support:>7} | {q_str:>15}"
                     )
 
         # 3. Non-Scored Categories
@@ -242,6 +300,10 @@ class CUADEvaluationReport:
         for cat in NON_SCORED_CATEGORIES:
             lines.append(f"{cat:<35} | not scored automatically (free-text human adjudication)")
 
+        total_lit = sum(m.literal_template_strings for m in self.category_metrics.values())
+        if total_lit > 0:
+            lines.append(f"\nLiteral Template Strings Detected (e.g. 'YYYY-MM-DD'): {total_lit}")
+
         lines.extend(
             [
                 "-" * 98,
@@ -249,7 +311,10 @@ class CUADEvaluationReport:
                     "Note: Per T-909 requirements, scores are reported strictly per category "
                     "(per T-227 Measurement design correction)."
                 ),
-                "Clause categories report token-level span F1 and contract-level presence.",
+                (
+                    "Clause categories report token-level span F1, contract-level presence, "
+                    "and quote-in-text."
+                ),
                 "Value categories report normalized value matching and quote-found rate.",
                 "Renewal categories are marked not scored automatically.",
             ]
@@ -316,16 +381,28 @@ def _extract_pred_fields(item: Any) -> tuple[str, str, bool]:
     return s, s, True
 
 
+def is_quote_in_contract_text(quote: str, contract_text: str | None) -> bool:
+    """Checks whether quote (whitespace-normalized, case-insensitive) occurs in contract text."""
+    if not quote or not quote.strip() or not contract_text:
+        return False
+    norm_q = normalize_text(quote)
+    norm_c = normalize_text(contract_text)
+    return norm_q in norm_c
+
+
 def compute_category_metrics(
     category: str,
     predictions: list[Any],
     ground_truth: list[str],
+    contract_text: str | None = None,
 ) -> CategoryMetrics:
     """Computes precision, recall, and F1 for a category on a contract or batch.
 
-    Follows the 2026-10-05 Measurement Design Correction:
-    - VALUE_CATEGORIES: normalized value comparison + quote found tracking.
-    - CLAUSE_CATEGORIES: token-F1 >= 0.5 span comparison + presence tracking.
+    Follows the 2026-10-05 Measurement Design Correction & dev review:
+    - VALUE_CATEGORIES: normalized value comparison + quote-in-contract-text.
+      Parties deduplicates predictions by normalized name and treats defined-term
+      aliases as the same party (not false positives).
+    - CLAUSE_CATEGORIES: token-F1 >= 0.5 span comparison, presence, and quote-in-contract-text.
     - NON_SCORED_CATEGORIES: not scored automatically.
     """
     # Non-scored categories
@@ -344,61 +421,140 @@ def compute_category_metrics(
 
     # 1. VALUE CATEGORIES
     if category in VALUE_CATEGORIES:
-        # Prepare normalized ground truth values
-        gt_vals: list[str] = []
-        for raw_gt in ground_truth:
-            if not raw_gt or not raw_gt.strip():
-                continue
-            if category == "Parties":
-                # Split multiple parties delimited by semicolons
-                for p in raw_gt.split(";"):
-                    norm_p = normalize_party_name(p)
-                    if norm_p and norm_p not in ("party", "parties", "company"):
-                        gt_vals.append(norm_p)
-            elif category == "Governing Law":
-                norm_j = normalize_jurisdiction(raw_gt)
-                if norm_j:
-                    gt_vals.append(norm_j)
-            else:  # Dates
-                norm_d = normalize_date(raw_gt)
-                if norm_d:
-                    gt_vals.append(norm_d)
-
-        # Prepare normalized predicted values & quote tracking
-        pred_norm_vals: list[str] = []
         quotes_found_count = 0
         total_quotes = len(predictions)
+        literal_template_count = 0
 
+        # Track quotes and template strings across all prediction objects
         for p in predictions:
-            val, quote, quote_found = _extract_pred_fields(p)
-            if quote_found:
+            val, quote, default_found = _extract_pred_fields(p)
+            found = (
+                is_quote_in_contract_text(quote, contract_text) if contract_text else default_found
+            )
+            if found:
                 quotes_found_count += 1
-            if category == "Parties":
+            if is_literal_template_string(val) or is_literal_template_string(quote):
+                literal_template_count += 1
+
+        if category == "Parties":
+            # Ground truth: extract primary name and defined-term aliases
+            gt_parties: list[dict[str, Any]] = []
+            for raw_gt in ground_truth:
+                if not raw_gt or not raw_gt.strip():
+                    continue
+                for p in raw_gt.split(";"):
+                    prim = normalize_party_name(p)
+                    aliases = extract_party_aliases(p)
+                    names: set[str] = set()
+                    if prim and prim not in (
+                        "party",
+                        "parties",
+                        "company",
+                        "client",
+                        "distributor",
+                    ):
+                        names.add(prim)
+                    for a in aliases:
+                        if a and a not in ("party", "parties", "company"):
+                            names.add(a)
+                    if names:
+                        gt_parties.append(
+                            {
+                                "raw": p.strip(),
+                                "primary": prim,
+                                "aliases": aliases,
+                                "all_names": names,
+                            }
+                        )
+
+            # Predictions: deduplicate by normalized name across the contract
+            unique_pred_parties: list[str] = []
+            seen_party_names: set[str] = set()
+            for p in predictions:
+                val, quote, _ = _extract_pred_fields(p)
                 norm_p = normalize_party_name(val or quote)
-                if norm_p and norm_p not in ("party", "parties", "company"):
-                    pred_norm_vals.append(norm_p)
-            elif category == "Governing Law":
-                norm_j = normalize_jurisdiction(val or quote)
-                if norm_j:
-                    pred_norm_vals.append(norm_j)
-            else:  # Dates
-                norm_d = normalize_date(val or quote)
-                if norm_d:
-                    pred_norm_vals.append(norm_d)
+                if (
+                    norm_p
+                    and norm_p not in ("party", "parties", "company")
+                    and norm_p not in seen_party_names
+                ):
+                    seen_party_names.add(norm_p)
+                    unique_pred_parties.append(norm_p)
 
-        # Match predictions against ground truth
-        matched_gt: set[int] = set()
-        tp = 0
-        for pred in pred_norm_vals:
-            for idx, gt in enumerate(gt_vals):
-                if idx not in matched_gt and pred == gt:
-                    tp += 1
-                    matched_gt.add(idx)
-                    break
+            # Match predictions against ground truth parties
+            matched_gt_party_indices: set[int] = set()
+            tp = 0
+            fp = 0
+            for pred in unique_pred_parties:
+                # 1. Matches an unmatched ground truth party
+                matched_unmatched = False
+                for idx, gt_party in enumerate(gt_parties):
+                    if idx not in matched_gt_party_indices and pred in gt_party["all_names"]:
+                        tp += 1
+                        matched_gt_party_indices.add(idx)
+                        matched_unmatched = True
+                        break
+                if matched_unmatched:
+                    continue
 
-        fp = len(pred_norm_vals) - tp
-        fn = len(gt_vals) - tp
-        support = len(gt_vals)
+                # 2. Matches an ALREADY matched ground truth party (defined-term alias)
+                # Treat as the same party: NOT a false positive
+                if any(pred in gt_party["all_names"] for gt_party in gt_parties):
+                    continue
+
+                # 3. Matches no ground truth party -> false positive
+                fp += 1
+
+            fn = len(gt_parties) - tp
+            support = len(gt_parties)
+
+        else:
+            # Dates or Governing Law
+            gt_vals: list[str] = []
+            for raw_gt in ground_truth:
+                if not raw_gt or not raw_gt.strip():
+                    continue
+                if category == "Governing Law":
+                    norm_j = normalize_jurisdiction(raw_gt)
+                    if norm_j:
+                        gt_vals.append(norm_j)
+                else:  # Dates
+                    norm_d = normalize_date(raw_gt)
+                    if norm_d:
+                        gt_vals.append(norm_d)
+
+            pred_norm_vals: list[str] = []
+            for p in predictions:
+                val, quote, _ = _extract_pred_fields(p)
+                if category == "Governing Law":
+                    norm_j = normalize_jurisdiction(val or quote)
+                    if norm_j:
+                        pred_norm_vals.append(norm_j)
+                else:  # Dates
+                    norm_d = normalize_date(val or quote)
+                    if norm_d:
+                        pred_norm_vals.append(norm_d)
+
+            # Deduplicate predictions by normalized value per contract
+            unique_pred_norm_vals: list[str] = []
+            seen_vals: set[str] = set()
+            for v in pred_norm_vals:
+                if v not in seen_vals:
+                    seen_vals.add(v)
+                    unique_pred_norm_vals.append(v)
+
+            matched_gt: set[int] = set()
+            tp = 0
+            for pred in unique_pred_norm_vals:
+                for idx, gt in enumerate(gt_vals):
+                    if idx not in matched_gt and pred == gt:
+                        tp += 1
+                        matched_gt.add(idx)
+                        break
+
+            fp = len(unique_pred_norm_vals) - tp
+            fn = len(gt_vals) - tp
+            support = len(gt_vals)
 
         prec = tp / (tp + fp) if (tp + fp) > 0 else 0.0
         rec = tp / (tp + fn) if (tp + fn) > 0 else 0.0
@@ -418,16 +574,28 @@ def compute_category_metrics(
             quotes_found=quotes_found_count,
             quotes_total=total_quotes,
             quote_found_rate=q_rate,
+            literal_template_strings=literal_template_count,
         )
 
     # 2. CLAUSE CATEGORIES
     # Clause predictions use the verbatim quote
     gt_spans = [gt for gt in ground_truth if gt and gt.strip()]
     pred_quotes: list[str] = []
+    quotes_found_count = 0
+    total_quotes = len(predictions)
+    literal_template_count = 0
+
     for p in predictions:
-        _, quote, _ = _extract_pred_fields(p)
+        val, quote, default_found = _extract_pred_fields(p)
+        if is_literal_template_string(val) or is_literal_template_string(quote):
+            literal_template_count += 1
         if quote and quote.strip():
             pred_quotes.append(quote.strip())
+            found = (
+                is_quote_in_contract_text(quote, contract_text) if contract_text else default_found
+            )
+            if found:
+                quotes_found_count += 1
 
     matched_gt_spans: set[int] = set()
     tp_spans = 0
@@ -460,6 +628,8 @@ def compute_category_metrics(
     p_rec = p_tp / (p_tp + p_fn) if (p_tp + p_fn) > 0 else 0.0
     p_f1 = (2 * p_prec * p_rec) / (p_prec + p_rec) if (p_prec + p_rec) > 0 else 0.0
 
+    q_rate = quotes_found_count / total_quotes if total_quotes > 0 else 1.0
+
     return CategoryMetrics(
         category=category,
         category_type="clause",
@@ -477,6 +647,10 @@ def compute_category_metrics(
         presence_precision=p_prec,
         presence_recall=p_rec,
         presence_f1=p_f1,
+        quotes_found=quotes_found_count,
+        quotes_total=total_quotes,
+        quote_found_rate=q_rate,
+        literal_template_strings=literal_template_count,
     )
 
 
@@ -523,10 +697,11 @@ def aggregate_category_metrics(
     p_rec = p_tp / (p_tp + p_fn) if (p_tp + p_fn) > 0 else 0.0
     p_f1 = (2 * p_prec * p_rec) / (p_prec + p_rec) if (p_prec + p_rec) > 0 else 0.0
 
-    # Quotes found aggregation (value categories)
+    # Quotes found aggregation (value and clause categories)
     q_found = sum(m.quotes_found for m in contract_metrics)
     q_total = sum(m.quotes_total for m in contract_metrics)
     q_rate = q_found / q_total if q_total > 0 else 1.0
+    lit_templates = sum(m.literal_template_strings for m in contract_metrics)
 
     return CategoryMetrics(
         category=category,
@@ -548,6 +723,7 @@ def aggregate_category_metrics(
         quotes_found=q_found,
         quotes_total=q_total,
         quote_found_rate=q_rate,
+        literal_template_strings=lit_templates,
     )
 
 
@@ -555,6 +731,7 @@ def format_side_by_side_contract(
     filename: str,
     annotation: Any,
     predictions_by_cat: dict[str, list[Any]],
+    contract_text: str | None = None,
 ) -> str:
     """Formats a side-by-side comparison of labels vs predictions for a single contract."""
     lines = [
@@ -594,7 +771,8 @@ def format_side_by_side_contract(
         pred_strs: list[str] = []
         for p in preds:
             val, quote, found = _extract_pred_fields(p)
-            found_str = "quote found" if found else "QUOTE NOT FOUND"
+            is_in_text = is_quote_in_contract_text(quote, contract_text) if contract_text else found
+            found_str = "quote in text" if is_in_text else "QUOTE NOT IN TEXT"
             if cat == "Parties":
                 nv = normalize_party_name(val or quote)
             elif cat == "Governing Law":
@@ -620,13 +798,15 @@ def format_side_by_side_contract(
             if gt_raw
             else "Absent (no clause in contract)"
         )
-        pred_strs: list[str] = []
+        pred_strs = []
         for p in preds:
-            _, quote, _ = _extract_pred_fields(p)
+            _, quote, found = _extract_pred_fields(p)
+            is_in_text = is_quote_in_contract_text(quote, contract_text) if contract_text else found
+            in_text_str = "quote in text" if is_in_text else "QUOTE NOT IN TEXT"
             q_clean = " ".join(quote.split())
             if len(q_clean) > 80:
                 q_clean = q_clean[:77] + "..."
-            pred_strs.append(f'"{q_clean}"')
+            pred_strs.append(f'"{q_clean}" [{in_text_str}]')
 
         pred_display = "\n                 ".join(pred_strs) if pred_strs else "None returned"
 

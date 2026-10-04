@@ -221,6 +221,38 @@ def build_cuad_ontology(tenant_id: TenantId | None = None) -> Ontology:
     )
 
 
+def chunk_contract_by_lines(contract_text: str, max_chars: int = 4000) -> list[str]:
+    """Splits contract text into chunks on newline boundaries without cutting mid-line.
+
+    Each chunk contains up to max_chars characters. If a single line exceeds max_chars,
+    it is split at character boundaries to respect the max_chars ceiling.
+    """
+    lines = contract_text.splitlines(keepends=True)
+    if not lines:
+        return [""]
+    chunks: list[str] = []
+    curr: list[str] = []
+    curr_len = 0
+    for line in lines:
+        if curr_len + len(line) <= max_chars:
+            curr.append(line)
+            curr_len += len(line)
+        else:
+            if curr:
+                chunks.append("".join(curr))
+                curr = []
+                curr_len = 0
+            if len(line) > max_chars:
+                for i in range(0, len(line), max_chars):
+                    chunks.append(line[i : i + max_chars])
+            else:
+                curr.append(line)
+                curr_len = len(line)
+    if curr:
+        chunks.append("".join(curr))
+    return chunks or [""]
+
+
 class CUADEvalHarness:
     """Evaluation harness for testing LLM clause extraction against CUAD."""
 
@@ -297,12 +329,8 @@ class CUADEvalHarness:
         predictions_by_category: dict[str, list[str]] = {cat: [] for cat in self.target_categories}
         t_id = tenant_id or TenantId(value=uuid4())
 
-        # Simple sliding chunker for evaluation text
-        chunks: list[str] = []
-        for i in range(0, len(contract_text), chunk_size):
-            chunks.append(contract_text[i : i + chunk_size])
-        if not chunks:
-            chunks = [""]
+        # Chunk on line boundaries without cutting mid-line
+        chunks = chunk_contract_by_lines(contract_text, max_chars=chunk_size)
 
         for idx, chunk_text in enumerate(chunks):
             chunk = SemanticChunk(
@@ -468,7 +496,7 @@ def build_cli_parser() -> argparse.ArgumentParser:
         "--max-contracts", type=int, default=30, help="Max contracts to evaluate (hard cap: 30)"
     )
     parser_run.add_argument(
-        "--max-calls", type=int, default=600, help="Hard cap on model calls (cap: 600)"
+        "--max-calls", type=int, default=900, help="Hard cap on model calls (cap: 900)"
     )
     parser_run.add_argument(
         "--max-spend-usd", type=float, default=5.0, help="Hard cap on spend in USD (cap: 5.0)"
@@ -619,7 +647,7 @@ def main() -> None:
             random.Random(dev_seed).shuffle(dev_pool)
             max_c = min(args.max_contracts, 5) if args.max_contracts == 30 else args.max_contracts
             sampled = dev_pool[:max_c]
-            max_calls_limit = 150 if args.max_calls == 600 else args.max_calls
+            max_calls_limit = 150 if args.max_calls == 900 else args.max_calls
             print(
                 f"Mode: dev (seed {dev_seed}, {len(sampled)} contracts disjoint from test sample)."
             )
@@ -636,7 +664,9 @@ def main() -> None:
             contracts.append((text, ann))
 
         # Pre-flight check before any call
-        planned_contract_chunks = [max(1, (len(text) + 3999) // 4000) for text, _ in contracts]
+        planned_contract_chunks = [
+            len(chunk_contract_by_lines(text, 4000)) for text, _ in contracts
+        ]
         planned_total_chunks = sum(planned_contract_chunks)
 
         print("\n=== Pre-flight Check ===")
@@ -804,7 +834,7 @@ def main() -> None:
                         )
                         break
 
-                chunks = max(1, (len(text) + 3999) // 4000)
+                chunks = len(chunk_contract_by_lines(text, 4000))
                 print(f"\nExtracting clauses for {filename} (~{chunks} chunks)...")
 
                 if hasattr(extractor, "reset_contract_tracking"):
@@ -887,6 +917,20 @@ def main() -> None:
             for excl in excluded_contracts:
                 print(f"- {excl['contract']} ({excl['chunks']} chunks): {excl['reason']}")
 
+        # Write side-by-side comparison to a gitignored file
+        side_by_side_path = predictions_dir / "side_by_side_results.txt"
+        with side_by_side_path.open("w", encoding="utf-8") as sbs_file:
+            sbs_file.write("CUAD EVALUATION: SIDE-BY-SIDE LABELS VS PREDICTIONS\n")
+            sbs_file.write(f"Total Evaluated Contracts: {len(all_contract_preds)}\n")
+            for _text, ann in contracts:
+                filename = ann.filename
+                if filename in all_contract_preds:
+                    sbs_block = format_side_by_side_contract(
+                        filename, ann, all_contract_preds[filename], contract_text=_text
+                    )
+                    sbs_file.write(sbs_block + "\n")
+        print(f"\nSide-by-side results written to gitignored path: {side_by_side_path}")
+
         if args.mode == "dev":
             print("\n" + "=" * 80)
             print("SIDE-BY-SIDE EVALUATION RESULTS (5 DEVELOPMENT CONTRACTS)")
@@ -894,7 +938,11 @@ def main() -> None:
             for _text, ann in contracts:
                 filename = ann.filename
                 if filename in all_contract_preds:
-                    print(format_side_by_side_contract(filename, ann, all_contract_preds[filename]))
+                    print(
+                        format_side_by_side_contract(
+                            filename, ann, all_contract_preds[filename], contract_text=_text
+                        )
+                    )
 
         per_contract_metrics: dict[str, list[CategoryMetrics]] = {cat: [] for cat in categories}
 
@@ -909,6 +957,7 @@ def main() -> None:
                     category=cat,
                     predictions=preds.get(cat, []),
                     ground_truth=ann.get_ground_truth(cat),
+                    contract_text=_text,
                 )
                 per_contract_metrics[cat].append(metrics)
 

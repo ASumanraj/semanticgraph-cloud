@@ -84,3 +84,124 @@ def test_normalize_date(raw_date: str | None, expected: str | None) -> None:
 )
 def test_normalize_party_name(raw_party: str | None, expected: str) -> None:
     assert normalize_party_name(raw_party) == expected
+
+
+def test_extract_party_aliases() -> None:
+    from evals.cuad.normalizers import extract_party_aliases
+
+    assert extract_party_aliases('Cisco Systems, Inc. ("Cisco")') == {"cisco"}
+    assert extract_party_aliases("Conformis, Inc. (“Conformis”)") == {"conformis"}
+    assert extract_party_aliases('Mount Knowledge Holdings Inc. ("Marketing Affiliate", "MA")') == {
+        "marketing affiliate",
+        "ma",
+    }
+    assert extract_party_aliases(
+        'RSL COM PrimeCall, Inc. (formerly known as Delta Three, Inc.) ("PrimeCall")'
+    ) == {"primecall", "delta three"}
+    assert extract_party_aliases("Acme Corporation") == set()
+    assert extract_party_aliases(None) == set()
+
+
+def test_is_literal_template_string() -> None:
+    from evals.cuad.normalizers import is_literal_template_string
+
+    assert is_literal_template_string("YYYY-MM-DD") is True
+    assert is_literal_template_string("[YYYY-MM-DD]") is True
+    assert is_literal_template_string("yyyy/mm/dd") is True
+    assert is_literal_template_string("MM/DD/YYYY") is True
+    assert is_literal_template_string("iso format") is True
+    assert is_literal_template_string("standard calendar date") is True
+
+    assert is_literal_template_string("2020-01-01") is False
+    assert is_literal_template_string("November 30, 2017") is False
+    assert is_literal_template_string("Delaware") is False
+    assert is_literal_template_string("") is False
+    assert is_literal_template_string(None) is False
+
+
+def test_parties_deduplication_and_defined_term_alias() -> None:
+    """T-227: Deduplicate predictions by normalized name; treat defined-term alias as same party."""
+    from evals.cuad.metrics import compute_category_metrics
+
+    contract_text = (
+        "This Distributor Agreement is entered into by ScanSource, Inc. (Distributor) "
+        "and Cisco Systems, Inc. (Cisco)."
+    )
+    ground_truth = ['ScanSource, Inc. ("Distributor")', 'Cisco Systems, Inc. ("Cisco")']
+
+    # 1. Predictions containing primary names, aliases, and duplicate mentions
+    predictions = [
+        {"normalized_value": "ScanSource, Inc.", "verbatim_quote": "ScanSource, Inc."},
+        {"normalized_value": "SCANSOURCE", "verbatim_quote": "ScanSource"},
+        {"normalized_value": "Cisco Systems, Inc.", "verbatim_quote": "Cisco Systems, Inc."},
+        {"normalized_value": "Cisco", "verbatim_quote": "Cisco"},
+    ]
+    metrics = compute_category_metrics(
+        "Parties", predictions=predictions, ground_truth=ground_truth, contract_text=contract_text
+    )
+    # Both parties matched, alias "Cisco" treated as same party as "Cisco Systems" (NOT FP)
+    # Duplicates of ScanSource deduplicated
+    assert metrics.support == 2
+    assert metrics.true_positives == 2
+    assert metrics.false_positives == 0
+    assert metrics.false_negatives == 0
+    assert metrics.precision == 1.0
+    assert metrics.recall == 1.0
+    assert metrics.f1 == 1.0
+
+    # 2. Predictions with alias only
+    alias_only_predictions = [
+        {"normalized_value": "Cisco", "verbatim_quote": "Cisco"},
+        {"normalized_value": "ScanSource", "verbatim_quote": "ScanSource"},
+    ]
+    m_alias = compute_category_metrics(
+        "Parties",
+        predictions=alias_only_predictions,
+        ground_truth=ground_truth,
+        contract_text=contract_text,
+    )
+    assert m_alias.true_positives == 2
+    assert m_alias.false_positives == 0
+    assert m_alias.recall == 1.0
+
+    # 3. Predictions with duplicate single party
+    dup_predictions = [
+        {"normalized_value": "ScanSource", "verbatim_quote": "ScanSource"},
+        {"normalized_value": "ScanSource", "verbatim_quote": "ScanSource"},
+        {"normalized_value": "ScanSource", "verbatim_quote": "ScanSource"},
+    ]
+    m_dup = compute_category_metrics(
+        "Parties",
+        predictions=dup_predictions,
+        ground_truth=ground_truth,
+        contract_text=contract_text,
+    )
+    assert m_dup.support == 2
+    assert m_dup.true_positives == 1
+    assert m_dup.false_positives == 0
+    assert m_dup.false_negatives == 1
+    assert m_dup.precision == 1.0
+
+
+def test_quote_in_contract_text_computation() -> None:
+    """T-227: Compute quote_found by checking whitespace-normalized case-insensitive match."""
+    from evals.cuad.metrics import compute_category_metrics, is_quote_in_contract_text
+
+    text = "This Agreement will be governed by the laws of the State of Delaware."
+    assert is_quote_in_contract_text("laws of the State of Delaware", text) is True
+    assert is_quote_in_contract_text("   LAWS   OF   THE  STATE   OF   DELAWARE.  ", text) is True
+    assert is_quote_in_contract_text("laws of the State of California", text) is False
+
+    preds = [
+        {"normalized_value": "Delaware", "verbatim_quote": "laws of the State of Delaware"},
+        {"normalized_value": "California", "verbatim_quote": "laws of California"},
+    ]
+    m = compute_category_metrics(
+        "Governing Law",
+        predictions=preds,
+        ground_truth=["Delaware"],
+        contract_text=text,
+    )
+    assert m.quotes_total == 2
+    assert m.quotes_found == 1
+    assert m.quote_found_rate == 0.5

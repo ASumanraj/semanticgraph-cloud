@@ -726,3 +726,35 @@ def test_openai_transient_errors_recognized() -> None:
     assert is_transient_error(internal_err) is True
     assert is_transient_error(bad_req_err) is False
     assert is_transient_error(ValueError("programming error")) is False
+
+
+def test_chunk_contract_by_lines_preserves_lines_and_caps() -> None:
+    """T-227: Chunking splits on line boundaries without cutting mid-line, max 4000 characters."""
+    from evals.cuad.harness import chunk_contract_by_lines
+
+    # 1. Multi-line text
+    lines = [f"This is line number {i:03d} of the contract text.\n" for i in range(200)]
+    full_text = "".join(lines)
+
+    chunks = chunk_contract_by_lines(full_text, max_chars=4000)
+    assert len(chunks) > 1
+    # Verify no chunk exceeds 4000 characters
+    for c in chunks:
+        assert len(c) <= 4000
+        # Verify chunks end on line boundaries
+        assert c.endswith("\n")
+
+    # Verify no content was lost
+    assert "".join(chunks) == full_text
+
+    # 2. Empty text
+    assert chunk_contract_by_lines("") == [""]
+
+    # 3. Oversized single line (must split to respect max_chars ceiling)
+    long_line = "A" * 9000 + "\n"
+    long_chunks = chunk_contract_by_lines(long_line, max_chars=4000)
+    assert len(long_chunks) == 3
+    assert len(long_chunks[0]) == 4000
+    assert len(long_chunks[1]) == 4000
+    assert len(long_chunks[2]) == 1001
+    assert "".join(long_chunks) == long_line

@@ -191,3 +191,69 @@ def normalize_party_name(text: str | None) -> str:
             break
 
     return " ".join(tokens).strip()
+
+
+def extract_party_aliases(text: str | None) -> set[str]:
+    """Extracts defined-term aliases from parentheticals in party labels.
+
+    Examples:
+    - 'Cisco Systems, Inc. ("Cisco")' -> {'cisco'}
+    - 'Conformis, Inc. (“Conformis”)' -> {'conformis'}
+    - 'Mount Knowledge Holdings Inc. ("Marketing Affiliate", "MA")' ->
+      {'marketing affiliate', 'ma'}
+    - 'deltathree.com, Inc. (formerly Delta Three, Inc.) ("DeltaThree")' ->
+      {'deltathree', 'delta three'}
+    """
+    if not text:
+        return set()
+
+    aliases: set[str] = set()
+
+    parens = re.findall(r"[\(\[](.*?)[\)\]]", text)
+    for p in parens:
+        # Check for 'formerly known as ...'
+        fka_match = re.search(r"formerly known as\s+([^,;\"'\(\)]+)", p, re.IGNORECASE)
+        if fka_match:
+            fka_norm = normalize_party_name(fka_match.group(1))
+            if fka_norm:
+                aliases.add(fka_norm)
+
+        # Check for quoted aliases, e.g. "Cisco", “ConvergTV”, 'TL'
+        quoted = re.findall(r"[\"“'`]([^\"”'`]+)[\"”'`]", p)
+        if quoted:
+            for q in quoted:
+                norm_q = normalize_party_name(q)
+                if norm_q:
+                    aliases.add(norm_q)
+        else:
+            if not fka_match:
+                norm_unquoted = normalize_party_name(p)
+                if norm_unquoted:
+                    aliases.add(norm_unquoted)
+
+    return aliases
+
+
+TEMPLATE_STRINGS: set[str] = {
+    "yyyy-mm-dd",
+    "yyyy/mm/dd",
+    "mm/dd/yyyy",
+    "dd/mm/yyyy",
+    "yyyy",
+    "yyyy-mm",
+    "[yyyy-mm-dd]",
+    "<yyyy-mm-dd>",
+    "iso format",
+    "standard calendar date",
+    "normalized value",
+}
+
+
+def is_literal_template_string(value: str | None) -> bool:
+    """Checks whether a value is a literal template placeholder (e.g. 'YYYY-MM-DD')."""
+    if not value:
+        return False
+    v = value.strip().lower()
+    if v in TEMPLATE_STRINGS:
+        return True
+    return bool(re.match(r"^\[?y{4}[-/]m{2}[-/]d{2}\]?$", v))
