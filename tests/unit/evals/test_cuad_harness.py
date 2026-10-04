@@ -677,3 +677,52 @@ def test_unpriced_model_fails_closed() -> None:
     # Unknown price version must raise UnknownPriceVersionError
     with pytest.raises(UnknownPriceVersionError, match="is not defined in PRICE_SCHEDULES"):
         verify_model_priced("gemini-2.5-flash", "1999-Q1")
+
+
+def test_harness_cli_parser_provider_options() -> None:
+    """T-227: Verifies CLI parser options for --provider and --model."""
+    from evals.cuad.harness import build_cli_parser
+
+    parser = build_cli_parser()
+
+    # Default provider is nvidia, model is None
+    args_default = parser.parse_args(["run", "--max-contracts", "3"])
+    assert args_default.command == "run"
+    assert args_default.provider == "nvidia"
+    assert args_default.model is None
+
+    # Explicit gemini provider and custom model
+    args_gemini = parser.parse_args(["run", "--provider", "gemini", "--model", "gemini-2.5-pro"])
+    assert args_gemini.provider == "gemini"
+    assert args_gemini.model == "gemini-2.5-pro"
+
+
+def test_openai_transient_errors_recognized() -> None:
+    """T-227: is_transient_error returns True for openai rate limit, connection, and 5xx errors."""
+    from unittest.mock import MagicMock
+
+    import openai
+    from evals.cuad.harness import is_transient_error
+
+    rate_err = openai.RateLimitError(
+        message="rate limit exceeded",
+        response=MagicMock(status_code=429),
+        body={},
+    )
+    conn_err = openai.APIConnectionError(request=MagicMock())
+    internal_err = openai.InternalServerError(
+        message="internal error",
+        response=MagicMock(status_code=500),
+        body={},
+    )
+    bad_req_err = openai.BadRequestError(
+        message="bad request",
+        response=MagicMock(status_code=400),
+        body={},
+    )
+
+    assert is_transient_error(rate_err) is True
+    assert is_transient_error(conn_err) is True
+    assert is_transient_error(internal_err) is True
+    assert is_transient_error(bad_req_err) is False
+    assert is_transient_error(ValueError("programming error")) is False

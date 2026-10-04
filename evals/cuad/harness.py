@@ -169,6 +169,18 @@ def is_transient_error(err: Exception) -> bool:
     except ImportError:
         pass
 
+    try:
+        import openai
+
+        if isinstance(
+            err, (openai.RateLimitError, openai.APIConnectionError, openai.InternalServerError)
+        ):
+            return True
+        if isinstance(err, openai.APIStatusError) and err.status_code >= 500:
+            return True
+    except ImportError:
+        pass
+
     return False
 
 
@@ -243,11 +255,19 @@ class CUADEvalHarness:
             if on_attempt:
                 on_attempt()
             try:
-                return await self.extractor.extract_entities_and_edges(
-                    tenant_id=tenant_id,
-                    chunk=chunk,
-                    ontology=ontology,
-                )
+                try:
+                    return await self.extractor.extract_entities_and_edges(
+                        tenant_id=tenant_id,
+                        chunk=chunk,
+                        ontology=ontology,
+                        on_attempt=on_attempt,
+                    )
+                except TypeError:
+                    return await self.extractor.extract_entities_and_edges(
+                        tenant_id=tenant_id,
+                        chunk=chunk,
+                        ontology=ontology,
+                    )
             except Exception as err:
                 if is_daily_quota_error(err):
                     raise DailyQuotaExhaustedError(
@@ -307,6 +327,9 @@ class CUADEvalHarness:
 
                     if quote and quote not in predictions_by_category[cuad_category]:
                         predictions_by_category[cuad_category].append(quote)
+
+            if idx < len(chunks) - 1:
+                await asyncio.sleep(1.0)
 
         return predictions_by_category
 
@@ -389,8 +412,8 @@ class CUADEvalHarness:
         )
 
 
-def main() -> None:
-    """CLI entrypoint for CUAD evaluation harness."""
+def build_cli_parser() -> argparse.ArgumentParser:
+    """Constructs the CLI argument parser for the CUAD evaluation harness."""
     parser = argparse.ArgumentParser(
         description="CUAD Clause Extraction Evaluation Harness (T-909, T-227)",
         epilog=f"Citation: {CUAD_CITATION}",
@@ -424,6 +447,19 @@ def main() -> None:
         "run", help="Run CUAD evaluation with strict caps and cost tracking"
     )
     parser_run.add_argument(
+        "--provider",
+        type=str,
+        choices=["nvidia", "gemini"],
+        default="nvidia",
+        help="Model provider (default: nvidia)",
+    )
+    parser_run.add_argument(
+        "--model",
+        type=str,
+        default=None,
+        help="Model ID (default: nemotron-3-super-120b for nvidia, gemini-2.5-flash for gemini)",
+    )
+    parser_run.add_argument(
         "--sample-seed", type=int, default=42, help="Fixed random seed for sampling"
     )
     parser_run.add_argument(
@@ -447,6 +483,12 @@ def main() -> None:
         "probe", help="Run model probe across candidate NVIDIA models (T-227 Amendment)"
     )
 
+    return parser
+
+
+def main() -> None:
+    """CLI entrypoint for CUAD evaluation harness."""
+    parser = build_cli_parser()
     args = parser.parse_args()
 
     if args.command == "probe":
@@ -574,37 +616,107 @@ def main() -> None:
             print(f"Using {ann.filename} (SHA-256: {h})")
             contracts.append((text, ann))
 
-        # Setup Gateway & Pricing (fail closed on spend if unpriced)
-        config = GeminiConfig.from_env()
-        sched = verify_model_priced(config.model_id, config.price_version)
-        input_rate_per_m = sched["input_per_token_millicents"] * 10.0
-        output_rate_per_m = sched["output_per_token_millicents"] * 10.0
-        cache_read_rate_per_m = sched["cache_read_per_token_millicents"] * 10.0
+        # Pre-flight check before any call
+        planned_contract_chunks = [max(1, (len(text) + 3999) // 4000) for text, _ in contracts]
+        planned_total_chunks = sum(planned_contract_chunks)
+
+        print("\n=== Pre-flight Check ===")
+        print(
+            f"Sample population: {len(contracts_data)} contracts with text from Part I and Part II "
+            f"(out of {len(annotations)} in master_clauses.csv; "
+            "Part III contracts are PDF-only upstream)."
+        )
+        print(f"Sampled contracts: {len(sampled)} contracts (seed {args.sample_seed}).")
+        print(f"Planned chunks for sample: {planned_total_chunks} chunks.")
+        if planned_total_chunks > args.max_calls:
+            print(
+                f"Error: Planned chunks ({planned_total_chunks}) exceed "
+                f"provider call cap ({args.max_calls}). Stopping."
+            )
+            sys.exit(1)
+        print(
+            f"Cap check: {planned_total_chunks} planned chunks <= "
+            f"{args.max_calls} attempt cap -> FITS within cap."
+        )
 
         eval_tenant_id = TenantId(value=uuid4())
         usage_ledger = InMemoryUsageLedger()
-        model_source = (
-            "GEMINI_MODEL_ID env var" if "GEMINI_MODEL_ID" in os.environ else "code default"
-        )
-        extractor = GeminiLLMGateway(config=config, usage_ledger=usage_ledger)
-        harness = CUADEvalHarness(extractor=extractor)
 
-        has_api_key = bool(config.api_key and config.api_key.strip())
-        print(f"\nGEMINI_API_KEY: {'present and non-empty' if has_api_key else 'MISSING or empty'}")
-        print(f"Tier: {config.tier.value}")
-        print(f"Model ID: {config.model_id} (source: {model_source})")
-        print(
-            f"Price line ({config.price_version}): "
-            f"${input_rate_per_m:.2f}/1M input, ${output_rate_per_m:.2f}/1M output, "
-            f"${cache_read_rate_per_m:.4f}/1M cache read"
-        )
-        print(
-            f"Limits: {args.max_contracts} contracts, {args.max_calls} max calls, "
-            f"USD {args.max_spend_usd}"
-        )
-        if not has_api_key:
-            print("Error: GEMINI_API_KEY is missing or empty.")
-            sys.exit(1)
+        if args.provider == "nvidia":
+            from evals.cuad.nvidia import (
+                NVIDIAConfig,
+                NVIDIALLMGateway,
+                verify_nvidia_model_priced,
+            )
+
+            model_id = args.model or "nvidia/nemotron-3-super-120b-a12b"
+            sched = verify_nvidia_model_priced(model_id)
+            input_rate_per_m = sched["input_per_m"]
+            output_rate_per_m = sched["output_per_m"]
+            cache_read_rate_per_m = sched["cache_read_per_m"]
+            price_version = "nvidia-trial-zero"
+            model_source = "CLI option" if args.model else "nvidia default"
+
+            config_nvidia = NVIDIAConfig.from_env(model_id=model_id)
+            extractor = NVIDIALLMGateway(config=config_nvidia, usage_ledger=usage_ledger)
+            harness = CUADEvalHarness(extractor=extractor)
+
+            has_api_key = bool(config_nvidia.api_key and config_nvidia.api_key.strip())
+            key_status = "present and non-empty" if has_api_key else "MISSING or empty"
+            print(f"\nNVIDIA_API_KEY: {key_status}")
+            print(f"Provider: {args.provider}")
+            print(f"Model ID: {model_id} (source: {model_source})")
+            print(
+                f"Price line ({price_version}): "
+                f"${input_rate_per_m:.2f}/1M input, ${output_rate_per_m:.2f}/1M output, "
+                f"${cache_read_rate_per_m:.4f}/1M cache read (explicit zero-price trial endpoint)"
+            )
+            print(f"Limits: {args.max_contracts} contracts, {args.max_calls} max calls")
+            if not has_api_key:
+                print("Error: NVIDIA_API_KEY is missing or empty.")
+                sys.exit(1)
+        else:
+            config_gemini = GeminiConfig.from_env()
+            model_id = args.model or config_gemini.model_id
+            sched = verify_model_priced(model_id, config_gemini.price_version)
+            input_rate_per_m = sched["input_per_token_millicents"] * 10.0
+            output_rate_per_m = sched["output_per_token_millicents"] * 10.0
+            cache_read_rate_per_m = sched["cache_read_per_token_millicents"] * 10.0
+            price_version = config_gemini.price_version
+            if args.model:
+                model_source = "CLI option"
+            elif "GEMINI_MODEL_ID" in os.environ:
+                model_source = "GEMINI_MODEL_ID env var"
+            else:
+                model_source = "code default"
+
+            config_gemini = GeminiConfig(
+                api_key=config_gemini.api_key,
+                model_id=model_id,
+                tier=config_gemini.tier,
+                price_version=config_gemini.price_version,
+            )
+            extractor = GeminiLLMGateway(config=config_gemini, usage_ledger=usage_ledger)
+            harness = CUADEvalHarness(extractor=extractor)
+
+            has_api_key = bool(config_gemini.api_key and config_gemini.api_key.strip())
+            key_status = "present and non-empty" if has_api_key else "MISSING or empty"
+            print(f"\nGEMINI_API_KEY: {key_status}")
+            print(f"Provider: {args.provider}")
+            print(f"Tier: {config_gemini.tier.value}")
+            print(f"Model ID: {model_id} (source: {model_source})")
+            print(
+                f"Price line ({price_version}): "
+                f"${input_rate_per_m:.2f}/1M input, ${output_rate_per_m:.2f}/1M output, "
+                f"${cache_read_rate_per_m:.4f}/1M cache read"
+            )
+            print(
+                f"Limits: {args.max_contracts} contracts, {args.max_calls} max calls, "
+                f"USD {args.max_spend_usd}"
+            )
+            if not has_api_key:
+                print("Error: GEMINI_API_KEY is missing or empty.")
+                sys.exit(1)
 
         total_provider_attempts = 0
 
@@ -637,14 +749,21 @@ def main() -> None:
                     if not line.strip():
                         continue
                     data = json.loads(line)
-                    existing_preds[data["filename"]] = data["predictions"]
+                    contract_key = data.get("contract") or data.get("filename")
+                    if contract_key:
+                        existing_preds[contract_key] = data["predictions"]
 
         all_contract_preds: dict[str, dict[str, list[str]]] = {}
-        failed_contracts_count = 0
+        excluded_contracts: list[dict[str, Any]] = []
         total_inp, total_out, total_cache, total_cost = 0, 0, 0, 0.0
+        elapsed_time = 0.0
 
         async def run_evaluation_loop() -> None:
-            nonlocal failed_contracts_count, total_inp, total_out, total_cache, total_cost
+            nonlocal total_inp, total_out, total_cache, total_cost, elapsed_time
+            import time
+
+            start_time = time.perf_counter()
+
             for text, ann in contracts:
                 filename = ann.filename
                 if filename in existing_preds:
@@ -652,15 +771,20 @@ def main() -> None:
                     all_contract_preds[filename] = existing_preds[filename]
                     continue
 
-                _, _, _, current_spend = await get_current_usage()
-                if current_spend >= args.max_spend_usd:
-                    print(
-                        f"\n[STOP] Reached max spend limit (${args.max_spend_usd:.2f}). Stopping."
-                    )
-                    break
+                if args.provider != "nvidia":
+                    _, _, _, current_spend = await get_current_usage()
+                    if current_spend >= args.max_spend_usd:
+                        print(
+                            f"\n[STOP] Reached max spend limit (${args.max_spend_usd:.2f}). "
+                            "Stopping."
+                        )
+                        break
 
                 chunks = max(1, (len(text) + 3999) // 4000)
                 print(f"\nExtracting clauses for {filename} (~{chunks} chunks)...")
+
+                if hasattr(extractor, "reset_contract_tracking"):
+                    extractor.reset_contract_tracking()
 
                 events_before = await usage_ledger.list_events(eval_tenant_id)
 
@@ -679,11 +803,17 @@ def main() -> None:
                     c_cache = sum(e.cache_read_input_tokens for e in new_events)
                     c_cost = sum(e.cost_millicents for e in new_events) / 100_000.0
 
+                    max_tokens_used = getattr(extractor, "contract_max_tokens_used", 4096)
+                    retry_needed = getattr(extractor, "contract_retries_needed", 0) > 0
+
                     with jsonl_path.open("a", encoding="utf-8") as f:
                         record = {
+                            "contract": filename,
                             "filename": filename,
-                            "model_id": config.model_id,
-                            "model_source": model_source,
+                            "provider": args.provider,
+                            "model_id": model_id,
+                            "max_tokens_used": max_tokens_used,
+                            "retry_needed": retry_needed,
                             "prompt_version": "v1",
                             "ontology_version": "cuad_v1",
                             "predictions": preds,
@@ -699,16 +829,24 @@ def main() -> None:
                 except DailyQuotaExhaustedError as e:
                     print(f"\n[FATAL] {e}")
                     print("Daily-quota RESOURCE_EXHAUSTED stopping run immediately.")
-                    failed_contracts_count += 1
+                    excluded_contracts.append(
+                        {"contract": filename, "chunks": chunks, "reason": str(e)}
+                    )
                     break
                 except (CallCapExceededError, SpendCapExceededError) as e:
                     print(f"\n[STOP] {e}")
+                    excluded_contracts.append(
+                        {"contract": filename, "chunks": chunks, "reason": str(e)}
+                    )
                     break
                 except Exception as e:
-                    print(f"Failed to extract {filename}: {e}")
-                    failed_contracts_count += 1
+                    print(f"\n[EXCLUDED] Contract {filename} excluded from scoring: {e}")
+                    excluded_contracts.append(
+                        {"contract": filename, "chunks": chunks, "reason": str(e)}
+                    )
                     continue
 
+            elapsed_time = time.perf_counter() - start_time
             total_inp, total_out, total_cache, total_cost = await get_current_usage()
 
         asyncio.run(run_evaluation_loop())
@@ -716,8 +854,13 @@ def main() -> None:
         evaluated_contracts_count = len(all_contract_preds)
         if evaluated_contracts_count == 0:
             print("\nno results")
-            print(f"Failed contracts: {failed_contracts_count}")
+            print(f"Failed / Excluded contracts: {len(excluded_contracts)}")
             sys.exit(1)
+
+        if excluded_contracts:
+            print(f"\n=== Excluded Contracts ({len(excluded_contracts)}) ===")
+            for excl in excluded_contracts:
+                print(f"- {excl['contract']} ({excl['chunks']} chunks): {excl['reason']}")
 
         category_metrics_data: dict[str, dict[str, int]] = {
             cat: {"tp": 0, "fp": 0, "fn": 0, "support": 0} for cat in categories
@@ -766,7 +909,7 @@ def main() -> None:
         report = CUADEvaluationReport(
             category_metrics=category_metrics,
             total_contracts=evaluated_contracts_count,
-            failed_contracts=failed_contracts_count,
+            failed_contracts=len(excluded_contracts),
             evaluated_questions=supported_q,
             unsupported_questions=unsupported_q,
         )
@@ -777,6 +920,7 @@ def main() -> None:
         )
         print(f"Total Model Provider Attempts: {total_provider_attempts}")
         print(f"Total Stated Spend: ${total_cost:.4f} USD")
+        print(f"Elapsed Time: {elapsed_time:.1f}s ({elapsed_time / 60:.1f} min)")
 
 
 if __name__ == "__main__":

@@ -16,6 +16,7 @@ import asyncio
 import json
 import logging
 import os
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
@@ -26,6 +27,7 @@ from openai import AsyncOpenAI, RateLimitError
 
 from semanticgraph.application.ports.outbound.llm_gateway import LLMGatewayPort
 from semanticgraph.control.usage.models import (
+    UnpricedModelError,
     UsageEvent,
     UsageEventType,
 )
@@ -74,6 +76,19 @@ NVIDIA_TRIAL_PRICING: dict[str, dict[str, float]] = {
         "cache_read_per_m": 0.0,
     },
 }
+
+
+def verify_nvidia_model_priced(model_id: str) -> dict[str, float]:
+    """Verifies that the NVIDIA model has an explicit zero-price entry.
+
+    Raises UnpricedModelError if model_id is not documented in NVIDIA_TRIAL_PRICING.
+    """
+    if model_id not in NVIDIA_TRIAL_PRICING:
+        raise UnpricedModelError(
+            f"NVIDIA model '{model_id}' has no explicit zero-price entry in NVIDIA_TRIAL_PRICING."
+        )
+    return NVIDIA_TRIAL_PRICING[model_id]
+
 
 EXTRACTION_JSON_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -149,6 +164,14 @@ class NVIDIALLMGateway(LLMGatewayPort):
             timeout=self.config.timeout_seconds,
         )
         self.usage_ledger = usage_ledger
+        self.contract_max_tokens_used: int = 4096
+        self.contract_retries_needed: int = 0
+        self.failed_chunks_count: int = 0
+
+    def reset_contract_tracking(self) -> None:
+        """Resets tracking counters for a new contract extraction."""
+        self.contract_max_tokens_used = 4096
+        self.contract_retries_needed = 0
 
     def _build_prompt(self, chunk_text: str, ontology: Ontology) -> str:
         """Constructs extraction prompt with ontology constraints and JSON output schema."""
@@ -216,6 +239,7 @@ class NVIDIALLMGateway(LLMGatewayPort):
         tenant_id: TenantId,
         chunk: SemanticChunk,
         ontology: Ontology,
+        on_attempt: Callable[[], None] | None = None,
     ) -> tuple[list[RawEntity], list[Edge]]:
         """Extracts entities and edges from a semantic chunk using NVIDIA API endpoint."""
         if not chunk.text:
@@ -231,6 +255,8 @@ class NVIDIALLMGateway(LLMGatewayPort):
         out_tokens = 0
 
         for attempt in range(1, max_retries + 1):
+            if attempt > 1 and on_attempt:
+                on_attempt()
             try:
                 content, inp_tokens, out_tokens = await self._call_completion_with_schema(
                     prompt, max_tokens=4096
@@ -266,6 +292,10 @@ class NVIDIALLMGateway(LLMGatewayPort):
 
         if data is None:
             # Retry once with larger token budget (8192)
+            self.contract_retries_needed += 1
+            self.contract_max_tokens_used = 8192
+            if on_attempt:
+                on_attempt()
             logger.info(
                 "Chunk %s returned empty or invalid output; retrying with max_tokens=8192",
                 chunk.id.value,
@@ -284,6 +314,7 @@ class NVIDIALLMGateway(LLMGatewayPort):
                 else:
                     raise ValueError("JSON schema missing entities list")
             except Exception as e:
+                self.failed_chunks_count += 1
                 msg = (
                     f"Failed or empty chunk output from {self.config.model_id} "
                     f"after retry for chunk {chunk.id.value}"
