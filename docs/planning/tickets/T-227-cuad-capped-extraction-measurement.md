@@ -288,3 +288,22 @@ results is made: different task framing and metric.
 (`docs/research/`) with both Parties versions, the limits above, and the recommendation that the next
 measurement, if wanted, uses the intended production model under a dollar cap taken from the usage ledger.
 No outreach or deck may quote these figures as product accuracy.
+
+## Review of the closing fixes (PR #25 merged, PR #26 open)
+
+Verified: strict date parsing (`"15"`, `"2018"`, `"March 2018"` return `None`; full dates still parse); the offline
+`rescore` command reproduces the reviewer's independent numbers exactly (Agreement Date precision 0.68, Effective Date
+1.00, Parties 0.49 exact-name and 0.72 alias-aware); PR #26 changes only the two neutral-wording lines; CI #167 and main
+#166 green. The 73 local skips are 72 Postgres tests with no database running locally plus the live Gemini smoke test;
+CI skips 3 (the Gemini smoke test and two CUAD tests that need the gitignored corpus), the same as main, so no new
+skips.
+
+**Acceptance still open (checked against the merged results note):**
+- per-category **95% Wilson intervals** for precision and recall (only one category has one, in prose);
+- categories with support below 10 marked "too few to judge";
+- the plain statements: not comparable with published CUAD results; CUAD contracts are likely in the model's
+  pretraining data; nothing here says anything about temporal history, isolation, merge decisions or deletion;
+  chunk slicing may cost recall; the sample is 30 contracts.
+
+Status stays `claimed` until a small docs-and-formatting follow-up closes these. They can be computed offline from the
+saved predictions.
