@@ -1,9 +1,6 @@
 # T-223 · Buyer-workflow interview guide and decision rules
 
-**Status:** draft for the founder's approval. The acceptance criteria of
-[T-223](../planning/tickets/T-223-buyer-workflow-interviews.md) require this guide and its pass/fail
-rules to be committed **before the first interview**. Thresholds marked *(proposed)* are the
-reviewer's suggestion and need the founder's sign-off, or changes, before any call is made.
+**Status:** approved by the founder for the first round (2026-10-07). Section 6 stands as written. The five interviews per segment are directional screening, not statistical proof, and **the thresholds are not changed after the results are heard**; a change needs a new dated version written before the next round. No outreach is sent without the founder's go-ahead on the named candidate list.
 
 ## 1. What this is for
 
@@ -135,7 +132,7 @@ document text.
 | Notable quotes | Marked as quotes, with the role |
 | Interviewer notes | What I asked that led the answer |
 
-## 6. Decision rules (set before the first call) *(proposed)*
+## 6. Decision rules (set before the first call) *(approved 2026-10-07)*
 
 Judge each segment on its five interviews only, and write the verdict down before reading across
 segments.
