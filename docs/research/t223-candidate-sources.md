@@ -55,12 +55,20 @@ Finish five interviews before starting B. The guide already says to finish one s
 - **Warm network first:** founder's developer and AI-builder contacts. Fastest segment to reach and the one most
   likely to say nice things; weight it below A to C for the budget question.
 
-## What to decide
+## Revision 2026-10-07: opt-in channels only
 
-1. Approve this approach (sources and profiles; the founder supplies the names).
-2. Answer for Segment A: how many people can you name from your own network in a week? If fewer than five, the
-   plan is to ask each interviewee for two introductions, and to attend or follow the IAPP Europe Congress.
-3. Whether to attend the IAPP Europe Congress in November (travel and ticket cost is the founder's call).
+The founder has no warm contacts in Segment A and will not supply names; no names are invented and no one is scraped.
+The plan is now:
 
-Bias traps (guide, section 7): do not interview only people who already like the idea; include people who do not
-know you.
+1. Identify opt-in channels for each segment: professional associations, special-interest groups, community forums,
+   and organizers of public webinars on the topic. The founder checks each channel's rules and picks the ones.
+2. Ask the organizer to share the invitation (`t223-invitation-drafts.md`, A and B). Respondents opt in by replying.
+3. Interviews are remote. Referrals from interviewees are optional.
+4. Replies and any contact details are kept in a private file outside the repository
+   (`docs/research/private/` and `*.contacts.*` are git-ignored as a safeguard).
+5. Brussels congress: not committed; treated as an optional later channel, not part of the first round.
+
+Trade-off, stated plainly: opt-in replies come from people already interested in the topic, which biases toward
+problems that are felt. The decision rules ask for specific past events, hours and budget owners, not interest, and
+the guide's bias traps still apply. If fewer than five people reply in a segment after a few weeks, we report
+that as a finding, not as a reason to lower the thresholds.

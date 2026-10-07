@@ -54,3 +54,6 @@ Microsoft/
 # --- Evaluations / Benchmarks ---
 evals/cuad/data/
 evals/cuad/raw_predictions/
+# --- T-223 recruitment: candidate names and contact details never enter the repo ---
+docs/research/private/
+*.contacts.*

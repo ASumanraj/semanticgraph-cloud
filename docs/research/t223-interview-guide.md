@@ -50,9 +50,9 @@ agreement affected by a change, such as a new rule, an amendment, or a vendor ch
 how many agreements were in scope?" Book only people who answer yes. A no is still useful: ask who
 does handle it.
 
-**Finding people.** Ask for introductions from your own network first. Then professional communities and
-conference speaker lists in each field. Ask each interviewee for two names. Do not scrape or bulk-email;
-every first contact is personal and asks for twenty-five minutes of someone's time.
+**Finding people (revised 2026-10-07).** The founder has no warm contacts in Segment A, so recruitment is opt-in only: professional associations, groups and webinar organizers are asked whether they will share a short invitation with their members, and people reply if they choose to. No cold messages to individuals, no scraping, no bulk email. Interviewees may offer introductions; asking is optional and never a condition. Interviews are remote. **No candidate names or contact details are stored in this repository**; they live only in a private file outside it. Nothing is sent or published until the founder has reviewed and approved the exact text and the recipient.
+
+Drafts: `t223-invitation-drafts.md`.
 
 ### Outreach message (adapt, keep it short)
 
