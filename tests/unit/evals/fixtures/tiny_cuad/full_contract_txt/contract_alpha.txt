@@ -1,0 +1,10 @@
+# Based on CUAD (Hendrycks et al., NeurIPS 2021, The Atticus Project). CC BY 4.0.
+SERVICES AGREEMENT
+This Services Agreement is made and entered into as of January 10, 2021 by and between Alpha Corp and Zeta Inc.
+Effective Date: January 15, 2021. Expiration Date: January 15, 2024.
+Renewal: This agreement shall renew for successive periods of one year unless terminated upon thirty (30) days notice.
+Termination: Alpha Corp reserves the right to cancel this arrangement without cause upon thirty days written notice.
+Governing Law: This agreement shall be governed by the laws of the State of New York.
+Limitation of Liability: total liability shall not exceed one million dollars ($1,000,000).
+Assignment: neither party may assign this Agreement without consent.
+Restrictive Covenants: neither party shall compete during the term.

@@ -83,8 +83,10 @@ def parse_master_clauses_row(
             if col in row:
                 raw_answer = row[col]
                 break
-        # Fall back to base category column only if no answer column header was present
-        if raw_answer is None:
+        # Boolean Yes/No indicator: 'No' means absent, 'Yes' means full clause is in base column
+        if raw_answer is not None and raw_answer.strip().lower() in ("yes", "no"):
+            raw_answer = row.get(cat, "") if raw_answer.strip().lower() == "yes" else ""
+        elif raw_answer is None:
             raw_answer = row.get(cat, "")
 
         answers = parse_cuad_answers(raw_answer)
@@ -109,7 +111,8 @@ def load_master_clauses_csv(
 
     records: list[CUADContractAnnotation] = []
     with csv_path.open(encoding="utf-8", errors="replace") as f:
-        reader = csv.DictReader(f)
+        filtered_lines = [line for line in f if not line.strip().startswith("#")]
+        reader = csv.DictReader(filtered_lines)
         for row in reader:
             parsed = parse_master_clauses_row(row, target_categories)
             records.append(parsed)
