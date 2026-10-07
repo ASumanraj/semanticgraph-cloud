@@ -43,7 +43,9 @@ from evals.cuad.metrics import (
     _extract_pred_fields,
     aggregate_category_metrics,
     compute_category_metrics,
+    format_markdown_report_tables,
     format_side_by_side_contract,
+    format_wilson_interval,
 )
 from evals.cuad.normalizers import normalize_date
 from evals.cuad.nvidia import PROMPT_HASH
@@ -500,7 +502,11 @@ def rescore_offline(
     txt_dir = data_path / "CUAD_v1" / "full_contract_txt"
 
     if not csv_path.exists():
-        raise FileNotFoundError(f"Annotations file not found: {csv_path}")
+        if (data_path / "master_clauses.csv").exists():
+            csv_path = data_path / "master_clauses.csv"
+            txt_dir = data_path / "full_contract_txt"
+        else:
+            raise FileNotFoundError(f"Annotations file not found: {csv_path}")
 
     categories = get_all_cuad_target_categories()
     annotations = load_master_clauses_csv(csv_path, categories)
@@ -853,36 +859,51 @@ def main() -> None:
         )
 
         date_comp = summary_data["date_comparison"]
-        print("\n" + "=" * 95)
+        print("\n" + "=" * 125)
         print("DATE NORMALIZATION RESCORE: BEFORE VS AFTER (Strict Component Parsing)")
-        print("=" * 95)
+        print("=" * 125)
         print(
-            f"{'Category':<16} | {'Version':<10} | {'Prec':>14} | {'Recall':>14} | "
-            f"{'F1':>6} | {'TP':>4} | {'FP':>4} | {'FN':>4} | {'Support':>7}"
+            f"{'Category':<16} | {'Version':<10} | {'Prec':>12} | {'Prec 95% CI':>14} | "
+            f"{'Recall':>12} | {'Rec 95% CI':>14} | {'F1':>6} | {'TP':>4} | {'FP':>4} | "
+            f"{'FN':>4} | {'Support':>7} | {'Notes':<18}"
         )
-        print("-" * 95)
+        print("-" * 125)
         for cat in ("Agreement Date", "Effective Date", "Expiration Date"):
             for ver, lbl in (("before", "Before"), ("after", "After")):
                 m = date_comp[cat][ver]
                 m_tp, m_fp, m_fn = m["tp"], m["fp"], m["fn"]
                 m_sup = m["support"]
-                p_str = f"{m['precision']:.2f} ({m_tp}/{m['pred_total']})"
-                r_str = f"{m['recall']:.2f} ({m_tp}/{m_sup})"
-                print(
-                    f"{cat:<16} | {lbl:<10} | {p_str:>14} | {r_str:>14} | "
-                    f"{m['f1']:>6.2f} | {m_tp:>4} | {m_fp:>4} | {m_fn:>4} | {m_sup:>7}"
+                tot_p = m["pred_total"]
+                p_str = (
+                    f"{m['precision']:.2f} ({m_tp}/{tot_p})"
+                    if tot_p > 0
+                    else f"{m['precision']:.2f} (0/0)"
                 )
-            print("-" * 95)
+                p_ci = format_wilson_interval(m_tp, tot_p)
+                r_str = (
+                    f"{m['recall']:.2f} ({m_tp}/{m_sup})"
+                    if m_sup > 0
+                    else f"{m['recall']:.2f} (0/0)"
+                )
+                r_ci = format_wilson_interval(m_tp, m_sup)
+                notes = "too few to judge" if m_sup < 10 else "-"
+                print(
+                    f"{cat:<16} | {lbl:<10} | {p_str:>12} | {p_ci:>14} | "
+                    f"{r_str:>12} | {r_ci:>14} | {m['f1']:>6.2f} | {m_tp:>4} | {m_fp:>4} | "
+                    f"{m_fn:>4} | {m_sup:>7} | {notes:<18}"
+                )
+            print("-" * 125)
 
         parties_comp = summary_data["parties_comparison"]
-        print("\n" + "=" * 95)
+        print("\n" + "=" * 125)
         print("PARTIES MATCHING COMPARISON: EXACT-NAME ONLY VS DEFINED-TERM-ALIAS AWARE")
-        print("=" * 95)
+        print("=" * 125)
         print(
-            f"{'Mode':<26} | {'Prec':>14} | {'Recall':>14} | "
-            f"{'F1':>6} | {'TP':>4} | {'FP':>4} | {'FN':>4} | {'Support':>7}"
+            f"{'Mode':<26} | {'Prec':>12} | {'Prec 95% CI':>14} | "
+            f"{'Recall':>12} | {'Rec 95% CI':>14} | {'F1':>6} | {'TP':>4} | {'FP':>4} | "
+            f"{'FN':>4} | {'Support':>7} | {'Notes':<18}"
         )
-        print("-" * 95)
+        print("-" * 125)
         for p_key, p_label in (
             ("exact-name", "Exact-Name Only"),
             ("alias-aware", "Defined-Term-Alias Aware"),
@@ -890,16 +911,119 @@ def main() -> None:
             m = parties_comp[p_key]
             tot_p = m.true_positives + m.false_positives
             tot_g = m.true_positives + m.false_negatives
-            p_str = f"{m.precision:.2f} ({m.true_positives}/{tot_p})"
-            r_str = f"{m.recall:.2f} ({m.true_positives}/{tot_g})"
-            print(
-                f"{p_label:<26} | {p_str:>14} | {r_str:>14} | "
-                f"{m.f1:>6.2f} | {m.true_positives:>4} | {m.false_positives:>4} | "
-                f"{m.false_negatives:>4} | {m.support:>7}"
+            p_str = (
+                f"{m.precision:.2f} ({m.true_positives}/{tot_p})"
+                if tot_p > 0
+                else f"{m.precision:.2f} (0/0)"
             )
-        print("-" * 95)
+            p_ci = format_wilson_interval(m.true_positives, tot_p)
+            r_str = (
+                f"{m.recall:.2f} ({m.true_positives}/{tot_g})"
+                if tot_g > 0
+                else f"{m.recall:.2f} (0/0)"
+            )
+            r_ci = format_wilson_interval(m.true_positives, tot_g)
+            notes = "too few to judge" if m.support < 10 else "-"
+            print(
+                f"{p_label:<26} | {p_str:>12} | {p_ci:>14} | {r_str:>12} | {r_ci:>14} | "
+                f"{m.f1:>6.2f} | {m.true_positives:>4} | {m.false_positives:>4} | "
+                f"{m.false_negatives:>4} | {m.support:>7} | {notes:<18}"
+            )
+        print("-" * 125)
 
         print("\n" + report.format_table())
+
+        # Print Markdown tables for research note
+        print("\n" + "=" * 125)
+        print("MARKDOWN TABLES FOR RESEARCH NOTE (Copy & Paste Directly)")
+        print("=" * 125)
+
+        # Markdown Table for Date Comparison
+        print("\n#### Date Normalization Markdown Table:")
+        print(
+            "| Category | Version | Precision | Prec 95% CI | Recall | Rec 95% CI | "
+            "F1 | TP | FP | FN | Support | Notes |\n"
+            "| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | "
+            ":---: | :---: | :--- |"
+        )
+        for cat in ("Agreement Date", "Effective Date", "Expiration Date"):
+            for ver, lbl in (
+                ("before", "Before (dateutil default)"),
+                ("after", "After (strict parsing)"),
+            ):
+                m = date_comp[cat][ver]
+                m_tp, m_fp, m_fn = m["tp"], m["fp"], m["fn"]
+                m_sup = m["support"]
+                tot_p = m["pred_total"]
+                p_str = (
+                    f"{m['precision']:.2f} ({m_tp}/{tot_p})"
+                    if tot_p > 0
+                    else f"{m['precision']:.2f} (0/0)"
+                )
+                p_ci = format_wilson_interval(m_tp, tot_p)
+                r_str = (
+                    f"{m['recall']:.2f} ({m_tp}/{m_sup})"
+                    if m_sup > 0
+                    else f"{m['recall']:.2f} (0/0)"
+                )
+                r_ci = format_wilson_interval(m_tp, m_sup)
+                notes = "too few to judge" if m_sup < 10 else "-"
+                cat_cell = f"**{cat}**" if ver == "before" else ""
+                if ver == "after":
+                    print(
+                        f"| {cat_cell} | **{lbl}** | **{p_str}** | **{p_ci}** | **{r_str}** | "
+                        f"**{r_ci}** | **{m['f1']:.2f}** | **{m_tp}** | **{m_fp}** | **{m_fn}** | "
+                        f"**{m_sup}** | {notes} |"
+                    )
+                else:
+                    print(
+                        f"| {cat_cell} | {lbl} | {p_str} | {p_ci} | {r_str} | {r_ci} | "
+                        f"{m['f1']:.2f} | {m_tp} | {m_fp} | {m_fn} | {m_sup} | {notes} |"
+                    )
+
+        # Markdown Table for Parties Comparison
+        print("\n#### Parties Comparison Markdown Table:")
+        print(
+            "| Mode | Precision | Prec 95% CI | Recall | Rec 95% CI | F1 | TP | FP | FN | "
+            "Support | Notes |\n"
+            "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | "
+            ":---: | :--- |"
+        )
+        for p_key, p_label in (
+            ("exact-name", "Exact-Name Only"),
+            ("alias-aware", "Defined-Term-Alias Aware"),
+        ):
+            m = parties_comp[p_key]
+            tot_p = m.true_positives + m.false_positives
+            tot_g = m.true_positives + m.false_negatives
+            p_str = (
+                f"{m.precision:.2f} ({m.true_positives}/{tot_p})"
+                if tot_p > 0
+                else f"{m.precision:.2f} (0/0)"
+            )
+            p_ci = format_wilson_interval(m.true_positives, tot_p)
+            r_str = (
+                f"{m.recall:.2f} ({m.true_positives}/{tot_g})"
+                if tot_g > 0
+                else f"{m.recall:.2f} (0/0)"
+            )
+            r_ci = format_wilson_interval(m.true_positives, tot_g)
+            notes = "too few to judge" if m.support < 10 else "-"
+            if p_key == "alias-aware":
+                print(
+                    f"| **{p_label}** | **{p_str}** | **{p_ci}** | **{r_str}** | **{r_ci}** | "
+                    f"**{m.f1:.2f}** | **{m.true_positives}** | **{m.false_positives}** | "
+                    f"**{m.false_negatives}** | **{m.support}** | {notes} |"
+                )
+            else:
+                print(
+                    f"| **{p_label}** | {p_str} | {p_ci} | {r_str} | {r_ci} | "
+                    f"{m.f1:.2f} | {m.true_positives} | {m.false_positives} | "
+                    f"{m.false_negatives} | {m.support} | {notes} |"
+                )
+
+        print("\n#### Evaluation Report Markdown Tables:")
+        print(format_markdown_report_tables(report))
         return
 
     if args.command == "run":

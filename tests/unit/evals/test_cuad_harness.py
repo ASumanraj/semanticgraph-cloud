@@ -802,3 +802,38 @@ def test_rescore_offline() -> None:
     assert parties_exact.false_positives == 61
     assert parties_alias.true_positives == 66
     assert parties_alias.false_positives == 26
+
+
+def test_rescore_offline_fixture_contains_interval_columns() -> None:
+    """T-227 Acceptance: Rescoring saved fixture output contains interval columns and notes."""
+    from evals.cuad.harness import rescore_offline
+    from evals.cuad.metrics import format_markdown_report_tables
+
+    data_dir = Path("tests/unit/evals/fixtures/tiny_cuad")
+    pred_file = Path("tests/unit/evals/fixtures/tiny_cuad/predictions.jsonl")
+
+    assert data_dir.exists(), "tiny_cuad fixture directory must exist"
+    assert pred_file.exists(), "tiny_cuad predictions fixture must exist"
+
+    summary_data, report = rescore_offline(
+        predictions_file=pred_file,
+        data_dir=data_dir,
+        sample_seed=42,
+        max_contracts=3,
+        parties_mode="both",
+    )
+
+    assert report.total_contracts == 3
+    assert report.failed_contracts == 0
+
+    table = report.format_table()
+    assert "Prec 95% CI" in table
+    assert "Rec 95% CI" in table
+    assert "too few to judge" in table
+
+    # Verify Markdown tables also include interval columns
+    md_tables = format_markdown_report_tables(report)
+    assert "Prec 95% CI" in md_tables
+    assert "Rec 95% CI" in md_tables
+    assert "too few to judge" in md_tables
+

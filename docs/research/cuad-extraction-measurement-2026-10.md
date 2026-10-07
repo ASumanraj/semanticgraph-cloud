@@ -64,33 +64,45 @@ To prevent false matches identified in earlier smoke runs (where normalized answ
 
 ## 3. Benchmark Results (30-Contract Test Sample)
 
-The following tables are reproduced directly from the test harness offline rescoring (`python -m evals.cuad.harness rescore`). Every rate reports exact counts (`k/n`).
+The following tables are reproduced directly from the test harness offline rescoring (`python -m evals.cuad.harness rescore`). Every rate reports exact counts (`k/n`), 95% Wilson score confidence intervals ($z = 1.96$), and categories with presence support below 10 marked "too few to judge". No blended or overall numbers are reported.
 
 ### 3.1 Value Categories (Normalized Value Matching)
 
-| Category | Precision | Recall | F1 | TP | FP | FN | Support | Quote Found |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Agreement Date** | 0.68 (19/28) | 0.90 (19/21) | 0.78 | 19 | 9 | 2 | 21 | 100.0% (35/35) |
-| **Effective Date** | 1.00 (13/13) | 0.81 (13/16) | 0.90 | 13 | 0 | 3 | 16 | 100.0% (16/16) |
-| **Expiration Date** | 0.88 (7/8) | 0.50 (7/14) | 0.64 | 7 | 1 | 7 | 14 | 100.0% (11/11) |
-| **Governing Law** | 0.92 (23/25) | 0.79 (23/29) | 0.85 | 23 | 2 | 6 | 29 | 100.0% (26/26) |
-| **Parties (Alias-Aware)** | 0.72 (66/92) | 0.86 (66/77) | 0.78 | 66 | 26 | 11 | 77 | 100.0% (205/205) |
+| Category | Precision | Prec 95% CI | Recall | Rec 95% CI | F1 | TP | FP | FN | Support | Quote Found | Notes |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| **Agreement Date** | 0.68 (19/28) | [0.49, 0.82] | 0.90 (19/21) | [0.71, 0.97] | 0.78 | 19 | 9 | 2 | 21 | 100.0% (35/35) | - |
+| **Effective Date** | 1.00 (13/13) | [0.77, 1.00] | 0.81 (13/16) | [0.57, 0.93] | 0.90 | 13 | 0 | 3 | 16 | 100.0% (16/16) | - |
+| **Expiration Date** | 0.88 (7/8) | [0.53, 0.98] | 0.50 (7/14) | [0.27, 0.73] | 0.64 | 7 | 1 | 7 | 14 | 100.0% (11/11) | - |
+| **Governing Law** | 0.92 (23/25) | [0.75, 0.98] | 0.79 (23/29) | [0.62, 0.90] | 0.85 | 23 | 2 | 6 | 29 | 100.0% (26/26) | - |
+| **Parties (Alias-Aware)** | 0.72 (66/92) | [0.62, 0.80] | 0.86 (66/77) | [0.76, 0.92] | 0.78 | 66 | 26 | 11 | 77 | 100.0% (205/205) | - |
 
 *Literal template strings detected in responses (e.g. `'YYYY-MM-DD'`): 3.*
 
-### 3.2 Clause Categories (Span F1 >= 0.5 & Contract Presence)
+### 3.2 Clause Categories: Span Extraction (Token-F1 >= 0.5)
 
-| Category | Span Prec | Span Rec | Span F1 | Pres Prec | Pres Rec | Pres F1 | Support | Quote In Text |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Anti-Assignment** | 0.65 (17/26) | 0.74 (17/23) | 0.69 | 0.95 (18/19) | 0.82 (18/22) | 0.88 | 23 | 100.0% (26/26) |
-| **Cap On Liability** | 0.83 (5/6) | 0.28 (5/18) | 0.42 | 1.00 (6/6) | 0.38 (6/16) | 0.55 | 18 | 100.0% (6/6) |
-| **Change Of Control** | 0.70 (7/10) | 0.70 (7/10) | 0.70 | 0.90 (9/10) | 0.90 (9/10) | 0.90 | 10 | 100.0% (10/10) |
-| **Exclusivity** | 0.56 (5/9) | 0.50 (5/10) | 0.53 | 0.83 (5/6) | 0.71 (5/7) | 0.77 | 10 | 100.0% (9/9) |
-| **Non-Compete** | 0.83 (5/6) | 0.29 (5/17) | 0.43 | 0.80 (4/5) | 0.50 (4/8) | 0.62 | 17 | 100.0% (6/6) |
-| **Termination For Convenience** | 0.65 (11/17) | 0.79 (11/14) | 0.71 | 0.81 (13/16) | 1.00 (13/13) | 0.90 | 14 | 100.0% (17/17) |
-| **Uncapped Liability** | 0.67 (4/6) | 0.44 (4/9) | 0.53 | 0.67 (4/6) | 0.50 (4/8) | 0.57 | 9 | 100.0% (6/6) |
+| Category | Precision | Prec 95% CI | Recall | Rec 95% CI | F1 | TP | FP | FN | Support | Quote In Text | Notes |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| **Anti-Assignment** | 0.65 (17/26) | [0.46, 0.81] | 0.74 (17/23) | [0.54, 0.87] | 0.69 | 17 | 9 | 6 | 23 | 100.0% (26/26) | - |
+| **Cap On Liability** | 0.83 (5/6) | [0.44, 0.97] | 0.28 (5/18) | [0.12, 0.51] | 0.42 | 5 | 1 | 13 | 18 | 100.0% (6/6) | - |
+| **Change Of Control** | 0.70 (7/10) | [0.40, 0.89] | 0.70 (7/10) | [0.40, 0.89] | 0.70 | 7 | 3 | 3 | 10 | 100.0% (10/10) | - |
+| **Exclusivity** | 0.56 (5/9) | [0.27, 0.81] | 0.50 (5/10) | [0.24, 0.76] | 0.53 | 5 | 4 | 5 | 10 | 100.0% (9/9) | too few to judge |
+| **Non-Compete** | 0.83 (5/6) | [0.44, 0.97] | 0.29 (5/17) | [0.13, 0.53] | 0.43 | 5 | 1 | 12 | 17 | 100.0% (6/6) | too few to judge |
+| **Termination For Convenience** | 0.65 (11/17) | [0.41, 0.83] | 0.79 (11/14) | [0.52, 0.92] | 0.71 | 11 | 6 | 3 | 14 | 100.0% (17/17) | - |
+| **Uncapped Liability** | 0.67 (4/6) | [0.30, 0.90] | 0.44 (4/9) | [0.19, 0.73] | 0.53 | 4 | 2 | 5 | 9 | 100.0% (6/6) | too few to judge |
 
-### 3.3 Non-Scored Categories
+### 3.3 Clause Categories: Contract Presence
+
+| Category | Precision | Prec 95% CI | Recall | Rec 95% CI | F1 | TP | FP | FN | Support | Notes |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| **Anti-Assignment** | 0.95 (18/19) | [0.75, 0.99] | 0.82 (18/22) | [0.61, 0.93] | 0.88 | 18 | 1 | 4 | 22 | - |
+| **Cap On Liability** | 1.00 (6/6) | [0.61, 1.00] | 0.38 (6/16) | [0.18, 0.61] | 0.55 | 6 | 0 | 10 | 16 | - |
+| **Change Of Control** | 0.90 (9/10) | [0.60, 0.98] | 0.90 (9/10) | [0.60, 0.98] | 0.90 | 9 | 1 | 1 | 10 | - |
+| **Exclusivity** | 0.83 (5/6) | [0.44, 0.97] | 0.71 (5/7) | [0.36, 0.92] | 0.77 | 5 | 1 | 2 | 7 | too few to judge |
+| **Non-Compete** | 0.80 (4/5) | [0.38, 0.96] | 0.50 (4/8) | [0.22, 0.78] | 0.62 | 4 | 1 | 4 | 8 | too few to judge |
+| **Termination For Convenience** | 0.81 (13/16) | [0.57, 0.93] | 1.00 (13/13) | [0.77, 1.00] | 0.90 | 13 | 3 | 0 | 13 | - |
+| **Uncapped Liability** | 0.67 (4/6) | [0.30, 0.90] | 0.50 (4/8) | [0.22, 0.78] | 0.57 | 4 | 2 | 4 | 8 | too few to judge |
+
+### 3.4 Non-Scored Categories
 
 | Category | Status |
 | :--- | :--- |
@@ -112,14 +124,14 @@ This caused scores to fluctuate based on the day the evaluation script was execu
 ### 4.2 Fix and Rescore
 `normalize_date` was revised to enforce strict date component completeness using two boundary default sentinels (`datetime(1001, 1, 1)` and `datetime(3001, 12, 31)`). If any component is absent, the outputs diverge and the function deterministically returns `None`.
 
-| Category | Version | Precision | Recall | F1 | TP | FP | FN | Support |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Agreement Date** | Before (dateutil default) | 0.63 (19/30) | 0.90 (19/21) | 0.75 | 19 | 11 | 2 | 21 |
-| | **After (strict parsing)** | **0.68 (19/28)** | **0.90 (19/21)** | **0.78** | **19** | **9** | **2** | **21** |
-| **Effective Date** | Before (dateutil default) | 0.87 (13/15) | 0.81 (13/16) | 0.84 | 13 | 2 | 3 | 16 |
-| | **After (strict parsing)** | **1.00 (13/13)** | **0.81 (13/16)** | **0.90** | **13** | **0** | **3** | **16** |
-| **Expiration Date** | Before (dateutil default) | 0.88 (7/8) | 0.50 (7/14) | 0.64 | 7 | 1 | 7 | 14 |
-| | **After (strict parsing)** | **0.88 (7/8)** | **0.50 (7/14)** | **0.64** | **7** | **1** | **7** | **14** |
+| Category | Version | Precision | Prec 95% CI | Recall | Rec 95% CI | F1 | TP | FP | FN | Support | Notes |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| **Agreement Date** | Before (dateutil default) | 0.63 (19/30) | [0.46, 0.78] | 0.90 (19/21) | [0.71, 0.97] | 0.75 | 19 | 11 | 2 | 21 | - |
+|  | **After (strict parsing)** | **0.68 (19/28)** | **[0.49, 0.82]** | **0.90 (19/21)** | **[0.71, 0.97]** | **0.78** | **19** | **9** | **2** | **21** | - |
+| **Effective Date** | Before (dateutil default) | 0.87 (13/15) | [0.62, 0.96] | 0.81 (13/16) | [0.57, 0.93] | 0.84 | 13 | 2 | 3 | 16 | - |
+|  | **After (strict parsing)** | **1.00 (13/13)** | **[0.77, 1.00]** | **0.81 (13/16)** | **[0.57, 0.93]** | **0.90** | **13** | **0** | **3** | **16** | - |
+| **Expiration Date** | Before (dateutil default) | 0.88 (7/8) | [0.53, 0.98] | 0.50 (7/14) | [0.27, 0.73] | 0.64 | 7 | 1 | 7 | 14 | - |
+|  | **After (strict parsing)** | **0.88 (7/8)** | **[0.53, 0.98]** | **0.50 (7/14)** | **[0.27, 0.73]** | **0.64** | **7** | **1** | **7** | **14** | - |
 
 **Impact:** Eliminates 4 false positives across the sample (2 on Agreement Date, 2 on Effective Date). Effective Date precision rises to 100% (13/13).
 
@@ -129,10 +141,10 @@ This caused scores to fluctuate based on the day the evaluation script was execu
 
 Because contracts routinely introduce defined-term parenthetical aliases (e.g. `Cisco Systems, Inc. ("Cisco")`), evaluation was conducted under both exact-name matching and defined-term-alias matching:
 
-| Mode | Precision | Recall | F1 | TP | FP | FN | Support |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Exact-Name Only** | 0.49 (59/120) | 0.77 (59/77) | 0.60 | 59 | 61 | 18 | 77 |
-| **Defined-Term-Alias Aware** | **0.72 (66/92)** | **0.86 (66/77)** | **0.78** | **66** | **26** | **11** | **77** |
+| Mode | Precision | Prec 95% CI | Recall | Rec 95% CI | F1 | TP | FP | FN | Support | Notes |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| **Exact-Name Only** | 0.49 (59/120) | [0.40, 0.58] | 0.77 (59/77) | [0.66, 0.85] | 0.60 | 59 | 61 | 18 | 77 | - |
+| **Defined-Term-Alias Aware** | **0.72 (66/92)** | **[0.62, 0.80]** | **0.86 (66/77)** | **[0.76, 0.92]** | **0.78** | **66** | **26** | **11** | **77** | - |
 
 ### Breakdown of Discrepancy:
 1. **Defined-Term Aliases:** Under exact-name matching, predicting `"Cisco"` when the ground-truth label is `"Cisco Systems, Inc. ("Cisco")"` is penalized as a false positive. In alias-aware mode, aliases declared in parentheticals are treated as valid matches for the party.
@@ -159,19 +171,19 @@ Several apparent errors in model predictions are attributable to imperfections i
 > 
 > The model fails to extract these clauses on the majority of contracts that contain them:
 > - **Cap On Liability:** Contract presence recall is **6/16 = 38%** (95% Wilson confidence interval: [0.18, 0.61]).
-> - **Non-Compete:** Contract presence recall is **4/8 = 50%**.
-> - **Uncapped Liability:** Contract presence recall is **4/8 = 50%**.
+> - **Non-Compete:** Contract presence recall is **4/8 = 50%** (95% Wilson confidence interval: [0.22, 0.78]).
+> - **Uncapped Liability:** Contract presence recall is **4/8 = 50%** (95% Wilson confidence interval: [0.22, 0.78]).
 > 
 > In compliance and legal due-diligence workflows, **a silent omission is the most dangerous failure mode**. When the model identifies a clause, its precision is high (Cap On Liability precision is 6/6 = 100%), but because it misses 50% to 62% of true instances, **these categories must never be presented to customers as automated capabilities**.
 
 ### Categories Supported for Human-in-the-Loop Review:
-- **Agreement Date:** Recall 19/21 (90%), Precision 19/28 (68%).
-- **Effective Date:** Recall 13/16 (81%), Precision 13/13 (100%).
-- **Governing Law:** Recall 23/29 (79%), Precision 23/25 (92%).
-- **Parties (Alias-Aware):** Recall 66/77 (86%), Precision 66/92 (72%).
-- **Termination For Convenience (Presence):** Recall 13/13 (100%), Precision 13/16 (81%).
-- **Anti-Assignment (Presence):** Recall 18/22 (82%, 95% CI: [0.62, 0.93]), Precision 18/19 (95%).
-- **Change Of Control (Presence):** Recall 9/10 (90%), Precision 9/10 (90%).
+- **Agreement Date:** Recall 19/21 (90%, 95% CI: [0.71, 0.97]), Precision 19/28 (68%, 95% CI: [0.49, 0.82]).
+- **Effective Date:** Recall 13/16 (81%, 95% CI: [0.57, 0.93]), Precision 13/13 (100%, 95% CI: [0.77, 1.00]).
+- **Governing Law:** Recall 23/29 (79%, 95% CI: [0.62, 0.90]), Precision 23/25 (92%, 95% CI: [0.75, 0.98]).
+- **Parties (Alias-Aware):** Recall 66/77 (86%, 95% CI: [0.76, 0.92]), Precision 66/92 (72%, 95% CI: [0.62, 0.80]).
+- **Termination For Convenience (Presence):** Recall 13/13 (100%, 95% CI: [0.77, 1.00]), Precision 13/16 (81%, 95% CI: [0.57, 0.93]).
+- **Anti-Assignment (Presence):** Recall 18/22 (82%, 95% CI: [0.61, 0.93]), Precision 18/19 (95%, 95% CI: [0.75, 0.99]).
+- **Change Of Control (Presence):** Recall 9/10 (90%, 95% CI: [0.60, 0.98]), Precision 9/10 (90%, 95% CI: [0.60, 0.98]).
 
 ---
 
@@ -183,3 +195,16 @@ To ensure intellectual honesty, the following constraints apply to all interpret
 3. **Prompt Development Overlap:** Two contracts in the 30-contract test sample (`Sibannac` and `Ediets`) were included in earlier smoke testing whose failure modes informed prompt structure. While the prompt was not tuned specifically to them, they do not constitute clean out-of-sample holdouts.
 4. **Harness Chunker vs. Product Pipeline:** The harness uses fixed 4,000-character line-boundary slicing. The SemanticGraph Cloud product uses semantic AST / structural chunking, which preserves semantic boundaries better than naive character windows.
 5. **Metric Incomparability with Published CUAD Benchmarks:** Published CUAD benchmarks use extractive question-answering spans (evaluating SQuAD-style F1 over SQuAD-formatted JSON). This benchmark evaluates structured relational entity and clause extraction with two distinct scoring modes.
+
+---
+
+## 9. What These Numbers Do Not Show
+
+To ensure clear boundaries and avoid misrepresentation to buyers, investors, or stakeholders, the following statements apply plainly to these evaluation figures:
+1. **Not Comparable with Published CUAD Results:** These figures are not comparable with published CUAD benchmark results (which use a different SQuAD-style token-overlap metric and different evaluation splits).
+2. **Pretraining Contamination Likelihood:** CUAD contracts are public EDGAR SEC filings from 2020 and earlier and are likely present in the training and pretraining corpora of the evaluated model.
+3. **No System Properties Proven:** Nothing here says anything about temporal history, tenant isolation, merge decisions, or assertion-counted deletion.
+4. **Chunk Slicing Recall Cost:** Line-boundary fixed 4,000-character chunk slicing cuts clauses at window edges and may cost recall compared to AST-aware structural parsing.
+5. **Sample Size & Variance:** The sample is 30 contracts evaluated in a single run, and run-to-run variation across seeds or temperatures was not measured.
+6. **Prompt Tuning Holdout Status:** Two of the 30 test contracts were the smoke contracts that informed the prompt redesign; they are not clean blind holdouts.
+7. **Trial Model Distinction:** The evaluated model is a free evaluation-only trial endpoint, not the production models specified in `ENTERPRISE_PLAN.md`.
