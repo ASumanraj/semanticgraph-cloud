@@ -395,13 +395,15 @@ def compute_category_metrics(
     predictions: list[Any],
     ground_truth: list[str],
     contract_text: str | None = None,
+    parties_mode: str = "alias-aware",
 ) -> CategoryMetrics:
     """Computes precision, recall, and F1 for a category on a contract or batch.
 
     Follows the 2026-10-05 Measurement Design Correction & dev review:
     - VALUE_CATEGORIES: normalized value comparison + quote-in-contract-text.
       Parties deduplicates predictions by normalized name and treats defined-term
-      aliases as the same party (not false positives).
+      aliases as the same party (not false positives) when parties_mode is 'alias-aware'.
+      When parties_mode is 'exact-name', matches primary normalized name only.
     - CLAUSE_CATEGORIES: token-F1 >= 0.5 span comparison, presence, and quote-in-contract-text.
     - NON_SCORED_CATEGORIES: not scored automatically.
     """
@@ -489,7 +491,12 @@ def compute_category_metrics(
                 # 1. Matches an unmatched ground truth party
                 matched_unmatched = False
                 for idx, gt_party in enumerate(gt_parties):
-                    if idx not in matched_gt_party_indices and pred in gt_party["all_names"]:
+                    match_condition = (
+                        (pred in gt_party["all_names"])
+                        if parties_mode != "exact-name"
+                        else (pred == gt_party["primary"])
+                    )
+                    if idx not in matched_gt_party_indices and match_condition:
                         tp += 1
                         matched_gt_party_indices.add(idx)
                         matched_unmatched = True
@@ -499,7 +506,9 @@ def compute_category_metrics(
 
                 # 2. Matches an ALREADY matched ground truth party (defined-term alias)
                 # Treat as the same party: NOT a false positive
-                if any(pred in gt_party["all_names"] for gt_party in gt_parties):
+                if parties_mode != "exact-name" and any(
+                    pred in gt_party["all_names"] for gt_party in gt_parties
+                ):
                     continue
 
                 # 3. Matches no ground truth party -> false positive

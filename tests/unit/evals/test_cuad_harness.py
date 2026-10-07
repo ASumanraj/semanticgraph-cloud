@@ -758,3 +758,47 @@ def test_chunk_contract_by_lines_preserves_lines_and_caps() -> None:
     assert len(long_chunks[1]) == 4000
     assert len(long_chunks[2]) == 1001
     assert "".join(long_chunks) == long_line
+
+
+def test_rescore_offline() -> None:
+    """T-227: Verifies offline rescoring from saved predictions with date and party comparisons."""
+    from evals.cuad.harness import rescore_offline
+
+    data_dir = Path("evals/cuad/data")
+    pred_file = Path("evals/cuad/raw_predictions/predictions.jsonl")
+    if not (data_dir / "CUAD_v1" / "master_clauses.csv").exists() or not pred_file.exists():
+        pytest.skip("CUAD data or predictions.jsonl not present")
+
+    summary_data, report = rescore_offline(
+        predictions_file=pred_file,
+        data_dir=data_dir,
+        sample_seed=42,
+        max_contracts=30,
+        parties_mode="both",
+    )
+
+    assert report.total_contracts == 30
+    assert report.failed_contracts == 0
+
+    # Agreement Date comparison
+    ag_before = summary_data["date_comparison"]["Agreement Date"]["before"]
+    ag_after = summary_data["date_comparison"]["Agreement Date"]["after"]
+    assert ag_before["fp"] == 11
+    assert ag_after["fp"] == 9
+    assert ag_before["tp"] == 19
+    assert ag_after["tp"] == 19
+
+    # Effective Date comparison
+    eff_before = summary_data["date_comparison"]["Effective Date"]["before"]
+    eff_after = summary_data["date_comparison"]["Effective Date"]["after"]
+    assert eff_before["fp"] == 2
+    assert eff_after["fp"] == 0
+    assert eff_after["precision"] == 1.0
+
+    # Parties comparison
+    parties_exact = summary_data["parties_comparison"]["exact-name"]
+    parties_alias = summary_data["parties_comparison"]["alias-aware"]
+    assert parties_exact.true_positives == 59
+    assert parties_exact.false_positives == 61
+    assert parties_alias.true_positives == 66
+    assert parties_alias.false_positives == 26

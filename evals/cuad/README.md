@@ -60,3 +60,53 @@ a single blended score. Reports compute and display precision, recall, and F1 st
    CUAD contracts are public SEC EDGAR filings and are likely present in LLM pretraining data.
    Scores obtained on CUAD should be understood as a baseline on public contracts, not a guarantee
    of identical performance on novel private enterprise contracts.
+
+## 6. Binding Data Terms & Privacy Constraints (NVIDIA API Trial)
+
+Trial use is governed by the **NVIDIA API Trial Terms of Service**:
+- **Evaluation only:** Trial access is strictly for internal testing and measurement, never production.
+- **Provider data retention:** Inputs and outputs sent to the trial endpoint may be retained and used by NVIDIA to train and improve its models.
+- **Strict data segregation:** **Public CUAD contract text only.** Never submit customer contracts, interview transcripts, founder notes, or confidential materials to this endpoint.
+- **Model distinction:** Figures obtained from the trial endpoint reflect `nvidia/nemotron-3-super-120b-a12b`, **not** production models (Claude 3.5 Sonnet or Gemini 2.5 Flash).
+- **No marketing claims:** These benchmark results must never be cited or quoted as product accuracy in customer pitches or investor materials.
+
+## 7. How to Run the Evaluation
+
+### Prerequisites
+Set `NVIDIA_API_KEY` in your environment or `.env` file (never commit or print this key).
+
+```bash
+# 1. Download CUAD dataset (pinned Hugging Face revision)
+python -m evals.cuad.harness download --output-dir evals/cuad/data
+
+# 2. Run model probe across candidate models
+python -m evals.cuad.harness probe
+
+# 3. Run development sample (5 contracts, seed 1337, disjoint from test sample)
+python -m evals.cuad.harness run --provider nvidia --mode dev
+
+# 4. Run full test sample (30 contracts, seed 42, frozen prompt hash b63f8a79...)
+python -m evals.cuad.harness run --provider nvidia --mode test --sample-seed 42 --max-contracts 30
+```
+
+Key CLI options for `run`:
+- `--provider`: `nvidia` (default for T-227) or `gemini`.
+- `--model`: Model ID (defaults to `nvidia/nemotron-3-super-120b-a12b` for NVIDIA).
+- `--mode`: `dev` (5 contracts) or `test` (30 contracts).
+- `--max-calls`: Hard runaway guard on provider attempts (default: 900).
+- `--predictions-dir`: Output directory for JSONL records (default: `evals/cuad/raw_predictions`).
+
+## 8. How to Rescore Offline
+
+The harness supports complete offline rescoring from saved prediction JSONL logs without making any model provider calls or consuming API quota:
+
+```bash
+# Rescore offline using saved predictions
+python -m evals.cuad.harness rescore --predictions-file evals/cuad/raw_predictions/predictions.jsonl --data-dir evals/cuad/data --parties-mode both
+```
+
+The `rescore` command:
+1. Re-evaluates date parsing under strict component validation (day, month, year required) and displays a before/after comparison showing false positives eliminated on Agreement Date and Effective Date.
+2. Evaluates Parties under both exact-name matching and defined-term-alias matching.
+3. Renders the complete benchmark results table with `k/n` on every precision, recall, presence, and quote-found rate.
+

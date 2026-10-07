@@ -52,6 +52,15 @@ def test_normalize_jurisdiction(raw_jurisdiction: str | None, expected: str) -> 
         ("1st day of January, 2021", "2021-01-01"),
         ("2nd day of February 2022", "2022-02-02"),
         ("October 30, 2000", "2000-10-30"),
+        ("15", None),
+        ("2018", None),
+        ("March 2018", None),
+        ("March 15", None),
+        ("04/30/", None),
+        ("/[]/2018", None),
+        ("YYYY-MM-DD", None),
+        ("12/2018", None),
+        ("2018-05", None),
         ("invalid-date-string", None),
         ("", None),
         (None, None),
@@ -59,6 +68,31 @@ def test_normalize_jurisdiction(raw_jurisdiction: str | None, expected: str) -> 
 )
 def test_normalize_date(raw_date: str | None, expected: str | None) -> None:
     assert normalize_date(raw_date) == expected
+
+
+def test_normalize_date_independent_of_current_date(monkeypatch: pytest.MonkeyPatch) -> None:
+    """T-227: Verify normalize_date never fills missing date parts from current date.
+
+    If normalize_date leaked dateutil's default datetime.now(), inputs like '15'
+    would resolve to the current year and month. It must return None regardless of
+    system date.
+    """
+    # Inputs that must strictly return None because a component is missing
+    partial_inputs = ["15", "2018", "March 2018", "March 15", "04/30/", "/[]/2018"]
+    for inp in partial_inputs:
+        msg = f"Expected {inp!r} to be rejected, got {normalize_date(inp)}"
+        assert normalize_date(inp) is None, msg
+
+    # Valid inputs must return the exact same parsed calendar date regardless of system time
+    valid_inputs = {
+        "11/30/17": "2017-11-30",
+        "5/8/14": "2014-05-08",
+        "2000-10-30": "2000-10-30",
+        "November 30, 2017": "2017-11-30",
+        "30th day of November, 2017": "2017-11-30",
+    }
+    for inp, expected in valid_inputs.items():
+        assert normalize_date(inp) == expected
 
 
 @pytest.mark.parametrize(
@@ -205,3 +239,47 @@ def test_quote_in_contract_text_computation() -> None:
     assert m.quotes_total == 2
     assert m.quotes_found == 1
     assert m.quote_found_rate == 0.5
+
+
+def test_parties_exact_name_matching() -> None:
+    """T-227: Verify exact-name matching does not treat defined-term aliases as matches."""
+    from evals.cuad.metrics import compute_category_metrics
+
+    contract_text = (
+        "This Distributor Agreement is entered into by ScanSource, Inc. (Distributor) "
+        "and Cisco Systems, Inc. (Cisco)."
+    )
+    ground_truth = ['ScanSource, Inc. ("Distributor")', 'Cisco Systems, Inc. ("Cisco")']
+
+    # Prediction with alias 'Cisco' and primary 'ScanSource, Inc.'
+    predictions = [
+        {"normalized_value": "ScanSource, Inc.", "verbatim_quote": "ScanSource, Inc."},
+        {"normalized_value": "Cisco", "verbatim_quote": "Cisco"},
+    ]
+
+    # In alias-aware mode: both match (TP=2, FP=0, FN=0)
+    m_alias = compute_category_metrics(
+        "Parties",
+        predictions=predictions,
+        ground_truth=ground_truth,
+        contract_text=contract_text,
+        parties_mode="alias-aware",
+    )
+    assert m_alias.true_positives == 2
+    assert m_alias.false_positives == 0
+    assert m_alias.false_negatives == 0
+
+    # In exact-name mode: ScanSource matches, but 'Cisco' does not match
+    # 'cisco systems' (TP=1, FP=1, FN=1)
+    m_exact = compute_category_metrics(
+        "Parties",
+        predictions=predictions,
+        ground_truth=ground_truth,
+        contract_text=contract_text,
+        parties_mode="exact-name",
+    )
+    assert m_exact.true_positives == 1
+    assert m_exact.false_positives == 1
+    assert m_exact.false_negatives == 1
+    assert m_exact.precision == 0.5
+    assert m_exact.recall == 0.5

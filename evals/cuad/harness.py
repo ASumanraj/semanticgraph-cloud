@@ -18,6 +18,7 @@ import json
 import logging
 import os
 import random
+import re
 import sys
 from collections.abc import Callable
 from pathlib import Path
@@ -39,10 +40,12 @@ from evals.cuad.mapping import (
 from evals.cuad.metrics import (
     CategoryMetrics,
     CUADEvaluationReport,
+    _extract_pred_fields,
     aggregate_category_metrics,
     compute_category_metrics,
     format_side_by_side_contract,
 )
+from evals.cuad.normalizers import normalize_date
 from evals.cuad.nvidia import PROMPT_HASH
 
 from semanticgraph.adapters.outbound.inmemory.usage_ledger import InMemoryUsageLedger
@@ -435,6 +438,216 @@ class CUADEvalHarness:
         )
 
 
+def legacy_normalize_date(text: str | None) -> str | None:
+    """Legacy date normalizer without sentinel defaults (for before/after comparison)."""
+    if not text:
+        return None
+    cleaned = text.strip()
+    day_of_match = re.search(
+        r"(\d{1,2})(?:st|nd|rd|th)?\s+day\s+of\s+([A-Za-z]+)[,\s]+(\d{2,4})",
+        cleaned,
+        re.IGNORECASE,
+    )
+    if day_of_match:
+        day, month_str, year = day_of_match.groups()
+        cleaned = f"{month_str} {day} {year}"
+    else:
+        cleaned = re.sub(r"(\d+)(?:st|nd|rd|th)", r"\1", cleaned)
+
+    try:
+        from dateutil import parser
+
+        dt = parser.parse(cleaned)
+        year = dt.year
+        if year < 100:
+            year = 2000 + year if year < 50 else 1900 + year
+            dt = dt.replace(year=year)
+        return dt.strftime("%Y-%m-%d")
+    except Exception:
+        pass
+
+    m = re.search(r"^(\d{1,2})/(\d{1,2})/(\d{2,4})$", cleaned)
+    if m:
+        month, day, yr = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        if yr < 100:
+            yr = 2000 + yr if yr < 50 else 1900 + yr
+        try:
+            return f"{yr:04d}-{month:02d}-{day:02d}"
+        except Exception:
+            pass
+
+    m_iso = re.search(r"^(\d{4})-(\d{1,2})-(\d{1,2})$", cleaned)
+    if m_iso:
+        yr, month, day = int(m_iso.group(1)), int(m_iso.group(2)), int(m_iso.group(3))
+        try:
+            return f"{yr:04d}-{month:02d}-{day:02d}"
+        except Exception:
+            pass
+
+    return None
+
+
+def rescore_offline(
+    predictions_file: str | Path = "evals/cuad/raw_predictions/predictions.jsonl",
+    data_dir: str | Path = "evals/cuad/data",
+    sample_seed: int = 42,
+    max_contracts: int = 30,
+    parties_mode: str = "both",
+) -> tuple[dict[str, Any], CUADEvaluationReport]:
+    """Rescores saved predictions offline without making model calls."""
+    data_path = Path(data_dir)
+    csv_path = data_path / "CUAD_v1" / "master_clauses.csv"
+    txt_dir = data_path / "CUAD_v1" / "full_contract_txt"
+
+    if not csv_path.exists():
+        raise FileNotFoundError(f"Annotations file not found: {csv_path}")
+
+    categories = get_all_cuad_target_categories()
+    annotations = load_master_clauses_csv(csv_path, categories)
+    txt_files = {f.stem.strip(): f for f in txt_dir.rglob("*.txt")}
+
+    contracts_data = []
+    for ann in annotations:
+        stem = Path(ann.filename).stem.strip()
+        if stem in txt_files:
+            contracts_data.append((txt_files[stem], ann))
+
+    test_pool = list(contracts_data)
+    random.Random(sample_seed).shuffle(test_pool)
+    sampled = test_pool[:max_contracts]
+
+    jsonl_path = Path(predictions_file)
+    if not jsonl_path.exists():
+        raise FileNotFoundError(f"Predictions file not found: {jsonl_path}")
+
+    all_records = [
+        json.loads(line)
+        for line in jsonl_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    records_by_contract: dict[str, dict[str, Any]] = {}
+    for r in all_records:
+        contract_key = r.get("contract") or r.get("filename")
+        if contract_key:
+            records_by_contract[contract_key] = r
+
+    contracts: list[tuple[str, CUADContractAnnotation, dict[str, Any]]] = []
+    missing_contracts: list[str] = []
+    for path, ann in sampled:
+        fn = ann.filename
+        if fn not in records_by_contract:
+            missing_contracts.append(fn)
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        contracts.append((text, ann, records_by_contract[fn]["predictions"]))
+
+    if not contracts:
+        raise ValueError("No matching contracts found between sample and predictions file.")
+
+    # 1. Date comparison before vs after
+    date_comparison: dict[str, dict[str, Any]] = {}
+    for cat in ("Agreement Date", "Effective Date", "Expiration Date"):
+        date_comparison[cat] = {}
+        for mode_name, norm_fn in (
+            ("before", legacy_normalize_date),
+            ("after", normalize_date),
+        ):
+            tp, fp, fn = 0, 0, 0
+            for _text, ann, preds_dict in contracts:
+                ground_truth = ann.get_ground_truth(cat)
+                preds = preds_dict.get(cat, [])
+                gt_vals = [norm_fn(g) for g in ground_truth if g and g.strip() and norm_fn(g)]
+                pred_vals = [
+                    norm_fn(_extract_pred_fields(p)[0] or _extract_pred_fields(p)[1]) for p in preds
+                ]
+                pred_vals = [v for v in pred_vals if v]
+                unique_preds = list(dict.fromkeys(pred_vals))
+                matched_gt = set()
+                c_tp = 0
+                for pred in unique_preds:
+                    for idx, gt in enumerate(gt_vals):
+                        if idx not in matched_gt and pred == gt:
+                            c_tp += 1
+                            matched_gt.add(idx)
+                            break
+                c_fp = len(unique_preds) - c_tp
+                c_fn = len(gt_vals) - c_tp
+                tp += c_tp
+                fp += c_fp
+                fn += c_fn
+
+            prec = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+            rec = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+            f1 = 2 * prec * rec / (prec + rec) if (prec + rec) > 0 else 0.0
+            date_comparison[cat][mode_name] = {
+                "tp": tp,
+                "fp": fp,
+                "fn": fn,
+                "precision": prec,
+                "recall": rec,
+                "f1": f1,
+                "support": tp + fn,
+                "pred_total": tp + fp,
+            }
+
+    # 2. Parties comparison
+    parties_comparison: dict[str, Any] = {}
+    for p_mode in ("exact-name", "alias-aware"):
+        per_c = [
+            compute_category_metrics(
+                "Parties",
+                preds_dict.get("Parties", []),
+                ann.get_ground_truth("Parties"),
+                text,
+                parties_mode=p_mode,
+            )
+            for text, ann, preds_dict in contracts
+        ]
+        agg = aggregate_category_metrics("Parties", per_c)
+        parties_comparison[p_mode] = agg
+
+    # 3. All categories scoring
+    primary_parties_mode = (
+        "alias-aware" if parties_mode in ("alias-aware", "both") else "exact-name"
+    )
+    per_contract_metrics: dict[str, list[CategoryMetrics]] = {cat: [] for cat in categories}
+    for text, ann, preds_dict in contracts:
+        for cat in categories:
+            m = compute_category_metrics(
+                cat,
+                preds_dict.get(cat, []),
+                ann.get_ground_truth(cat),
+                text,
+                parties_mode=primary_parties_mode,
+            )
+            per_contract_metrics[cat].append(m)
+
+    cat_metrics = {
+        cat: aggregate_category_metrics(cat, per_contract_metrics[cat]) for cat in categories
+    }
+
+    supported_q = [m.question_id for m in get_supported_question_mappings()]
+    unsupported_q = {m.question_id: m.notes for m in get_unsupported_question_mappings()}
+
+    report = CUADEvaluationReport(
+        category_metrics=cat_metrics,
+        total_contracts=len(contracts),
+        failed_contracts=len(missing_contracts),
+        chunk_failure_rate=0.0,
+        contract_exclusion_rate=0.0,
+        evaluated_questions=supported_q,
+        unsupported_questions=unsupported_q,
+    )
+
+    summary_data = {
+        "date_comparison": date_comparison,
+        "parties_comparison": parties_comparison,
+        "evaluated_contracts": len(contracts),
+        "missing_contracts": missing_contracts,
+    }
+    return summary_data, report
+
+
 def build_cli_parser() -> argparse.ArgumentParser:
     """Constructs the CLI argument parser for the CUAD evaluation harness."""
     parser = argparse.ArgumentParser(
@@ -511,6 +724,36 @@ def build_cli_parser() -> argparse.ArgumentParser:
     # Command: probe
     subparsers.add_parser(
         "probe", help="Run model probe across candidate NVIDIA models (T-227 Amendment)"
+    )
+
+    # Command: rescore
+    parser_rescore = subparsers.add_parser(
+        "rescore", help="Rescore offline from saved predictions JSONL without model calls"
+    )
+    parser_rescore.add_argument(
+        "--predictions-file",
+        type=str,
+        default="evals/cuad/raw_predictions/predictions.jsonl",
+        help="Path to saved predictions JSONL file",
+    )
+    parser_rescore.add_argument(
+        "--data-dir",
+        type=str,
+        default="evals/cuad/data",
+        help="Data directory with texts and csv (default: evals/cuad/data)",
+    )
+    parser_rescore.add_argument(
+        "--sample-seed", type=int, default=42, help="Fixed random seed for sampling (default: 42)"
+    )
+    parser_rescore.add_argument(
+        "--max-contracts", type=int, default=30, help="Max contracts to evaluate (hard cap: 30)"
+    )
+    parser_rescore.add_argument(
+        "--parties-mode",
+        type=str,
+        choices=["alias-aware", "exact-name", "both"],
+        default="both",
+        help="Parties matching mode: 'alias-aware', 'exact-name', or 'both' (default: both)",
     )
 
     return parser
@@ -597,6 +840,66 @@ def main() -> None:
             "Therefore, the 194 matched contracts represent Part_I and Part_II contracts, "
             "which forms the evaluation population."
         )
+        return
+
+    if args.command == "rescore":
+        print(f"Rescoring offline from {args.predictions_file}...")
+        summary_data, report = rescore_offline(
+            predictions_file=args.predictions_file,
+            data_dir=args.data_dir,
+            sample_seed=args.sample_seed,
+            max_contracts=args.max_contracts,
+            parties_mode=args.parties_mode,
+        )
+
+        date_comp = summary_data["date_comparison"]
+        print("\n" + "=" * 95)
+        print("DATE NORMALIZATION RESCORE: BEFORE VS AFTER (Strict Component Parsing)")
+        print("=" * 95)
+        print(
+            f"{'Category':<16} | {'Version':<10} | {'Prec':>14} | {'Recall':>14} | "
+            f"{'F1':>6} | {'TP':>4} | {'FP':>4} | {'FN':>4} | {'Support':>7}"
+        )
+        print("-" * 95)
+        for cat in ("Agreement Date", "Effective Date", "Expiration Date"):
+            for ver, lbl in (("before", "Before"), ("after", "After")):
+                m = date_comp[cat][ver]
+                m_tp, m_fp, m_fn = m["tp"], m["fp"], m["fn"]
+                m_sup = m["support"]
+                p_str = f"{m['precision']:.2f} ({m_tp}/{m['pred_total']})"
+                r_str = f"{m['recall']:.2f} ({m_tp}/{m_sup})"
+                print(
+                    f"{cat:<16} | {lbl:<10} | {p_str:>14} | {r_str:>14} | "
+                    f"{m['f1']:>6.2f} | {m_tp:>4} | {m_fp:>4} | {m_fn:>4} | {m_sup:>7}"
+                )
+            print("-" * 95)
+
+        parties_comp = summary_data["parties_comparison"]
+        print("\n" + "=" * 95)
+        print("PARTIES MATCHING COMPARISON: EXACT-NAME ONLY VS DEFINED-TERM-ALIAS AWARE")
+        print("=" * 95)
+        print(
+            f"{'Mode':<26} | {'Prec':>14} | {'Recall':>14} | "
+            f"{'F1':>6} | {'TP':>4} | {'FP':>4} | {'FN':>4} | {'Support':>7}"
+        )
+        print("-" * 95)
+        for p_key, p_label in (
+            ("exact-name", "Exact-Name Only"),
+            ("alias-aware", "Defined-Term-Alias Aware"),
+        ):
+            m = parties_comp[p_key]
+            tot_p = m.true_positives + m.false_positives
+            tot_g = m.true_positives + m.false_negatives
+            p_str = f"{m.precision:.2f} ({m.true_positives}/{tot_p})"
+            r_str = f"{m.recall:.2f} ({m.true_positives}/{tot_g})"
+            print(
+                f"{p_label:<26} | {p_str:>14} | {r_str:>14} | "
+                f"{m.f1:>6.2f} | {m.true_positives:>4} | {m.false_positives:>4} | "
+                f"{m.false_negatives:>4} | {m.support:>7}"
+            )
+        print("-" * 95)
+
+        print("\n" + report.format_table())
         return
 
     if args.command == "run":

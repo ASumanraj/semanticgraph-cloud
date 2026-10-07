@@ -62,6 +62,9 @@ def normalize_jurisdiction(text: str | None) -> str:
 def normalize_date(text: str | None) -> str | None:
     """Parses various date representations into 'YYYY-MM-DD' calendar date format.
 
+    Rejects any input missing day, month, or year (returns None).
+    Does not allow current date or dateutil defaults to fill missing components.
+
     Handles:
     - '11/30/17' -> '2017-11-30'
     - '5/8/14' -> '2014-05-08'
@@ -70,6 +73,15 @@ def normalize_date(text: str | None) -> str | None:
     - '30th day of November, 2017' -> '2017-11-30'
     - '8th day of May 2014' -> '2014-05-08'
     - 'May 8, 2014' -> '2014-05-08'
+
+    Rejects:
+    - '15' -> None
+    - '2018' -> None
+    - 'March 2018' -> None
+    - 'March 15' -> None
+    - '04/30/' -> None
+    - '/[]/2018' -> None
+    - 'YYYY-MM-DD' -> None
     """
     if not text:
         return None
@@ -88,21 +100,29 @@ def normalize_date(text: str | None) -> str | None:
         # Strip ordinal suffixes: 1st -> 1, 2nd -> 2, 3rd -> 3, 4th -> 4
         cleaned = re.sub(r"(\d+)(?:st|nd|rd|th)", r"\1", cleaned)
 
-    # Try dateutil parser first
+    # Use two distinct sentinel defaults to detect missing day, month, or year components.
+    # If dateutil fills any missing component from the default, dt1 and dt2 will differ.
+    from datetime import datetime
+
+    d1 = datetime(1001, 1, 1)
+    d2 = datetime(3001, 12, 31)
+
     try:
         from dateutil import parser
 
-        dt = parser.parse(cleaned)
-        year = dt.year
-        if year < 100:
-            year = 2000 + year if year < 50 else 1900 + year
-            dt = dt.replace(year=year)
-        return dt.strftime("%Y-%m-%d")
+        dt1 = parser.parse(cleaned, default=d1)
+        dt2 = parser.parse(cleaned, default=d2)
+        if dt1.year == dt2.year and dt1.month == dt2.month and dt1.day == dt2.day:
+            year = dt1.year
+            if year < 100:
+                year = 2000 + year if year < 50 else 1900 + year
+                dt1 = dt1.replace(year=year)
+            return dt1.strftime("%Y-%m-%d")
     except Exception:
         pass
 
     # Fallback to regex for M/D/YY or M/D/YYYY
-    m = re.search(r"(\d{1,2})/(\d{1,2})/(\d{2,4})", cleaned)
+    m = re.search(r"^(\d{1,2})/(\d{1,2})/(\d{2,4})$", cleaned)
     if m:
         month, day, yr = int(m.group(1)), int(m.group(2)), int(m.group(3))
         if yr < 100:
@@ -113,7 +133,7 @@ def normalize_date(text: str | None) -> str | None:
             pass
 
     # Fallback to YYYY-MM-DD
-    m_iso = re.search(r"(\d{4})-(\d{1,2})-(\d{1,2})", cleaned)
+    m_iso = re.search(r"^(\d{4})-(\d{1,2})-(\d{1,2})$", cleaned)
     if m_iso:
         yr, month, day = int(m_iso.group(1)), int(m_iso.group(2)), int(m_iso.group(3))
         try:
