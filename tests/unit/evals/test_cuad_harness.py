@@ -836,4 +836,3 @@ def test_rescore_offline_fixture_contains_interval_columns() -> None:
     assert "Prec 95% CI" in md_tables
     assert "Rec 95% CI" in md_tables
     assert "too few to judge" in md_tables
-

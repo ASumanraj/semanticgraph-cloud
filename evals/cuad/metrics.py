@@ -56,9 +56,7 @@ NON_SCORED_CATEGORIES: tuple[str, ...] = (
 )
 
 
-def wilson_score_interval(
-    k: int, n: int, z: float = 1.96
-) -> tuple[float, float] | None:
+def wilson_score_interval(k: int, n: int, z: float = 1.96) -> tuple[float, float] | None:
     """Computes the 95% Wilson score interval for k successes in n Bernoulli trials.
 
     Returns (lower, upper) as a tuple of floats rounded to 4 decimals, or None if n == 0.
