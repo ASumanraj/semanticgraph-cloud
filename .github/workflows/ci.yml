@@ -46,24 +46,30 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: pip
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.17"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: Install project
-        run: pip install -e ".[dev]"
+        run: uv sync --locked --extra dev
 
       - name: Lint
-        run: ruff check .
+        run: uv run --locked ruff check .
 
       - name: Format check
-        run: ruff format --check .
+        run: uv run --locked ruff format --check .
 
       - name: Test (fast suite — in-memory adapters)
-        run: pytest -q
+        run: uv run --locked pytest -q
 
       - name: Isolation proofs (real Postgres, must not skip)
         run: |
           set -e -o pipefail
-          pytest tests/integration/adapters/postgres/ \
+          uv run --locked pytest tests/integration/adapters/postgres/ \
             -v -rs \
             --tb=short \
             2>&1 | tee /tmp/isolation_output.txt
@@ -78,7 +84,7 @@ jobs:
       - name: Control-plane proofs (audit log and usage ledger, must not skip)
         run: |
           set -e -o pipefail
-          pytest tests/integration/control/ \
+          uv run --locked pytest tests/integration/control/ \
             -v -rs \
             --tb=short \
             2>&1 | tee /tmp/control_output.txt
@@ -104,12 +110,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: pip
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.17"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: Setup virtualenv for E2E backend
-        run: |
-          python -m venv .venv
-          .venv/bin/pip install -e ".[dev]"
+        run: uv sync --locked --extra dev
 
       - name: Install
         working-directory: frontend

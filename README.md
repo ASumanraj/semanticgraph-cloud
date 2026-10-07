@@ -78,3 +78,7 @@ deletion, and immutable ontology versions. They are stated in
 
 `AGENTS.md` is the contract for both humans and coding agents. Tests come first, the hexagon
 boundary is enforced by a test, and commit messages explain why.
+
+Dependencies are locked in `uv.lock`. Whenever you modify dependencies in `pyproject.toml`, run
+`uv lock` and commit the updated `uv.lock` in the same pull request. CI installs with
+`uv sync --locked` and fails if the lockfile is stale.
