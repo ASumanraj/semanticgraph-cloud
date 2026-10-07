@@ -67,7 +67,7 @@ Trial use is governed by the **NVIDIA API Trial Terms of Service**:
 - **Evaluation only:** Trial access is strictly for internal testing and measurement, never production.
 - **Provider data retention:** Inputs and outputs sent to the trial endpoint may be retained and used by NVIDIA to train and improve its models.
 - **Strict data segregation:** **Public CUAD contract text only.** Never submit customer contracts, interview transcripts, founder notes, or confidential materials to this endpoint.
-- **Model distinction:** Figures obtained from the trial endpoint reflect `nvidia/nemotron-3-super-120b-a12b`, **not** production models (Claude 3.5 Sonnet or Gemini 2.5 Flash).
+- **Model distinction:** Figures obtained from the trial endpoint reflect `nvidia/nemotron-3-super-120b-a12b`, **not** production models (the models named in ENTERPRISE_PLAN.md, not evaluated here).
 - **No marketing claims:** These benchmark results must never be cited or quoted as product accuracy in customer pitches or investor materials.
 
 ## 7. How to Run the Evaluation

@@ -18,7 +18,7 @@ This evaluation was conducted under the **NVIDIA API Trial Terms of Service** (r
 - Inputs and outputs may be used by NVIDIA to improve its products and AI models. Confidential, proprietary, or personal data must not be submitted.
 - **Data scope:** Public CUAD contracts only. **Never customer, interview, or founder material.**
 - **Endpoint status:** This evaluation endpoint cannot be used for the product's runtime or free tier.
-- **Model distinction:** The evaluated model is an open-weights 120B model (`nvidia/nemotron-3-super-120b-a12b`) hosted by NVIDIA. **These figures say nothing about Claude 3.5 Sonnet or Gemini 2.5 Flash** (the planned production models per the cost architecture in `ENTERPRISE_PLAN.md`).
+- **Model distinction:** The evaluated model is an open-weights 120B model (`nvidia/nemotron-3-super-120b-a12b`) hosted by NVIDIA. **These figures say nothing about the models named in ENTERPRISE_PLAN.md, not evaluated here** (the planned production models per the cost architecture in `ENTERPRISE_PLAN.md`).
 - **No product-accuracy claims:** No marketing outreach, investor update, or pitch deck may quote these figures as SemanticGraph Cloud product accuracy.
 
 ---
@@ -178,7 +178,7 @@ Several apparent errors in model predictions are attributable to imperfections i
 ## 8. Limitations & Evaluation Constraints
 
 To ensure intellectual honesty, the following constraints apply to all interpretations of this data:
-1. **Single Open Model on Trial Infrastructure:** The evaluation tested `nvidia/nemotron-3-super-120b-a12b`. It demonstrates what a 120B parameter open model achieves with zero-shot structured prompts, but does not represent Claude 3.5 Sonnet or Gemini 2.5 Flash capabilities.
+1. **Single Open Model on Trial Infrastructure:** The evaluation tested `nvidia/nemotron-3-super-120b-a12b`. It demonstrates what a 120B parameter open model achieves with zero-shot structured prompts, but does not represent the models named in ENTERPRISE_PLAN.md, not evaluated here.
 2. **Sample Size:** 30 contracts evaluated once with seed 42. Run-to-run variance, temperature jitter, and sampling distributions were not measured across multiple seeds.
 3. **Prompt Development Overlap:** Two contracts in the 30-contract test sample (`Sibannac` and `Ediets`) were included in earlier smoke testing whose failure modes informed prompt structure. While the prompt was not tuned specifically to them, they do not constitute clean out-of-sample holdouts.
 4. **Harness Chunker vs. Product Pipeline:** The harness uses fixed 4,000-character line-boundary slicing. The SemanticGraph Cloud product uses semantic AST / structural chunking, which preserves semantic boundaries better than naive character windows.
