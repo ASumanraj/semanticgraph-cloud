@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npx -y @tailwindcss/cli -i ./src/app/globals.css -o ./src/app/compiled.css && next build",
+    "build": "tailwindcss -i ./src/app/globals.css -o ./src/app/compiled.css && next build",
     "start": "next start",
     "lint": "eslint",
     "test:e2e": "playwright test"
@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
+    "@tailwindcss/cli": "^4.3.3",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
