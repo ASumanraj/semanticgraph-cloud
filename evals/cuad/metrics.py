@@ -13,6 +13,7 @@ Implements the two scoring modes from T-227 Measurement design correction:
 
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass
 from typing import Any
@@ -55,6 +56,34 @@ NON_SCORED_CATEGORIES: tuple[str, ...] = (
 )
 
 
+def wilson_score_interval(k: int, n: int, z: float = 1.96) -> tuple[float, float] | None:
+    """Computes the 95% Wilson score interval for k successes in n Bernoulli trials.
+
+    Returns (lower, upper) as a tuple of floats rounded to 4 decimals, or None if n == 0.
+    Handles n=0 explicitly.
+    """
+    if n == 0:
+        return None
+    if k < 0 or n < 0 or k > n:
+        raise ValueError(f"Invalid k={k}, n={n}: require 0 <= k <= n")
+    p = k / n
+    z2 = z**2
+    denom = 1.0 + z2 / n
+    center = (p + z2 / (2.0 * n)) / denom
+    spread = (z * math.sqrt((p * (1.0 - p)) / n + z2 / (4.0 * (n**2)))) / denom
+    lower = max(0.0, center - spread)
+    upper = min(1.0, center + spread)
+    return (lower, upper)
+
+
+def format_wilson_interval(k: int, n: int, z: float = 1.96) -> str:
+    """Formats Wilson score interval as '[lower, upper]' or 'n/a' if n == 0."""
+    res = wilson_score_interval(k, n, z)
+    if res is None:
+        return "n/a"
+    return f"[{res[0]:.2f}, {res[1]:.2f}]"
+
+
 @dataclass(frozen=True)
 class CategoryMetrics:
     """Precision, recall, and counts for a specific CUAD clause category."""
@@ -82,24 +111,67 @@ class CategoryMetrics:
     quote_found_rate: float = 1.0
     literal_template_strings: int = 0
 
+    @property
+    def precision_interval(self) -> tuple[float, float] | None:
+        tot_pred = self.true_positives + self.false_positives
+        return wilson_score_interval(self.true_positives, tot_pred)
+
+    @property
+    def recall_interval(self) -> tuple[float, float] | None:
+        tot_gt = self.true_positives + self.false_negatives
+        return wilson_score_interval(self.true_positives, tot_gt)
+
+    @property
+    def presence_precision_interval(self) -> tuple[float, float] | None:
+        tot_pred = self.presence_tp + self.presence_fp
+        return wilson_score_interval(self.presence_tp, tot_pred)
+
+    @property
+    def presence_recall_interval(self) -> tuple[float, float] | None:
+        tot_gt = self.presence_tp + self.presence_fn
+        return wilson_score_interval(self.presence_tp, tot_gt)
+
+    @property
+    def is_too_few_to_judge(self) -> bool:
+        if self.category_type == "clause":
+            # For clause categories use the number of CONTRACTS that have the clause
+            # (presence support), not span count
+            return (self.presence_tp + self.presence_fn) < 10
+        elif self.category_type == "value":
+            return 0 < self.support < 10
+        return False
+
     def to_dict(self) -> dict[str, Any]:
+        p_ci = self.precision_interval
+        r_ci = self.recall_interval
         data: dict[str, Any] = {
             "category": self.category,
             "category_type": self.category_type,
             "precision": round(self.precision, 4),
+            "precision_interval": [round(p_ci[0], 4), round(p_ci[1], 4)] if p_ci else None,
             "recall": round(self.recall, 4),
+            "recall_interval": [round(r_ci[0], 4), round(r_ci[1], 4)] if r_ci else None,
             "f1": round(self.f1, 4),
             "true_positives": self.true_positives,
             "false_positives": self.false_positives,
             "false_negatives": self.false_negatives,
             "support": self.support,
+            "is_too_few_to_judge": self.is_too_few_to_judge,
             "literal_template_strings": self.literal_template_strings,
         }
         if self.category_type == "clause":
+            pp_ci = self.presence_precision_interval
+            pr_ci = self.presence_recall_interval
             data.update(
                 {
                     "presence_precision": round(self.presence_precision, 4),
+                    "presence_precision_interval": (
+                        [round(pp_ci[0], 4), round(pp_ci[1], 4)] if pp_ci else None
+                    ),
                     "presence_recall": round(self.presence_recall, 4),
+                    "presence_recall_interval": (
+                        [round(pr_ci[0], 4), round(pr_ci[1], 4)] if pr_ci else None
+                    ),
                     "presence_f1": round(self.presence_f1, 4),
                     "presence_tp": self.presence_tp,
                     "presence_fp": self.presence_fp,
@@ -186,20 +258,23 @@ class CUADEvaluationReport:
                 "",
                 "=== VALUE CATEGORIES (Normalized Value Matching) ===",
                 (
-                    f"{'Category':<20} | {'Prec':>12} | {'Recall':>12} | {'F1':>6} | "
-                    f"{'TP':>4} | {'FP':>4} | {'FN':>4} | {'Support':>7} | {'Quote Found':>15}"
+                    f"{'Category':<20} | {'Prec':>12} | {'Prec 95% CI':>14} | "
+                    f"{'Recall':>12} | {'Rec 95% CI':>14} | {'F1':>6} | "
+                    f"{'TP':>4} | {'FP':>4} | {'FN':>4} | {'Support':>7} | "
+                    f"{'Quote Found':>15} | {'Notes':<18}"
                 ),
-                "-" * 98,
+                "-" * 138,
             ]
         )
         for cat in VALUE_CATEGORIES:
             if cat in self.category_metrics:
                 m = self.category_metrics[cat]
+                notes = "too few to judge" if m.is_too_few_to_judge else "-"
                 if m.support == 0:
                     lines.append(
-                        f"{m.category:<20} | {'not evaluated':^27} | "
+                        f"{m.category:<20} | {'not evaluated':^27} | {'n/a':^14} | "
                         f"{m.true_positives:>4} | {m.false_positives:>4} | "
-                        f"{m.false_negatives:>4} | {m.support:>7} | {'-':>15}"
+                        f"{m.false_negatives:>4} | {m.support:>7} | {'-':>15} | {notes:<18}"
                     )
                 else:
                     tot_pred = m.true_positives + m.false_positives
@@ -209,34 +284,37 @@ class CUADEvaluationReport:
                         if tot_pred > 0
                         else f"{m.precision:.2f} (0/0)"
                     )
+                    p_ci = format_wilson_interval(m.true_positives, tot_pred)
                     r_str = (
                         f"{m.recall:.2f} ({m.true_positives}/{tot_gt})"
                         if tot_gt > 0
                         else f"{m.recall:.2f} (0/0)"
                     )
+                    r_ci = format_wilson_interval(m.true_positives, tot_gt)
                     q_str = (
                         f"{m.quote_found_rate * 100:.1f}% ({m.quotes_found}/{m.quotes_total})"
                         if m.quotes_total > 0
                         else "N/A"
                     )
                     lines.append(
-                        f"{m.category:<20} | {p_str:>12} | "
-                        f"{r_str:>12} | {m.f1:>6.2f} | "
+                        f"{m.category:<20} | {p_str:>12} | {p_ci:>14} | "
+                        f"{r_str:>12} | {r_ci:>14} | {m.f1:>6.2f} | "
                         f"{m.true_positives:>4} | {m.false_positives:>4} | "
-                        f"{m.false_negatives:>4} | {m.support:>7} | {q_str:>15}"
+                        f"{m.false_negatives:>4} | {m.support:>7} | {q_str:>15} | {notes:<18}"
                     )
 
-        # 2. Clause Categories Table
+        # 2. Clause Categories Table: Span Extraction
         lines.extend(
             [
                 "",
-                "=== CLAUSE CATEGORIES (Token-F1 >= 0.5 Span Match & Contract Presence) ===",
+                "=== CLAUSE CATEGORIES: SPAN EXTRACTION (Token-F1 >= 0.5) ===",
                 (
-                    f"{'Category':<28} | {'SpanP':>12} | {'SpanR':>12} | {'SpanF1':>6} | "
-                    f"{'PresP':>12} | {'PresR':>12} | {'PresF1':>6} | {'Support':>7} | "
-                    f"{'Quote In Text':>15}"
+                    f"{'Category':<28} | {'Prec':>12} | {'Prec 95% CI':>14} | "
+                    f"{'Recall':>12} | {'Rec 95% CI':>14} | {'F1':>6} | "
+                    f"{'TP':>4} | {'FP':>4} | {'FN':>4} | {'Support':>7} | "
+                    f"{'Quote In Text':>15} | {'Notes':<18}"
                 ),
-                "-" * 122,
+                "-" * 148,
             ]
         )
         for cat in CLAUSE_CATEGORIES:
@@ -249,12 +327,49 @@ class CUADEvaluationReport:
                     if tot_span_pred > 0
                     else f"{m.precision:.2f} (0/0)"
                 )
+                sp_ci = format_wilson_interval(m.true_positives, tot_span_pred)
                 sr_str = (
                     f"{m.recall:.2f} ({m.true_positives}/{tot_span_gt})"
                     if tot_span_gt > 0
                     else f"{m.recall:.2f} (0/0)"
                 )
+                sr_ci = format_wilson_interval(m.true_positives, tot_span_gt)
+                q_str = (
+                    f"{m.quote_found_rate * 100:.1f}% ({m.quotes_found}/{m.quotes_total})"
+                    if m.quotes_total > 0
+                    else "N/A"
+                )
+                notes = "too few to judge" if m.is_too_few_to_judge else "-"
+                if m.support == 0:
+                    lines.append(
+                        f"{m.category:<28} | {'not evaluated':^27} | {'n/a':^14} | {'-':^6} | "
+                        f"{m.true_positives:>4} | {m.false_positives:>4} | "
+                        f"{m.false_negatives:>4} | {m.support:>7} | {q_str:>15} | {notes:<18}"
+                    )
+                else:
+                    lines.append(
+                        f"{m.category:<28} | {sp_str:>12} | {sp_ci:>14} | "
+                        f"{sr_str:>12} | {sr_ci:>14} | {m.f1:>6.2f} | "
+                        f"{m.true_positives:>4} | {m.false_positives:>4} | "
+                        f"{m.false_negatives:>4} | {m.support:>7} | {q_str:>15} | {notes:<18}"
+                    )
 
+        # 3. Clause Categories: Contract Presence
+        lines.extend(
+            [
+                "",
+                "=== CLAUSE CATEGORIES: CONTRACT PRESENCE ===",
+                (
+                    f"{'Category':<28} | {'Prec':>12} | {'Prec 95% CI':>14} | "
+                    f"{'Recall':>12} | {'Rec 95% CI':>14} | {'F1':>6} | "
+                    f"{'TP':>4} | {'FP':>4} | {'FN':>4} | {'Support':>7} | {'Notes':<18}"
+                ),
+                "-" * 128,
+            ]
+        )
+        for cat in CLAUSE_CATEGORIES:
+            if cat in self.category_metrics:
+                m = self.category_metrics[cat]
                 tot_pres_pred = m.presence_tp + m.presence_fp
                 tot_pres_gt = m.presence_tp + m.presence_fn
                 pp_str = (
@@ -262,33 +377,22 @@ class CUADEvaluationReport:
                     if tot_pres_pred > 0
                     else f"{m.presence_precision:.2f} (0/0)"
                 )
+                pp_ci = format_wilson_interval(m.presence_tp, tot_pres_pred)
                 pr_str = (
                     f"{m.presence_recall:.2f} ({m.presence_tp}/{tot_pres_gt})"
                     if tot_pres_gt > 0
                     else f"{m.presence_recall:.2f} (0/0)"
                 )
-
-                q_str = (
-                    f"{m.quote_found_rate * 100:.1f}% ({m.quotes_found}/{m.quotes_total})"
-                    if m.quotes_total > 0
-                    else "N/A"
+                pr_ci = format_wilson_interval(m.presence_tp, tot_pres_gt)
+                notes = "too few to judge" if m.is_too_few_to_judge else "-"
+                lines.append(
+                    f"{m.category:<28} | {pp_str:>12} | {pp_ci:>14} | "
+                    f"{pr_str:>12} | {pr_ci:>14} | {m.presence_f1:>6.2f} | "
+                    f"{m.presence_tp:>4} | {m.presence_fp:>4} | "
+                    f"{m.presence_fn:>4} | {tot_pres_gt:>7} | {notes:<18}"
                 )
 
-                if m.support == 0:
-                    lines.append(
-                        f"{m.category:<28} | {'not evaluated':^27} | {'-':^6} | "
-                        f"{pp_str:>12} | {pr_str:>12} | "
-                        f"{m.presence_f1:>6.2f} | {m.support:>7} | {q_str:>15}"
-                    )
-                else:
-                    lines.append(
-                        f"{m.category:<28} | {sp_str:>12} | "
-                        f"{sr_str:>12} | {m.f1:>6.2f} | "
-                        f"{pp_str:>12} | {pr_str:>12} | "
-                        f"{m.presence_f1:>6.2f} | {m.support:>7} | {q_str:>15}"
-                    )
-
-        # 3. Non-Scored Categories
+        # 4. Non-Scored Categories
         lines.extend(
             [
                 "",
@@ -320,6 +424,188 @@ class CUADEvaluationReport:
             ]
         )
         return "\n".join(lines)
+
+
+def format_markdown_report_tables(report: CUADEvaluationReport) -> str:
+    """Formats markdown tables for inclusion in the research note."""
+    md_lines: list[str] = []
+
+    # 3.1 Value Categories
+    md_lines.extend(
+        [
+            "### 3.1 Value Categories (Normalized Value Matching)",
+            "",
+            (
+                "| Category | Precision | Prec 95% CI | Recall | Rec 95% CI | F1 | "
+                "TP | FP | FN | Support | Quote Found | Notes |"
+            ),
+            (
+                "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | "
+                ":---: | :---: | :---: | :--- |"
+            ),
+        ]
+    )
+    for cat in VALUE_CATEGORIES:
+        if cat in report.category_metrics:
+            m = report.category_metrics[cat]
+            notes = "too few to judge" if m.is_too_few_to_judge else "-"
+            if m.support == 0:
+                md_lines.append(
+                    f"| **{m.category}** | not evaluated | n/a | not evaluated | n/a | - | "
+                    f"{m.true_positives} | {m.false_positives} | {m.false_negatives} | "
+                    f"{m.support} | - | {notes} |"
+                )
+            else:
+                tot_pred = m.true_positives + m.false_positives
+                tot_gt = m.true_positives + m.false_negatives
+                p_str = (
+                    f"{m.precision:.2f} ({m.true_positives}/{tot_pred})"
+                    if tot_pred > 0
+                    else f"{m.precision:.2f} (0/0)"
+                )
+                p_ci = format_wilson_interval(m.true_positives, tot_pred)
+                r_str = (
+                    f"{m.recall:.2f} ({m.true_positives}/{tot_gt})"
+                    if tot_gt > 0
+                    else f"{m.recall:.2f} (0/0)"
+                )
+                r_ci = format_wilson_interval(m.true_positives, tot_gt)
+                q_str = (
+                    f"{m.quote_found_rate * 100:.1f}% ({m.quotes_found}/{m.quotes_total})"
+                    if m.quotes_total > 0
+                    else "N/A"
+                )
+                cat_label = (
+                    f"**{m.category} (Alias-Aware)**"
+                    if m.category == "Parties"
+                    else f"**{m.category}**"
+                )
+                md_lines.append(
+                    f"| {cat_label} | {p_str} | {p_ci} | {r_str} | {r_ci} | {m.f1:.2f} | "
+                    f"{m.true_positives} | {m.false_positives} | {m.false_negatives} | "
+                    f"{m.support} | {q_str} | {notes} |"
+                )
+
+    total_lit = sum(m.literal_template_strings for m in report.category_metrics.values())
+    if total_lit > 0:
+        md_lines.extend(
+            [
+                "",
+                (
+                    "*Literal template strings detected in responses "
+                    f"(e.g. `'YYYY-MM-DD'`): {total_lit}.*"
+                ),
+            ]
+        )
+
+    # 3.2 Clause Categories: Span Extraction
+    md_lines.extend(
+        [
+            "",
+            "### 3.2 Clause Categories: Span Extraction (Token-F1 >= 0.5)",
+            "",
+            (
+                "| Category | Precision | Prec 95% CI | Recall | Rec 95% CI | F1 | "
+                "TP | FP | FN | Support | Quote In Text | Notes |"
+            ),
+            (
+                "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | "
+                ":---: | :---: | :---: | :--- |"
+            ),
+        ]
+    )
+    for cat in CLAUSE_CATEGORIES:
+        if cat in report.category_metrics:
+            m = report.category_metrics[cat]
+            tot_span_pred = m.true_positives + m.false_positives
+            tot_span_gt = m.true_positives + m.false_negatives
+            sp_str = (
+                f"{m.precision:.2f} ({m.true_positives}/{tot_span_pred})"
+                if tot_span_pred > 0
+                else f"{m.precision:.2f} (0/0)"
+            )
+            sp_ci = format_wilson_interval(m.true_positives, tot_span_pred)
+            sr_str = (
+                f"{m.recall:.2f} ({m.true_positives}/{tot_span_gt})"
+                if tot_span_gt > 0
+                else f"{m.recall:.2f} (0/0)"
+            )
+            sr_ci = format_wilson_interval(m.true_positives, tot_span_gt)
+            q_str = (
+                f"{m.quote_found_rate * 100:.1f}% ({m.quotes_found}/{m.quotes_total})"
+                if m.quotes_total > 0
+                else "N/A"
+            )
+            notes = "too few to judge" if m.is_too_few_to_judge else "-"
+            if m.support == 0:
+                md_lines.append(
+                    f"| **{m.category}** | not evaluated | n/a | not evaluated | n/a | - | "
+                    f"{m.true_positives} | {m.false_positives} | {m.false_negatives} | "
+                    f"{m.support} | {q_str} | {notes} |"
+                )
+            else:
+                md_lines.append(
+                    f"| **{m.category}** | {sp_str} | {sp_ci} | {sr_str} | {sr_ci} | "
+                    f"{m.f1:.2f} | {m.true_positives} | {m.false_positives} | "
+                    f"{m.false_negatives} | {m.support} | {q_str} | {notes} |"
+                )
+
+    # 3.3 Clause Categories: Contract Presence
+    md_lines.extend(
+        [
+            "",
+            "### 3.3 Clause Categories: Contract Presence",
+            "",
+            (
+                "| Category | Precision | Prec 95% CI | Recall | Rec 95% CI | F1 | "
+                "TP | FP | FN | Support | Notes |"
+            ),
+            (
+                "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | "
+                ":---: | :---: | :--- |"
+            ),
+        ]
+    )
+    for cat in CLAUSE_CATEGORIES:
+        if cat in report.category_metrics:
+            m = report.category_metrics[cat]
+            tot_pres_pred = m.presence_tp + m.presence_fp
+            tot_pres_gt = m.presence_tp + m.presence_fn
+            pp_str = (
+                f"{m.presence_precision:.2f} ({m.presence_tp}/{tot_pres_pred})"
+                if tot_pres_pred > 0
+                else f"{m.presence_precision:.2f} (0/0)"
+            )
+            pp_ci = format_wilson_interval(m.presence_tp, tot_pres_pred)
+            pr_str = (
+                f"{m.presence_recall:.2f} ({m.presence_tp}/{tot_pres_gt})"
+                if tot_pres_gt > 0
+                else f"{m.presence_recall:.2f} (0/0)"
+            )
+            pr_ci = format_wilson_interval(m.presence_tp, tot_pres_gt)
+            notes = "too few to judge" if m.is_too_few_to_judge else "-"
+            md_lines.append(
+                f"| **{m.category}** | {pp_str} | {pp_ci} | {pr_str} | {pr_ci} | "
+                f"{m.presence_f1:.2f} | {m.presence_tp} | {m.presence_fp} | "
+                f"{m.presence_fn} | {tot_pres_gt} | {notes} |"
+            )
+
+    # 3.4 Non-Scored Categories
+    md_lines.extend(
+        [
+            "",
+            "### 3.4 Non-Scored Categories",
+            "",
+            "| Category | Status |",
+            "| :--- | :--- |",
+        ]
+    )
+    for cat in NON_SCORED_CATEGORIES:
+        md_lines.append(
+            f"| **{cat}** | not scored automatically (free-text human adjudication required) |"
+        )
+
+    return "\n".join(md_lines)
 
 
 def normalize_text(text: str) -> str:
