@@ -79,7 +79,7 @@ event-level benchmark). The wedge in `ENTERPRISE_PLAN.md` Part 0.2 is a hypothes
 choice. [T-222](T-222-assertions-must-be-idempotent-on-retry.md) (assertion retry-safety) follows T-218.
 [T-225](T-225-stop-alembic-disabling-app-loggers.md) (`alembic/env.py` logger config, tracked generated Playwright files) follows T-218's merge.
 [T-221](T-221-frontend-design-pass.md) (`frontend/**`, design tokens, graph explorer, restrained motion) waits on the reviewer's look at the Penpot boards.
-[T-227](T-227-cuad-capped-extraction-measurement.md) (`evals/cuad/**`, a capped measurement of Gemini extraction on CUAD, scoring fixed first) and the [T-223 interview guide](../../research/t223-interview-guide.md) are the next two items; no new feature ticket starts before interviews give a signal.
+[T-227](T-227-cuad-capped-extraction-measurement.md) (`evals/cuad/**`, a capped measurement of extraction on CUAD; **done 2026-10-10**, run on a free open model, results note in `docs/research/`) and the [T-223 interview guide](../../research/t223-interview-guide.md) are the next two items; no new feature ticket starts before interviews give a signal.
 
 Two agents at once need separate git worktrees; they share one checkout otherwise, and a
 branch switch by one silently moves the other's commits.
@@ -174,3 +174,5 @@ a ticket.
 - 2026-09-21: T-904 wave 1 approved as a 10-document pilot capped at 40 paid reviewer hours.
 - 2026-09-30: `uv.lock` stays tracked and CI installs from it with `uv sync --locked` ([T-226](T-226-ci-installs-from-uv-lock.md)); a dependency change without a regenerated lock fails CI.
 - 2026-09-30: agents and reviewer use separate git worktrees. The implementing agent keeps `S:\semanticgraph-cloud`; the reviewer works in `C:\sgr` (detached, own `.venv`); docs are edited in `S:\sg-docs`.
+- 2026-10-10: [T-227](T-227-cuad-capped-extraction-measurement.md) done. Headline, with the limits stated in the note: on 30 public contracts a free open 120B model finds dates, governing law, parties and three clause types usably, and misses most liability-cap, non-compete and uncapped-liability clauses (found in 6/16, 4/8 and 4/8 contracts). No figure may be quoted as product accuracy.
+- 2026-10-10: [T-228](T-228-real-stack-demo-persistence-and-truthful-labelling.md) drafted, not started: the demo runs on Postgres and says what produced its output. [T-229](T-229-dev-only-open-model-extractor.md) drafted behind a founder decision (guarded evaluation-endpoint extractor, or wait for a paid key).

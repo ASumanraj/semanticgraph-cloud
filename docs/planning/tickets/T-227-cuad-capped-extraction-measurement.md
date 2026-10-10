@@ -324,5 +324,7 @@ per the design correction above. The Parties figure is reported twice (exact nam
 chunking". It does not: the ingest chunker splits on blank lines only, with no size cap. The note is corrected. This is
 recorded as an input to T-228 below.
 
+**Not independently verified by the reviewer:** that each of the four defect tests fails on the pre-fix code (the tests exist and pass; the old code was not restored to confirm they fail on it).
+
 Outputs: the harness (`evals/cuad/**`), `docs/research/cuad-extraction-measurement-2026-10.md`. Parked: the same frozen
 prompt on the production model under a ledger-backed dollar cap, which needs an Anthropic key with billing.
