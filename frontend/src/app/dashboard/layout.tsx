@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sidebar } from '@/components/Sidebar';
+import { StatusBanner } from '@/components/StatusBanner';
 import { ChevronRight } from 'lucide-react';
 
 export default function DashboardLayout({
@@ -14,7 +15,7 @@ export default function DashboardLayout({
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
-        <header className="h-14 flex items-center justify-between px-6 border-b border-border bg-page/80 backdrop-blur-md sticky top-0 z-10">
+        <header className="h-14 flex items-center justify-between px-6 border-b border-border bg-page/80 backdrop-blur-md sticky top-0 z-10 shrink-0">
           <div className="flex items-center text-sm text-muted">
             <span className="font-medium text-text">SemanticGraph</span>
             <ChevronRight className="w-4 h-4 mx-1" />
@@ -27,6 +28,9 @@ export default function DashboardLayout({
             </div>
           </div>
         </header>
+
+        {/* Status Banner (T-228 truthful labeling) */}
+        <StatusBanner />
 
         {/* Page Content */}
         <div className="flex-1 overflow-auto bg-page">

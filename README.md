@@ -37,11 +37,28 @@ pytest -q
 ruff check .
 ```
 
-Frontend:
-
 ```bash
 cd frontend && npm ci && npm run dev
 ```
+
+### Running the Real Postgres Stack (T-228 Demo)
+
+To run the complete system with durable PostgreSQL persistence, Celery background worker, and Next.js console:
+
+```bash
+docker compose -p semanticgraph-real -f docker-compose.real.yml up -d --build
+```
+
+Services and mapped ports:
+- **API**: `http://localhost:8013` (health check: `/health`, system status: `/api/v1/system`)
+- **Frontend**: `http://localhost:3013`
+- **PostgreSQL**: `localhost:5433` (user: `user`, password: `password`, db: `semanticgraph`)
+- **Redis**: `localhost:6380`
+
+Migrations execute automatically via `alembic upgrade head` before the API accepts traffic.
+
+> [!WARNING]
+> **Authentication Note:** The unsigned `X-Tenant-ID` request header is a developmental tenant context carrier and does **not** constitute authentication (formal authentication and identity verification land in Stage 5).
 
 ## Layout
 
