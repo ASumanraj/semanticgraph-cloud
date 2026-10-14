@@ -35,10 +35,12 @@ test.describe('Capture T-228 Screenshots with Status Banner', () => {
     }
 
     // 1440px Upload page / explorer top bar
-    await page.screenshot({
-      path: path.join(screenshotsDir, '1440-upload-page.png'),
-      fullPage: false,
-    });
+    if (targetBase) {
+      await page.screenshot({
+        path: path.join(screenshotsDir, '1440-upload-page.png'),
+        fullPage: false,
+      });
+    }
 
     // Ingest a document if nodes aren't already visible
     const nodeCount = await explorerPage.nodes.count();
@@ -62,10 +64,12 @@ test.describe('Capture T-228 Screenshots with Status Banner', () => {
     await expect(page.getByText('Grounded Provenance')).toBeVisible({ timeout: 5_000 });
 
     // 1440px Selected node screenshot
-    await page.screenshot({
-      path: path.join(screenshotsDir, '1440-selected-node.png'),
-      fullPage: false,
-    });
+    if (targetBase) {
+      await page.screenshot({
+        path: path.join(screenshotsDir, '1440-selected-node.png'),
+        fullPage: false,
+      });
+    }
 
     // --- 390px Viewport (Mobile) ---
     await page.setViewportSize({ width: 390, height: 844 });
@@ -79,10 +83,12 @@ test.describe('Capture T-228 Screenshots with Status Banner', () => {
     }
 
     // 390px Upload page screenshot
-    await page.screenshot({
-      path: path.join(screenshotsDir, '390-upload-page.png'),
-      fullPage: false,
-    });
+    if (targetBase) {
+      await page.screenshot({
+        path: path.join(screenshotsDir, '390-upload-page.png'),
+        fullPage: false,
+      });
+    }
 
     // Select node on mobile
     await expect(explorerPage.nodes.first()).toBeVisible({ timeout: 10_000 });
@@ -90,9 +96,11 @@ test.describe('Capture T-228 Screenshots with Status Banner', () => {
     await expect(page.getByText('Grounded Provenance')).toBeVisible({ timeout: 5_000 });
 
     // 390px Selected node screenshot
-    await page.screenshot({
-      path: path.join(screenshotsDir, '390-selected-node.png'),
-      fullPage: false,
-    });
+    if (targetBase) {
+      await page.screenshot({
+        path: path.join(screenshotsDir, '390-selected-node.png'),
+        fullPage: false,
+      });
+    }
   });
 });

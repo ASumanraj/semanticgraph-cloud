@@ -722,7 +722,7 @@ test.describe('Graph Explorer', () => {
         (res) => res.url().includes('/api/v1/graph') && res.url().includes('query=') && res.status() === 200,
         { timeout: 15_000 }
       ),
-      firstNode.dblclick(),
+      firstNode.dblclick({ force: true }),
     ]);
     expect(expandResponse.status()).toBe(200);
     await expect(page.getByTestId('expand-error')).not.toBeVisible();
