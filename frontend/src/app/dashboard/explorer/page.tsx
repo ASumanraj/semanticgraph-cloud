@@ -11,12 +11,9 @@ export default function ExplorerPage() {
             <h1 className="text-sm sm:text-base font-bold text-text tracking-tight whitespace-nowrap">
               Semantic Graph Explorer
             </h1>
-            <span className="text-[10px] font-mono text-teal bg-teal/10 px-2 py-0.5 rounded border border-teal/30 shrink-0">
-              Ontology-constrained
-            </span>
           </div>
           <p className="text-muted text-[11px] hidden sm:block truncate mt-0.5">
-            Extract entities and relationships linked to exact source text, explore connected subgraphs, and verify character-level provenance.
+            Explore connected subgraphs and inspect character-level provenance spans from source text.
           </p>
         </div>
 

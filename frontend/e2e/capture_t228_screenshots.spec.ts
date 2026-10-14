@@ -21,10 +21,18 @@ test.describe('Capture T-228 Screenshots with Status Banner', () => {
 
     // --- 1440px Viewport ---
     await page.setViewportSize({ width: 1440, height: 900 });
-    await banner.goto();
+    const targetBase = process.env.PLAYWRIGHT_BASE_URL;
+    if (targetBase) {
+      await page.goto(`${targetBase}/dashboard/explorer`);
+    } else {
+      await banner.goto();
+    }
 
     await expect(banner.banner).toBeVisible({ timeout: 10_000 });
     await expect(banner.placeholderBadge).toBeVisible();
+    if (targetBase) {
+      await expect(banner.banner.getByText('Storage: Postgres durable')).toBeVisible();
+    }
 
     // 1440px Upload page / explorer top bar
     await page.screenshot({
@@ -66,6 +74,9 @@ test.describe('Capture T-228 Screenshots with Status Banner', () => {
 
     await expect(banner.banner).toBeVisible({ timeout: 10_000 });
     await expect(banner.placeholderBadge).toBeVisible();
+    if (targetBase) {
+      await expect(banner.banner.getByText('Storage: Postgres durable')).toBeVisible();
+    }
 
     // 390px Upload page screenshot
     await page.screenshot({

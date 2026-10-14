@@ -14,7 +14,9 @@ import httpx
 import psycopg
 
 API_URL = "http://localhost:8013"
-DB_URL = "postgresql://user:password@localhost:5433/semanticgraph"
+ADMIN_DB_URL = "postgresql://user:password@localhost:5433/semanticgraph"
+APP_DB_URL = "postgresql://semanticgraph_app:semanticgraph_app@localhost:5433/semanticgraph"
+DB_URL = ADMIN_DB_URL
 TENANT_A = "10000000-0000-0000-0000-000000000001"
 TENANT_B = "20000000-0000-0000-0000-000000000002"
 
@@ -51,6 +53,12 @@ def wait_for_document_processed(tenant_id: str, doc_id: str, timeout: float = 30
 
 def run_checks():
     wait_for_api()
+    # Ensure fresh state for reproducible assertions
+    with psycopg.connect(ADMIN_DB_URL, autocommit=True) as conn, conn.cursor() as cur:
+        cur.execute(
+            "TRUNCATE TABLE edges, entities, evidence_spans, assertions, "
+            "facts, semantic_chunks, documents CASCADE;"
+        )
     print("=" * 70)
     print("T-228 REAL STACK END-TO-END CHECKS")
     print("=" * 70)
@@ -206,22 +214,99 @@ def run_checks():
     print("\n>>> CHECK 2 PASSED: Graph survives api/worker restart with identical node IDs.")
 
     # -------------------------------------------------------------
-    # CHECK 3: Isolation over HTTP
+    # CHECK 3: Isolation over HTTP and SQL RLS (Non-Owner Role)
     # -------------------------------------------------------------
-    print("\n--- CHECK 3: Isolation over HTTP ---")
+    print("\n--- CHECK 3: Isolation over HTTP and SQL RLS (semanticgraph_app) ---")
     res_b_graph = client.get("/api/v1/graph", headers={"X-Tenant-ID": TENANT_B})
     assert res_b_graph.status_code == 200
     b_nodes = res_b_graph.json().get("nodes", [])
     b_edges = res_b_graph.json().get("edges", [])
-    print(f"Tenant B graph: {len(b_nodes)} nodes, {len(b_edges)} edges")
+    print(f"Tenant B HTTP graph: {len(b_nodes)} nodes, {len(b_edges)} edges")
     assert b_nodes == [] and b_edges == [], "Tenant B graph must be empty!"
 
     res_b_doc = client.delete(f"/api/v1/documents/{doc1_id}", headers={"X-Tenant-ID": TENANT_B})
     print(
-        f"Tenant B access to Tenant A doc: Status {res_b_doc.status_code}, Body: {res_b_doc.json()}"
+        f"Tenant B HTTP access to Tenant A doc: Status {res_b_doc.status_code}, "
+        f"Body: {res_b_doc.json()}"
     )
     assert res_b_doc.status_code == 404, "Tenant B must receive 404 for Tenant A's document!"
-    print("\n>>> CHECK 3 PASSED: Second tenant sees empty graph and gets 404 on first tenant doc.")
+
+    # SQL RLS Check 3a: As semanticgraph_app with NO tenant context set, all queries return 0 rows
+    print("\n[SQL RLS as semanticgraph_app without app.current_tenant_id context]")
+    with psycopg.connect(APP_DB_URL) as app_conn, app_conn.cursor() as cur:
+        # Check current user to confirm connected as semanticgraph_app
+        cur.execute("SELECT current_user, session_user;")
+        u_row = cur.fetchone()
+        print(f"  Connected DB role: current_user={u_row[0]}, session_user={u_row[1]}")
+        assert u_row[0] == "semanticgraph_app", f"Must be semanticgraph_app, got {u_row[0]}"
+
+        # Query all tables without setting tenant context
+        cur.execute("SELECT count(*) FROM documents;")
+        doc_count_no_tenant = cur.fetchone()[0]
+        cur.execute("SELECT count(*) FROM semantic_chunks;")
+        chunk_count_no_tenant = cur.fetchone()[0]
+        cur.execute("SELECT count(*) FROM entities;")
+        entity_count_no_tenant = cur.fetchone()[0]
+        cur.execute("SELECT count(*) FROM edges;")
+        edge_count_no_tenant = cur.fetchone()[0]
+
+        print(
+            f"  SELECT count(*) FROM documents:       {doc_count_no_tenant} (expected 0)\n"
+            f"  SELECT count(*) FROM semantic_chunks: {chunk_count_no_tenant} (expected 0)\n"
+            f"  SELECT count(*) FROM entities:        {entity_count_no_tenant} (expected 0)\n"
+            f"  SELECT count(*) FROM edges:           {edge_count_no_tenant} (expected 0)"
+        )
+        assert (
+            doc_count_no_tenant == 0
+            and chunk_count_no_tenant == 0
+            and entity_count_no_tenant == 0
+            and edge_count_no_tenant == 0
+        ), "CRITICAL: RLS failed! Non-owner role semanticgraph_app saw rows without tenant context!"
+        print("  -> Verified: zero rows visible when no tenant context is set.")
+
+    # SQL RLS Check 3b: With SET LOCAL app.current_tenant_id = TENANT_B, returns 0 rows
+    print("\n[SQL RLS as semanticgraph_app with SET LOCAL app.current_tenant_id = TENANT_B]")
+    with psycopg.connect(APP_DB_URL) as app_conn, app_conn.cursor() as cur:
+        cur.execute(f"SET LOCAL app.current_tenant_id = '{TENANT_B}';")
+        cur.execute("SELECT count(*) FROM documents;")
+        doc_count_tb = cur.fetchone()[0]
+        cur.execute("SELECT count(*) FROM entities;")
+        entity_count_tb = cur.fetchone()[0]
+        cur.execute("SELECT count(*) FROM edges;")
+        edge_count_tb = cur.fetchone()[0]
+        print(
+            f"  Tenant B SQL context:\n"
+            f"    documents: {doc_count_tb} (expected 0)\n"
+            f"    entities:  {entity_count_tb} (expected 0)\n"
+            f"    edges:     {edge_count_tb} (expected 0)"
+        )
+        assert doc_count_tb == 0 and entity_count_tb == 0 and edge_count_tb == 0
+
+    # SQL RLS Check 3c: With SET LOCAL app.current_tenant_id = TENANT_A, returns Tenant A rows
+    print("\n[SQL RLS as semanticgraph_app with SET LOCAL app.current_tenant_id = TENANT_A]")
+    with psycopg.connect(APP_DB_URL) as app_conn, app_conn.cursor() as cur:
+        cur.execute(f"SET LOCAL app.current_tenant_id = '{TENANT_A}';")
+        cur.execute("SELECT count(*) FROM documents;")
+        doc_count_ta = cur.fetchone()[0]
+        cur.execute("SELECT count(*) FROM semantic_chunks;")
+        chunk_count_ta = cur.fetchone()[0]
+        cur.execute("SELECT count(*) FROM entities;")
+        entity_count_ta = cur.fetchone()[0]
+        cur.execute("SELECT count(*) FROM edges;")
+        edge_count_ta = cur.fetchone()[0]
+        print(
+            f"  Tenant A SQL context:\n"
+            f"    documents:       {doc_count_ta} (expected 1)\n"
+            f"    semantic_chunks: {chunk_count_ta} (expected 2)\n"
+            f"    entities:        {entity_count_ta} (expected > 0)\n"
+            f"    edges:           {edge_count_ta} (expected > 0)"
+        )
+        assert doc_count_ta == 1 and chunk_count_ta == 2 and entity_count_ta > 0
+
+    print(
+        "\n>>> CHECK 3 PASSED: Tenant B isolated via HTTP and SQL RLS "
+        "(zero rows without tenant context)."
+    )
 
     # -------------------------------------------------------------
     # CHECK 4: Deletion & Rule 4 assertion count cascade

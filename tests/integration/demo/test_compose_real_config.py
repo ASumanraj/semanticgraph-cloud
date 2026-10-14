@@ -60,10 +60,32 @@ def test_docker_compose_real_postgres_profile_and_migration():
     assert api_env.get("SEMANTICGRAPH_ADAPTERS") == "postgres"
     assert worker_env.get("SEMANTICGRAPH_ADAPTERS") == "postgres"
 
-    # API must run alembic upgrade head before starting uvicorn
+    # API and worker must connect as non-owner semanticgraph_app (RLS enforcement)
+    api_db_url = api_env.get("DATABASE_URL", "")
+    worker_db_url = worker_env.get("DATABASE_URL", "")
+    assert "semanticgraph_app:semanticgraph_app" in api_db_url, (
+        "api must connect as semanticgraph_app, not superuser"
+    )
+    assert "semanticgraph_app:semanticgraph_app" in worker_db_url, (
+        "worker must connect as semanticgraph_app, not superuser"
+    )
+
+    # Admin database URL must be configured for alembic migrations
+    admin_db_url = api_env.get("ADMIN_DATABASE_URL", "")
+    assert "user:password" in admin_db_url, "ADMIN_DATABASE_URL must connect with admin credentials"
+
+    # API must run alembic upgrade head with ADMIN_DATABASE_URL before starting uvicorn
     api_cmd = api.get("command", "")
     assert "alembic upgrade head" in api_cmd, "api must run alembic upgrade head before starting"
     assert "uvicorn" in api_cmd, "api must start uvicorn after migration"
+    assert "DATABASE_URL=$$ADMIN_DATABASE_URL" in api_cmd, (
+        "api must run alembic using ADMIN_DATABASE_URL"
+    )
+
+    # Must NOT have runtime pip install (dependencies must be declared in pyproject.toml)
+    worker_cmd = worker.get("command", "")
+    assert "pip install" not in api_cmd, "api must not run runtime pip install"
+    assert "pip install" not in worker_cmd, "worker must not run runtime pip install"
 
 
 def test_docker_compose_real_frontend_points_to_real_api():
@@ -76,4 +98,6 @@ def test_docker_compose_real_frontend_points_to_real_api():
     if isinstance(fe_env, list):
         fe_env = dict(e.split("=", 1) for e in fe_env if "=" in e)
 
-    assert fe_env.get("NEXT_PUBLIC_API_URL") == "http://localhost:8013"
+    assert fe_env.get("BACKEND_API_URL") == "http://api:8000", (
+        "frontend must point BACKEND_API_URL to api:8000 for server-side proxy rewrites"
+    )

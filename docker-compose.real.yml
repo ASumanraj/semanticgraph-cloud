@@ -27,7 +27,7 @@ services:
     build:
       context: .
       dockerfile: api.Dockerfile
-    command: sh -c "pip install --no-cache-dir greenlet && alembic upgrade head && uvicorn semanticgraph.adapters.inbound.api.app:app --host 0.0.0.0 --port 8000"
+    command: sh -c "DATABASE_URL=$$ADMIN_DATABASE_URL alembic upgrade head && uvicorn semanticgraph.adapters.inbound.api.app:app --host 0.0.0.0 --port 8000"
     volumes:
       - ./alembic:/app/alembic
       - ./alembic.ini:/app/alembic.ini
@@ -36,7 +36,8 @@ services:
     environment:
       - SEMANTICGRAPH_ADAPTERS=postgres
       - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql://user:password@postgres:5432/semanticgraph
+      - DATABASE_URL=postgresql://semanticgraph_app:semanticgraph_app@postgres:5432/semanticgraph
+      - ADMIN_DATABASE_URL=postgresql://user:password@postgres:5432/semanticgraph
     depends_on:
       postgres:
         condition: service_healthy
@@ -52,11 +53,11 @@ services:
     build:
       context: .
       dockerfile: api.Dockerfile
-    command: sh -c "pip install --no-cache-dir greenlet && celery -A semanticgraph.adapters.inbound.workers.celery_app worker --loglevel=info"
+    command: celery -A semanticgraph.adapters.inbound.workers.celery_app worker --loglevel=info
     environment:
       - SEMANTICGRAPH_ADAPTERS=postgres
       - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql://user:password@postgres:5432/semanticgraph
+      - DATABASE_URL=postgresql://semanticgraph_app:semanticgraph_app@postgres:5432/semanticgraph
       - C_FORCE_ROOT=true
     depends_on:
       postgres:
@@ -74,7 +75,6 @@ services:
     ports:
       - "3013:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8013
       - BACKEND_API_URL=http://api:8000
     depends_on:
       api:
