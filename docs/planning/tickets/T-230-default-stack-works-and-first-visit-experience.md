@@ -1,6 +1,6 @@
 # T-230 · The default stack works out of the box, and a first visit explains itself
 
-**Stage** 3 · **Type** work · **Status** open · **Owner** — · **Branch** `t-230-default-stack-first-visit`
+**Stage** 3 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-230-default-stack-first-visit`
 
 **Scope**
 - `docker-compose.yml`, `frontend.Dockerfile`, `frontend/next.config.ts`
