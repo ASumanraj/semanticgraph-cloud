@@ -47,23 +47,23 @@ honest labelling only**.
 
 ## End-to-end checks (all required; real infrastructure, not fakes)
 
-- [ ] **Rows by SQL.** Post a synthetic contract to `POST /api/v1/documents/ingest`, wait for the worker, then query
+- [x] **Rows by SQL.** Post a synthetic contract to `POST /api/v1/documents/ingest`, wait for the worker, then query
   Postgres directly: `documents`, `semantic_chunks`, `entities`, `edges`, `evidence_spans` have rows, each with the
   right `tenant_id`, non-null `chunk_id` and span offsets, and the stored quote equals the source substring at those
   offsets.
-- [ ] **Restart persistence.** `docker compose restart api worker`; `GET /api/v1/graph` returns the same node ids.
-- [ ] **Isolation over HTTP.** A second tenant id sees an empty graph and gets 404 for the first tenant's document.
-- [ ] **Deletion.** `DELETE /api/v1/documents/{id}`; SQL shows the document's chunks, assertions and entities gone and
+- [x] **Restart persistence.** `docker compose restart api worker`; `GET /api/v1/graph` returns the same node ids.
+- [x] **Isolation over HTTP.** A second tenant id sees an empty graph and gets 404 for the first tenant's document.
+- [x] **Deletion.** `DELETE /api/v1/documents/{id}`; SQL shows the document's chunks, assertions and entities gone and
   a fact asserted by a second document still present.
-- [ ] **Idempotent retry.** Ingesting the same file twice does not duplicate assertions (T-222 behaviour, proven on the
+- [x] **Idempotent retry.** Ingesting the same file twice does not duplicate assertions (T-222 behaviour, proven on the
   running stack).
-- [ ] **Truthful label.** Playwright, in a real browser against this stack: upload, then assert the banner reads
+- [x] **Truthful label.** Playwright, in a real browser against this stack: upload, then assert the banner reads
   "Placeholder extractor" and that the page never shows an entity name from the placeholder extractor without the
   banner present. A second test stubs `/system` as `model` and asserts the model id and evaluation-terms line.
-- [ ] **Status fails safe.** With `/system` returning 500 the banner shows "status unavailable".
-- [ ] Screenshots of the upload page and the explorer with a selected node, at 1440 and 390 px, with the banner,
+- [x] **Status fails safe.** With `/system` returning 500 the banner shows "status unavailable".
+- [x] Screenshots of the upload page and the explorer with a selected node, at 1440 and 390 px, with the banner,
   attached to the PR.
-- [ ] `ruff check .` and `ruff format --check .` clean; fast suite, isolation proofs and control-plane proofs green;
+- [x] `ruff check .` and `ruff format --check .` clean; fast suite, isolation proofs and control-plane proofs green;
   frontend lint, build and E2E green; CI green.
 
 ## Documents allowed

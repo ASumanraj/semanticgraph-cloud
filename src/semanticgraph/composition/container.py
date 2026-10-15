@@ -80,6 +80,7 @@ class Container:
     audit_log: Any = None
     quota_enforcer: Any = None
     llm_provider: str = "deterministic"
+    profile: str = "inmemory"
 
     def __post_init__(self) -> None:
         if self.quota_enforcer is None:
@@ -116,6 +117,46 @@ class Container:
         if hasattr(self.llm_gateway, "inner"):
             return self.llm_gateway.inner
         return self.llm_gateway
+
+    @property
+    def persistent(self) -> bool:
+        """True if the container uses persistent storage (Postgres), False if in-memory."""
+        return self.profile == "postgres"
+
+    def describe_system(self) -> dict[str, Any]:
+        """Returns a read-only description of the active profile and extractor (T-228)."""
+        from semanticgraph.adapters.outbound.inmemory.llm_gateway import (
+            DeterministicLLMGateway,
+        )
+
+        raw = self.raw_llm_gateway
+        # kind is placeholder exactly when the deterministic gateway is the one in use
+        if isinstance(raw, DeterministicLLMGateway):
+            extractor: dict[str, Any] = {
+                "kind": "placeholder",
+                "model_id": None,
+                "terms": None,
+            }
+        else:
+            model_id = (
+                getattr(raw, "model_id", None)
+                or getattr(getattr(raw, "config", None), "model_id", None)
+                or getattr(self.llm_gateway, "model", None)
+            )
+            terms = getattr(raw, "terms", None) or getattr(
+                getattr(raw, "config", None), "terms", None
+            )
+            extractor = {
+                "kind": "model",
+                "model_id": model_id,
+                "terms": terms,
+            }
+
+        return {
+            "profile": self.profile,
+            "persistent": self.persistent,
+            "extractor": extractor,
+        }
 
     @classmethod
     def in_memory(cls, routing: ModelRouting | None = None) -> Container:
@@ -165,6 +206,7 @@ class Container:
             audit_log=audit_log,
             quota_enforcer=quota_enforcer,
             llm_provider="deterministic",
+            profile="inmemory",
         )
 
     @classmethod
@@ -274,6 +316,7 @@ class Container:
             audit_log=audit_log,
             quota_enforcer=quota_enforcer,
             llm_provider=llm_provider,
+            profile="postgres",
         )
 
     @classmethod
