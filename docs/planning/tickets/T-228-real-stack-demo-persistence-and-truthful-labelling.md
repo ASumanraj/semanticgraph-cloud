@@ -1,10 +1,6 @@
 # T-228 · The demo runs on Postgres and says what produced its output
 
-<<<<<<< HEAD
 **Stage** 3 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-228-real-stack-demo`
-=======
-**Stage** 3 · **Type** work · **Status** done · **Owner** — · **Branch** `t-228-real-stack-demo`
->>>>>>> c273e36 (docs: T-227 accepted and closed, results note corrected on chunker; T-228 and T-229 drafted, not started)
 
 **Scope**
 - `docker-compose.real.yml` (new; the existing `docker-compose.yml` is not edited)
@@ -51,7 +47,6 @@ honest labelling only**.
 
 ## End-to-end checks (all required; real infrastructure, not fakes)
 
-<<<<<<< HEAD
 - [x] **Rows by SQL.** Post a synthetic contract to `POST /api/v1/documents/ingest`, wait for the worker, then query
   Postgres directly: `documents`, `semantic_chunks`, `entities`, `edges`, `evidence_spans` have rows, each with the
   right `tenant_id`, non-null `chunk_id` and span offsets, and the stored quote equals the source substring at those
@@ -69,25 +64,6 @@ honest labelling only**.
 - [x] Screenshots of the upload page and the explorer with a selected node, at 1440 and 390 px, with the banner,
   attached to the PR.
 - [x] `ruff check .` and `ruff format --check .` clean; fast suite, isolation proofs and control-plane proofs green;
-=======
-- [x] **Rows by SQL.** Post a synthetic contract to `POST /api/v1/documents/ingest`, wait for the worker, then query
-  Postgres directly: `documents`, `semantic_chunks`, `entities`, `edges`, `evidence_spans` have rows, each with the
-  right `tenant_id`, non-null `chunk_id` and span offsets, and the stored quote equals the source substring at those
-  offsets.
-- [x] **Restart persistence.** `docker compose restart api worker`; `GET /api/v1/graph` returns the same node ids.
-- [x] **Isolation over HTTP.** A second tenant id sees an empty graph and gets 404 for the first tenant's document.
-- [x] **Deletion.** `DELETE /api/v1/documents/{id}`; SQL shows the document's chunks, assertions and entities gone and
-  a fact asserted by a second document still present.
-- [x] **Idempotent retry.** Ingesting the same file twice does not duplicate assertions (T-222 behaviour, proven on the
-  running stack).
-- [x] **Truthful label.** Playwright, in a real browser against this stack: upload, then assert the banner reads
-  "Placeholder extractor" and that the page never shows an entity name from the placeholder extractor without the
-  banner present. A second test stubs `/system` as `model` and asserts the model id and evaluation-terms line.
-- [x] **Status fails safe.** With `/system` returning 500 the banner shows "status unavailable".
-- [x] Screenshots of the upload page and the explorer with a selected node, at 1440 and 390 px, with the banner,
-  attached to the PR.
-- [x] `ruff check .` and `ruff format --check .` clean; fast suite, isolation proofs and control-plane proofs green;
->>>>>>> c273e36 (docs: T-227 accepted and closed, results note corrected on chunker; T-228 and T-229 drafted, not started)
   frontend lint, build and E2E green; CI green.
 
 ## Documents allowed
@@ -104,4 +80,4 @@ Synthetic contracts written for the repo only. No customer or founder-supplied f
 
 ## Review (reviewer, 2026-10-15, PR #28 merged)
 
-First submission was rejected: the demo API connected as a Postgres superuser with BYPASSRLS, so the HTTP isolation check proved only app-level filtering; `pip install greenlet` ran at container start with greenlet undeclared; screenshots showed In-Memory; page copy overstated the placeholder output. Fixed in PR #28: api and worker connect as `semanticgraph_app`, migrations use a separate admin URL, greenlet declared and locked, screenshots recaptured, copy corrected. Reviewer rebuilt the stack from the branch: ingest under the non-owner role, rows by SQL with matching spans, second tenant sees an empty graph, no runtime pip install. Not re-verified by the reviewer: the superuser flag query (typo, stack already removed; covered by `test_rls_connected_role.py`) and the recaptured screenshots. Placeholder output still shows self-loop edges; labelled by the banner. A real extractor remains T-229.
+First submission rejected: the demo API connected as a Postgres superuser with BYPASSRLS, so the HTTP isolation check proved only app-level filtering; `pip install greenlet` ran at container start with greenlet undeclared; screenshots showed In-Memory; page copy overstated the placeholder output. Fixed in PR #28: api and worker connect as `semanticgraph_app`, migrations use a separate admin URL, greenlet declared and locked, screenshots recaptured, copy corrected. Reviewer rebuilt the stack from the branch: ingest under the non-owner role, rows by SQL with matching spans, second tenant sees an empty graph, no runtime pip install. Not re-verified: the superuser-flag query (typo, stack already removed; covered by `test_rls_connected_role.py`) and the recaptured screenshots. Placeholder output still shows self-loop edges, labelled by the banner. A real extractor remains T-229.
