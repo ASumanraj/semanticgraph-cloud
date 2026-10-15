@@ -10,7 +10,9 @@
 **Blocked by** [T-228](T-228-real-stack-demo-persistence-and-truthful-labelling.md) and the founder's decision below
 · **Blocks** a demo that shows model extraction
 
-## Decision needed before any work
+## Decision (founder, 2026-10-15): option 1, build it guarded
+
+Original decision text, kept for the record:
 
 The founder has no Anthropic or Google billing, so the only model endpoint available is the free NVIDIA trial
 endpoint. Its terms (read 2026-10) are evaluation only, not production, and inputs may be used to improve NVIDIA
