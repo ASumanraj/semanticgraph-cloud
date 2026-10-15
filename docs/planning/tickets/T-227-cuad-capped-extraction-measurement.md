@@ -1,6 +1,6 @@
 # T-227 · A capped, valid measurement of Gemini clause extraction on CUAD
 
-**Stage** 4 · **Type** work · **Status** claimed · **Owner** Antigravity · **Branch** `t-227-cuad-capped-measurement`
+**Stage** 4 · **Type** work · **Status** done · **Owner** Antigravity · **Branch** `t-227-cuad-capped-measurement`
 
 **Scope**
 - `evals/cuad/**`
@@ -72,13 +72,13 @@ run, state it as a limitation in the results, and do not tune it on the evaluati
 
 ## Acceptance
 
-- [ ] Each of the four defects has a unit test that fails on the current `main` and passes on the fix (cross-contract false match; short-substring false match; empty category reported as "not evaluated"; match rule documented)
-- [ ] `python -m evals.cuad.harness run` (or equivalent, documented in the README) runs the sample, enforces both caps, resumes after an interruption, and scores offline from the saved predictions
-- [ ] A **smoke run of 3 contracts** is done first and its output shown; **stop and report before the capped run** so scoring can be reviewed on real output
-- [ ] The capped run (30 contracts) completes within the caps, with total calls and tokens reported
-- [ ] A results note in `docs/research/` gives per-category precision, recall, F1, **support**, and a **95% Wilson interval** for precision and recall; categories with support below 10 are marked "too few to judge"; there is **no blended number**; the table cites CUAD (Hendrycks et al., NeurIPS 2021, CC BY 4.0)
-- [ ] The note states, plainly: these figures are **not comparable with published CUAD results** (different metric and sample); CUAD contracts are likely in the model's pretraining data; nothing here says anything about temporal history, isolation, merge decisions or deletion; chunk slicing may cost recall; the sample is 30 contracts
-- [ ] `ruff check .` and `ruff format --check .` clean; full suite green; CI green
+- [x] Each of the four defects has a unit test that fails on the current `main` and passes on the fix (cross-contract false match; short-substring false match; empty category reported as "not evaluated"; match rule documented)
+- [x] `python -m evals.cuad.harness run` (or equivalent, documented in the README) runs the sample, enforces both caps, resumes after an interruption, and scores offline from the saved predictions
+- [x] A **smoke run of 3 contracts** is done first and its output shown; **stop and report before the capped run** so scoring can be reviewed on real output
+- [x] The capped run (30 contracts) completes within the caps, with total calls and tokens reported
+- [x] A results note in `docs/research/` gives per-category precision, recall, F1, **support**, and a **95% Wilson interval** for precision and recall; categories with support below 10 are marked "too few to judge"; there is **no blended number**; the table cites CUAD (Hendrycks et al., NeurIPS 2021, CC BY 4.0)
+- [x] The note states, plainly: these figures are **not comparable with published CUAD results** (different metric and sample); CUAD contracts are likely in the model's pretraining data; nothing here says anything about temporal history, isolation, merge decisions or deletion; chunk slicing may cost recall; the sample is 30 contracts
+- [x] `ruff check .` and `ruff format --check .` clean; full suite green; CI green
 
 ## Notes
 
@@ -307,3 +307,22 @@ skips.
 
 Status stays `claimed` until a small docs-and-formatting follow-up closes these. They can be computed offline from the
 saved predictions.
+
+## Acceptance (recorded after PR #27 merged)
+
+PR #25 (harness, two scoring modes, dev run, 30-contract run), PR #26 (neutral wording) and PR #27 (Wilson intervals,
+"too few to judge" marks, the "What These Numbers Do Not Show" section, `rescore` generating the note's tables) are
+merged. Reviewer's independent checks: every score reproduced from the saved predictions; the intervals recomputed from
+raw counts match; no count changed between note versions; CI green on each PR; main green.
+
+Acceptance ticked as met, with two stated departures from the original ticket text: the model measured is the free
+NVIDIA trial model, not Gemini (the Gemini free tier allows 20 requests per model per day and billing was not
+available); and clause categories are scored by span match plus contract presence, value categories by normalised value,
+per the design correction above. The Parties figure is reported twice (exact name, alias-aware).
+
+**Post-merge correction (reviewer, by docs edit):** the merged note said the product uses "semantic AST / structural
+chunking". It does not: the ingest chunker splits on blank lines only, with no size cap. The note is corrected. This is
+recorded as an input to T-228 below.
+
+Outputs: the harness (`evals/cuad/**`), `docs/research/cuad-extraction-measurement-2026-10.md`. Parked: the same frozen
+prompt on the production model under a ledger-backed dollar cap, which needs an Anthropic key with billing.

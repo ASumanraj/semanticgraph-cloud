@@ -193,7 +193,7 @@ To ensure intellectual honesty, the following constraints apply to all interpret
 1. **Single Open Model on Trial Infrastructure:** The evaluation tested `nvidia/nemotron-3-super-120b-a12b`. It demonstrates what a 120B parameter open model achieves with zero-shot structured prompts, but does not represent the models named in ENTERPRISE_PLAN.md, not evaluated here.
 2. **Sample Size:** 30 contracts evaluated once with seed 42. Run-to-run variance, temperature jitter, and sampling distributions were not measured across multiple seeds.
 3. **Prompt Development Overlap:** Two contracts in the 30-contract test sample (`Sibannac` and `Ediets`) were included in earlier smoke testing whose failure modes informed prompt structure. While the prompt was not tuned specifically to them, they do not constitute clean out-of-sample holdouts.
-4. **Harness Chunker vs. Product Pipeline:** The harness uses fixed 4,000-character line-boundary slicing. The SemanticGraph Cloud product uses semantic AST / structural chunking, which preserves semantic boundaries better than naive character windows.
+4. **Harness Chunker vs. Product Pipeline:** The harness uses fixed 4,000-character line-boundary slicing. The product's ingest chunker (`IngestDocumentUseCase._chunk_document`) splits only on blank lines, with no size limit and no overlap, so a long paragraph becomes one chunk and a text with no blank lines becomes one very large chunk. Neither chunker is section-aware. This measurement therefore does not predict the product's chunking behaviour, and the difference can cost recall in either direction.
 5. **Metric Incomparability with Published CUAD Benchmarks:** Published CUAD benchmarks use extractive question-answering spans (evaluating SQuAD-style F1 over SQuAD-formatted JSON). This benchmark evaluates structured relational entity and clause extraction with two distinct scoring modes.
 
 ---
@@ -204,7 +204,7 @@ To ensure clear boundaries and avoid misrepresentation to buyers, investors, or 
 1. **Not Comparable with Published CUAD Results:** These figures are not comparable with published CUAD benchmark results (which use a different SQuAD-style token-overlap metric and different evaluation splits).
 2. **Pretraining Contamination Likelihood:** CUAD contracts are public EDGAR SEC filings from 2020 and earlier and are likely present in the training and pretraining corpora of the evaluated model.
 3. **No System Properties Proven:** Nothing here says anything about temporal history, tenant isolation, merge decisions, or assertion-counted deletion.
-4. **Chunk Slicing Recall Cost:** Line-boundary fixed 4,000-character chunk slicing cuts clauses at window edges and may cost recall compared to AST-aware structural parsing.
+4. **Chunk Slicing Recall Cost:** Line-boundary fixed 4,000-character chunk slicing cuts clauses at window edges and may cost recall compared to section-aware chunking, which neither this harness nor the product's chunker implements.
 5. **Sample Size & Variance:** The sample is 30 contracts evaluated in a single run, and run-to-run variation across seeds or temperatures was not measured.
 6. **Prompt Tuning Holdout Status:** Two of the 30 test contracts were the smoke contracts that informed the prompt redesign; they are not clean blind holdouts.
 7. **Trial Model Distinction:** The evaluated model is a free evaluation-only trial endpoint, not the production models specified in `ENTERPRISE_PLAN.md`.
